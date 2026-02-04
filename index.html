@@ -31,7 +31,7 @@
     <input type="month" id="fMonth">
     <input placeholder="Company" id="fCompany">
     <input placeholder="Location" id="fLocation">
-    <input placeholder="Partnership" id="fPartner">
+    <select id="fPartner"><option value="">All</option><option value="Solo">Solo</option><option value="Partnership">Partnership</option></select>
   </div><br>
   <button onclick="loadWorks()">Apply Filter</button>
   <button class="gray" onclick="exportPDF()">Export PDF</button>
@@ -42,7 +42,7 @@
     <input placeholder="Customer" id="customer">
     <input placeholder="Location" id="location">
     <input placeholder="Company" id="company">
-    <input placeholder="Partnership" id="partner">
+    <select id="partner"><option value="Solo">Solo</option><option value="Partnership">Partnership</option></select>
     <input type="number" placeholder="Window Qty" id="qty">
     <input type="number" placeholder="Sqft / Window" id="sqft">
     <input type="number" placeholder="Rate / Sqft" id="rate">
@@ -52,11 +52,12 @@
     <option>Pending</option><option>Partial</option><option>Received</option>
   </select><br><br><button onclick="saveWork()">Save Work</button>
 
-</div><!-- LIST --><div class="card" id="list"><h3>Work Records</h3></div>
-</div><footer id="summary"></footer><script>
+</div><!-- SUMMARY --><div class="card" id="summary"></div><!-- WORK RECORDS AT BOTTOM --><div class="card" id="list"><h3>Work Records</h3></div>
+</div><footer>© Pro Work Manager</footer><script>
 feather.replace();
 
-firebase.initializeApp({apiKey:"AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
+firebase.initializeApp({
+apiKey:"AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
  authDomain:"ayyappan-work-management.firebaseapp.com",
  projectId:"ayyappan-work-management"});
 const db=firebase.firestore();
@@ -90,8 +91,10 @@ function saveWork(){
 
 function loadWorks(){
   list.innerHTML='<h3>Work Records</h3>'; let total=0;
-  db.collection('works').onSnapshot(snap=>{
+  db.collection('works').onSnapshot(snap=>{(snap=>{
     snap.forEach(doc=>{
+      const fP=fPartner.value;
+      if(fP && doc.data().partner!==fP) return;
       const d=doc.data();
       const sqft=d.qty*d.sqft; const amt=sqft*d.rate;
       const helperCost=d.helpers.reduce((s,h)=>s+h.salary+h.petrol,0);
@@ -101,6 +104,32 @@ function loadWorks(){
         <div class='expand' onclick='this.nextElementSibling.classList.toggle("hidden")'>+ ${d.customer} (${d.date})</div>
         <div class='hidden'>
           <p>${d.location} | ${d.company}</p>
+          <p>Amount: ₹${amt}</p>
+          <p>Helpers Cost: ₹${helperCost}</p>
+          <p><b>Profit: ₹${profit}</b></p>
+          <button class='gray' onclick='editWork("${doc.id}")'>Edit</button>
+          <button class='gray' onclick='db.collection("works").doc("${doc.id}").delete()'>Delete</button>
+        </div></div>`;
+    });
+    document.getElementById('summary').innerHTML=`This month profit ₹${total} ${total>75000?'🔥 Outstanding!':'💪 Keep growing!'}`;
+  });
+}
+
+function editWork(id){
+  db.collection('works').doc(id).get().then(doc=>{
+    const d=doc.data(); editId=id;
+    date.value=d.date;customer.value=d.customer;location.value=d.location;
+    company.value=d.company;partner.value=d.partner;qty.value=d.qty;
+    sqft.value=d.sqft;rate.value=d.rate;payment.value=d.payment;
+    helpers.innerHTML=''; d.helpers.forEach(h=>addHelper(h.name,h.salary,h.petrol));
+  });
+}
+
+function exportPDF(){html2pdf().from(document.getElementById('list')).save('work-report.pdf')}
+
+loadWorks();
+</script></body>
+</html>          <p>${d.location} | ${d.company}</p>
           <p>Amount: ₹${amt}</p>
           <p>Helpers Cost: ₹${helperCost}</p>
           <p><b>Profit: ₹${profit}</b></p>
