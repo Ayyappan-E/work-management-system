@@ -2,64 +2,64 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Job Entry Report</title>
+<title>Job Entry</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- PDF -->
+<!-- PDF Export -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
-:root{
-  --bg:#f4f4f4;
-  --box:#ffffff;
+:root {
+  --bg:#f2f2f2;
+  --box:#fff;
   --text:#000;
 }
-.dark{
+.dark {
   --bg:#121212;
   --box:#1e1e1e;
   --text:#fff;
 }
-body{
+body {
   background:var(--bg);
   color:var(--text);
   font-family:Arial;
 }
-.container{
+.container {
   max-width:1100px;
   margin:20px auto;
   background:var(--box);
-  border:2px solid #999;
+  border:2px solid #777;
   border-radius:10px;
   padding:15px;
 }
-.grid{
+.grid {
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:10px;
 }
-label{font-size:13px;}
-input,select,textarea,button{
+label { font-size:13px; }
+input, select, textarea, button {
   width:100%;
   padding:6px;
 }
-table{
+table {
   width:100%;
   border-collapse:collapse;
   margin-top:10px;
 }
-th,td{
+th, td {
   border:1px solid #999;
   padding:6px;
   font-size:12px;
 }
-button{
-  cursor:pointer;
-}
-.topbar{
+.topbar {
   display:flex;
-  justify-content:space-between;
   gap:10px;
   flex-wrap:wrap;
+  justify-content:space-between;
+}
+button {
+  cursor:pointer;
 }
 </style>
 </head>
@@ -69,19 +69,20 @@ button{
 <div class="container" id="reportBox">
 
 <div class="topbar">
-  <button onclick="toggleDark()">🌙 Dark Mode</button>
-  <button onclick="exportPDF()">📄 Export PDF</button>
-  <button onclick="shareReport()">📤 Share</button>
+  <button type="button" onclick="toggleDark()">🌙 Dark</button>
+  <button type="button" onclick="exportPDF()">📄 PDF</button>
 </div>
 
 <h3>Job Entry Form</h3>
 
+<!-- ❗ NO <form> TAG (fixes save issue) -->
 <div class="grid">
+
 <label>Date<input type="date" id="date"></label>
 <label>QN<input id="qn"></label>
 <label>Customer Name<input id="customer"></label>
 <label>Location<input id="location"></label>
-<label>Window Qty<input type="number" id="qty"></label>
+<label>Win Qty<input type="number" id="qty"></label>
 <label>Total Sqft<input type="number" id="sqft"></label>
 <label>Extra Payment<input type="number" id="extra"></label>
 <label>Total Amount<input type="number" id="total"></label>
@@ -91,6 +92,7 @@ button{
 
 <label>Status
 <select id="status">
+<option value="">Select</option>
 <option>Completed</option>
 <option>Pending</option>
 </select>
@@ -98,6 +100,7 @@ button{
 
 <label>Payment Status
 <select id="payment">
+<option value="">Select</option>
 <option>Paid</option>
 <option>Unpaid</option>
 </select>
@@ -114,17 +117,19 @@ button{
 
 <label>Today Holiday?
 <select id="holiday">
-<option value="No">No</option>
-<option value="Yes">Yes</option>
+<option>No</option>
+<option>Yes</option>
 </select>
 </label>
 
 <label>Holiday Reason
 <textarea id="comment"></textarea>
 </label>
+
 </div>
 
-<button onclick="saveData()">💾 Save</button>
+<br>
+<button type="button" onclick="saveData()">💾 Save</button>
 
 <hr>
 
@@ -136,12 +141,11 @@ button{
 <option>Partner</option>
 </select>
 
-<input id="filterCompany" placeholder="Filter Company" onkeyup="loadData()">
-
+<input id="filterCompany" placeholder="Company filter" onkeyup="loadData()">
 <input type="month" id="filterMonth" onchange="loadData()">
 </div>
 
-<h3>Reports</h3>
+<h3>Report</h3>
 <table>
 <thead>
 <tr>
@@ -159,82 +163,81 @@ button{
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+/* 🔴 REPLACE WITH YOUR CONFIG */
 const firebaseConfig = {
-  apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
+    apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
   authDomain: "ayyappan-work-management.firebaseapp.com",
   projectId: "ayyappan-work-management"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-function toggleDark(){
+/* DARK MODE */
+function toggleDark() {
   document.body.classList.toggle("dark");
 }
 
-function saveData(){
+/* SAVE DATA — FIXED */
+function saveData() {
+  alert("Save clicked"); // confirms button works
+
   db.collection("jobs").add({
-    date:date.value,
-    qn:qn.value,
-    customer:customer.value,
-    location:location.value,
-    qty:qty.value,
-    sqft:sqft.value,
-    extra:extra.value,
-    total:total.value,
-    helpers:helpers.value,
-    ot:ot.value,
-    company:company.value,
-    status:status.value,
-    payment:payment.value,
-    balance:balance.value,
-    jobtype:jobtype.value,
-    holiday:holiday.value,
-    comment:comment.value
-  });
-  alert("Saved");
+    date: date.value || "",
+    qn: qn.value || "",
+    customer: customer.value || "",
+    location: location.value || "",
+    qty: Number(qty.value) || 0,
+    sqft: Number(sqft.value) || 0,
+    extra: Number(extra.value) || 0,
+    total: Number(total.value) || 0,
+    helpers: Number(helpers.value) || 0,
+    ot: Number(ot.value) || 0,
+    company: company.value || "",
+    status: status.value || "",
+    payment: payment.value || "",
+    balance: Number(balance.value) || 0,
+    jobtype: jobtype.value || "",
+    holiday: holiday.value || "No",
+    comment: comment.value || ""
+  })
+  .then(() => {
+    alert("Saved to Firebase");
+    loadData();
+  })
+  .catch(err => alert(err.message));
 }
 
-function loadData(){
-  let tbody=document.getElementById("tbody");
-  tbody.innerHTML="";
-  db.collection("jobs").onSnapshot(snap=>{
-    snap.forEach(doc=>{
-      let d=doc.data();
+/* LOAD + FILTER DATA */
+function loadData() {
+  tbody.innerHTML = "";
+  db.collection("jobs").onSnapshot(snap => {
+    snap.forEach(doc => {
+      let d = doc.data();
 
-      if(filterJob.value && d.jobtype!==filterJob.value) return;
-      if(filterCompany.value && !d.company.toLowerCase().includes(filterCompany.value.toLowerCase())) return;
-      if(filterMonth.value && !d.date.startsWith(filterMonth.value)) return;
+      if (filterJob.value && d.jobtype !== filterJob.value) return;
+      if (filterCompany.value && !d.company.toLowerCase().includes(filterCompany.value.toLowerCase())) return;
+      if (filterMonth.value && !d.date.startsWith(filterMonth.value)) return;
 
-      tbody.innerHTML+=`
-      <tr>
-        <td>${d.date}</td>
-        <td>${d.qn}</td>
-        <td>${d.customer}</td>
-        <td>${d.company}</td>
-        <td>${d.jobtype}</td>
-        <td>${d.total}</td>
-        <td>${d.balance}</td>
-        <td>${d.holiday}</td>
-      </tr>`;
+      tbody.innerHTML += `
+        <tr>
+          <td>${d.date}</td>
+          <td>${d.qn}</td>
+          <td>${d.customer}</td>
+          <td>${d.company}</td>
+          <td>${d.jobtype}</td>
+          <td>${d.total}</td>
+          <td>${d.balance}</td>
+          <td>${d.holiday}</td>
+        </tr>`;
     });
   });
 }
 loadData();
 
-function exportPDF(){
+/* PDF EXPORT */
+function exportPDF() {
   html2pdf().from(reportBox).save("Job_Report.pdf");
-}
-
-function shareReport(){
-  if(navigator.share){
-    navigator.share({
-      title:"Job Report",
-      text:"Job Report Summary",
-      url:location.href
-    });
-  }else{
-    alert("Sharing not supported");
-  }
 }
 </script>
 
