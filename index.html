@@ -56,8 +56,8 @@ button{
   border:none;
   cursor:pointer;
 }
-button.danger{background:#dc2626}
 button.secondary{background:#059669}
+button.danger{background:#dc2626}
 .topbar{
   display:flex;
   gap:10px;
@@ -90,7 +90,6 @@ th,td{
 </div>
 
 <h3>Job Entry</h3>
-
 <input type="hidden" id="docId">
 
 <div class="grid">
@@ -147,6 +146,25 @@ th,td{
 
 <hr>
 
+<h3>Filters</h3>
+<div class="grid">
+<label>Job Type
+<select id="filterJob" onchange="renderData()">
+<option value="">All</option>
+<option>Solo</option>
+<option>Partner</option>
+</select>
+</label>
+
+<label>Company
+<input id="filterCompany" onkeyup="renderData()" placeholder="Company name">
+</label>
+
+<label>Month
+<input type="month" id="filterMonth" onchange="renderData()">
+</label>
+</div>
+
 <h3>Report</h3>
 <table>
 <thead>
@@ -173,6 +191,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+let allData = [];
+
 function toggleDark(){
   document.body.classList.toggle("dark");
 }
@@ -183,11 +203,23 @@ function saveData(){
     .then(()=>{alert("Saved");clearForm();});
 }
 
-/* READ */
+/* READ (CACHE DATA) */
 db.collection("jobs").onSnapshot(snap=>{
-  tbody.innerHTML="";
+  allData = [];
   snap.forEach(doc=>{
-    let d=doc.data();
+    allData.push({id:doc.id, ...doc.data()});
+  });
+  renderData();
+});
+
+/* FILTER + RENDER */
+function renderData(){
+  tbody.innerHTML="";
+  allData.forEach(d=>{
+    if(filterJob.value && d.jobtype!==filterJob.value) return;
+    if(filterCompany.value && !d.company.toLowerCase().includes(filterCompany.value.toLowerCase())) return;
+    if(filterMonth.value && !d.date.startsWith(filterMonth.value)) return;
+
     tbody.innerHTML+=`
     <tr>
       <td>${d.date}</td>
@@ -198,15 +230,16 @@ db.collection("jobs").onSnapshot(snap=>{
       <td>${d.total}</td>
       <td>${d.balance}</td>
       <td>
-        <button onclick="editData('${doc.id}',${JSON.stringify(d).replace(/"/g,'&quot;')})">Edit</button>
-        <button class="danger" onclick="deleteData('${doc.id}')">Del</button>
+        <button onclick="editData('${d.id}')">Edit</button>
+        <button class="danger" onclick="deleteData('${d.id}')">Del</button>
       </td>
     </tr>`;
   });
-});
+}
 
 /* LOAD TO FORM */
-function editData(id,d){
+function editData(id){
+  let d = allData.find(x=>x.id===id);
   docId.value=id;
   for(let k in d){
     if(document.getElementById(k))
@@ -270,7 +303,7 @@ function shareReport(){
       url:location.href
     });
   }else{
-    alert("Share not supported");
+    alert("Share not supported on this device");
   }
 }
 </script>
