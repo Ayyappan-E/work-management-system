@@ -2,25 +2,53 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Job Report</title>
+<title>Ayyappan Work Management</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
 :root{--bg:#fff;--text:#000}
-.dark{--bg:#1e1e1e;--text:#fff}
+.dark{--bg:#111;--text:#fff}
+
 body{
   margin:0;font-family:Arial;color:var(--text);
-  background:linear-gradient(135deg,#667eea,#764ba2,#6ee7b7);
-  background-size:400% 400%;animation:bg 10s infinite;
+  min-height:100vh;
+  background:#0f172a;
+  overflow-x:hidden;
 }
-@keyframes bg{0%{background-position:0%}50%{background-position:100%}100%{background-position:0%}}
+
+/* Animated background */
+.mobile-bg{
+  position:fixed;inset:0;
+  background:linear-gradient(120deg,#6366f1,#22c55e,#ec4899);
+  background-size:300% 300%;
+  animation:bgMove 10s infinite alternate;
+  z-index:-1;
+  opacity:.25;
+}
+@keyframes bgMove{
+  0%{background-position:0% 50%}
+  100%{background-position:100% 50%}
+}
+
 .container{
-  max-width:1100px;margin:20px auto;
-  background:var(--bg);padding:15px;border-radius:14px;
-  box-shadow:0 15px 30px rgba(0,0,0,.25)
+  max-width:1100px;
+  margin:20px auto;
+  background:var(--bg);
+  padding:15px;
+  border-radius:16px;
+  box-shadow:0 20px 40px rgba(0,0,0,.35);
 }
+
+@media(max-width:768px){
+  .container{margin:16px;animation:float 4s infinite}
+}
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-6px)}
+}
+
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
 label{font-size:13px;font-weight:bold}
 input,select,textarea,button{
@@ -31,119 +59,81 @@ button{background:#4f46e5;color:#fff;border:none;cursor:pointer}
 .danger{background:#dc2626}
 table{width:100%;border-collapse:collapse;margin-top:10px}
 th,td{border:1px solid #ccc;padding:6px;font-size:12px;text-align:center}
-.summary{border:2px solid #4f46e5;border-radius:10px;padding:12px;text-align:center}
-.topbar{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between}
+
+.summary{
+  border:2px solid #4f46e5;
+  border-radius:12px;
+  padding:14px;
+  text-align:center;
+  animation:pulse 2.5s infinite;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 rgba(79,70,229,.5)}
+  70%{box-shadow:0 0 18px rgba(79,70,229,.6)}
+  100%{box-shadow:0 0 0 rgba(79,70,229,.5)}
+}
+
+.motivation{font-weight:bold;color:#22c55e}
 </style>
 </head>
 
 <body>
 
+<div class="mobile-bg"></div>
+
 <div class="container">
 
-<div class="topbar">
-  <div>
-    <button onclick="toggleDark()">🌙 Dark</button>
-    <button onclick="exportPDF()">📄 PDF</button>
-    <button onclick="shareReport()">📤 Share</button>
-  </div>
-</div>
-
-<h3>Job Entry</h3>
-<input type="hidden" id="docId">
+<h2>Ayyappan Work Management</h2>
 
 <div class="grid">
 <label>Date<input type="date" id="date"></label>
-<label>QN<input id="qn"></label>
 <label>Customer<input id="customer"></label>
-<label>Location<input id="location"></label>
-
-<label>Total Sqft
-<input type="number" id="sqft" oninput="calculateTotal()">
-</label>
-
-<label>Sqft Amount
-<input type="number" id="sqftRate" oninput="calculateTotal()">
-</label>
-
-<label>Extra Payment
-<input type="number" id="extra" oninput="calculateTotal()">
-</label>
-
-<label>Total Amount
-<input type="number" id="total" readonly>
-</label>
-
-<label>Helpers<input type="number" id="helpers"></label>
-<label>OT<input type="number" id="ot"></label>
 <label>Company<input id="company"></label>
-
-<label>Status<select id="status">
-<option>Completed</option><option>Pending</option>
-</select></label>
-
-<label>Payment<select id="payment">
-<option>Paid</option><option>Unpaid</option>
-</select></label>
-
-<label>Balance<input type="number" id="balance"></label>
-
-<label>Job Type<select id="jobtype">
-<option>Solo</option><option>Partner</option>
-</select></label>
-
-<label>Holiday<select id="holiday">
-<option>No</option><option>Yes</option>
-</select></label>
-
-<label>Holiday Reason<textarea id="comment"></textarea></label>
+<label>Total Sqft<input type="number" id="sqft" oninput="calc()"></label>
+<label>Sqft Rate<input type="number" id="rate" oninput="calc()"></label>
+<label>Extra<input type="number" id="extra" oninput="calc()"></label>
+<label>Total Amount<input type="number" id="total" readonly></label>
+<label>Job Type<select id="jobtype"><option>Solo</option><option>Partner</option></select></label>
 </div>
 
 <br>
-<button onclick="saveData()">💾 Save</button>
-<button class="secondary" onclick="updateData()">✏️ Update</button>
+<button onclick="saveData()">Save</button>
 
 <hr>
 
 <h3>Filters</h3>
 <div class="grid">
-<label>Job Type
-<select id="filterJob" onchange="renderData()">
+<label>Job Type<select id="fJob" onchange="render()">
 <option value="">All</option><option>Solo</option><option>Partner</option>
 </select></label>
-
-<label>Company
-<input id="filterCompany" onkeyup="renderData()">
-</label>
-
-<label>Month
-<input type="month" id="filterMonth" onchange="renderData()">
-</label>
+<label>Company<input id="fCompany" onkeyup="render()"></label>
+<label>Month<input type="month" id="fMonth" onchange="render()"></label>
 </div>
 
-<!-- ✅ ONLY THIS PART IS EXPORTED TO PDF -->
 <div id="reportBox">
 
 <h3>Summary</h3>
-<div class="grid">
-  <div class="summary">
-    <h4>Total Earnings</h4>
-    <h2 id="totalEarnings">₹0</h2>
-  </div>
+<div class="summary">
+<h2 id="sum">₹0</h2>
+<div id="msg" class="motivation">Let’s start strong 💪</div>
 </div>
 
 <h3>Report</h3>
 <table>
 <thead>
 <tr>
-<th>Date</th><th>QN</th><th>Customer</th><th>Company</th>
-<th>Sqft</th><th>Rate</th><th>Total</th><th>Balance</th>
+<th>Date</th><th>Customer</th><th>Company</th>
+<th>Sqft</th><th>Rate</th><th>Total</th>
 </tr>
 </thead>
 <tbody id="tbody"></tbody>
 </table>
 
 </div>
-<!-- PDF AREA END -->
+
+<br>
+<button onclick="exportPDF()">Export PDF</button>
+<button onclick="toggleDark()">Dark Mode</button>
 
 </div>
 
@@ -152,103 +142,56 @@ th,td{border:1px solid #ccc;padding:6px;font-size:12px;text-align:center}
 
 <script>
 const firebaseConfig={
-   apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
-  authDomain: "ayyappan-work-management.firebaseapp.com",
-  projectId: "ayyappan-work-management"
+  apiKey:"AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
+  authDomain:"ayyappan-work-management.firebaseapp.com",
+  projectId:"ayyappan-work-management"
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 
-let allData=[];
+let data=[];
 
-function toggleDark(){document.body.classList.toggle("dark")}
-
-function calculateTotal(){
-  total.value=(+sqft.value||0)*(+sqftRate.value||0)+(+extra.value||0);
+function calc(){
+  total.value=(+sqft.value||0)*(+rate.value||0)+(+extra.value||0);
 }
 
 function saveData(){
-  db.collection("jobs").add(getData()).then(clearForm);
+  db.collection("jobs").add({
+    date:date.value,customer:customer.value,company:company.value,
+    sqft:+sqft.value||0,rate:+rate.value||0,extra:+extra.value||0,
+    total:+total.value||0,jobtype:jobtype.value
+  });
 }
 
-db.collection("jobs").onSnapshot(snap=>{
-  allData=[];
-  snap.forEach(d=>allData.push({id:d.id,...d.data()}));
-  renderData();
+db.collection("jobs").onSnapshot(s=>{
+  data=[];
+  s.forEach(d=>data.push(d.data()));
+  render();
 });
 
-function renderData(){
+function render(){
   tbody.innerHTML="";
   let sum=0;
-
-  allData.forEach(d=>{
-    if(filterJob.value && d.jobtype!==filterJob.value) return;
-    if(filterCompany.value && !d.company.toLowerCase().includes(filterCompany.value.toLowerCase())) return;
-    if(filterMonth.value && !d.date.startsWith(filterMonth.value)) return;
-
-    sum+=Number(d.total||0);
-
-    tbody.innerHTML+=`
-    <tr>
-      <td>${d.date}</td>
-      <td>${d.qn}</td>
-      <td>${d.customer}</td>
-      <td>${d.company}</td>
-      <td>${d.sqft}</td>
-      <td>${d.sqftRate}</td>
-      <td>${d.total}</td>
-      <td>${d.balance}</td>
-    </tr>`;
+  data.forEach(d=>{
+    if(fJob.value && d.jobtype!==fJob.value) return;
+    if(fCompany.value && !d.company.toLowerCase().includes(fCompany.value.toLowerCase())) return;
+    if(fMonth.value && !d.date.startsWith(fMonth.value)) return;
+    sum+=d.total;
+    tbody.innerHTML+=`<tr>
+    <td>${d.date}</td><td>${d.customer}</td><td>${d.company}</td>
+    <td>${d.sqft}</td><td>${d.rate}</td><td>${d.total}</td></tr>`;
   });
-
-  totalEarnings.innerText="₹"+sum.toLocaleString();
-}
-
-function editData(id){
-  let d=allData.find(x=>x.id===id);
-  docId.value=id;
-  for(let k in d) if(document.getElementById(k)) document.getElementById(k).value=d[k];
-  calculateTotal();
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-
-function updateData(){
-  if(!docId.value)return alert("Select record");
-  db.collection("jobs").doc(docId.value).update(getData()).then(clearForm);
-}
-
-function getData(){
-  return {
-    date:date.value, qn:qn.value, customer:customer.value, location:location.value,
-    sqft:+sqft.value||0, sqftRate:+sqftRate.value||0,
-    extra:+extra.value||0, total:+total.value||0,
-    helpers:+helpers.value||0, ot:+ot.value||0,
-    company:company.value, status:status.value,
-    payment:payment.value, balance:+balance.value||0,
-    jobtype:jobtype.value, holiday:holiday.value,
-    comment:comment.value
-  }
-}
-
-function clearForm(){
-  document.querySelectorAll("input,textarea").forEach(i=>i.value="");
-  docId.value="";
+  document.getElementById("sum").innerText="₹"+sum.toLocaleString();
+  document.getElementById("msg").innerText =
+    sum<10000?"Good start 🌱":sum<50000?"Great progress 🔥":sum<100000?"You’re crushing it 🚀":"Elite level 💎";
 }
 
 function exportPDF(){
-  html2pdf().set({
-    margin:10,
-    filename:"Filtered_Job_Report.pdf",
-    html2canvas:{scale:2},
-    jsPDF:{orientation:"landscape",unit:"mm",format:"a4"}
-  }).from(document.getElementById("reportBox")).save();
+  html2pdf().from(document.getElementById("reportBox"))
+    .set({filename:"Filtered_Report.pdf",jsPDF:{orientation:"landscape"}}).save();
 }
 
-function shareReport(){
-  navigator.share
-    ? navigator.share({title:"Job Report",url:location.href})
-    : alert("Share not supported");
-}
+function toggleDark(){document.body.classList.toggle("dark")}
 </script>
 
 </body>
