@@ -57,9 +57,10 @@
 feather.replace();
 
 firebase.initializeApp({
-apiKey:"AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
- authDomain:"ayyappan-work-management.firebaseapp.com",
- projectId:"ayyappan-work-management"});
+  apiKey:"AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
+  authDomain:"ayyappan-work-management.firebaseapp.com",
+  projectId:"ayyappan-work-management"
+});
 const db=firebase.firestore();
 let editId=null;
 
@@ -112,32 +113,6 @@ function loadWorks(){
         </div></div>`;
     });
     document.getElementById('summary').innerHTML=`This month profit ₹${total} ${total>75000?'🔥 Outstanding!':'💪 Keep growing!'}`;
-  });
-}
-
-function editWork(id){
-  db.collection('works').doc(id).get().then(doc=>{
-    const d=doc.data(); editId=id;
-    date.value=d.date;customer.value=d.customer;location.value=d.location;
-    company.value=d.company;partner.value=d.partner;qty.value=d.qty;
-    sqft.value=d.sqft;rate.value=d.rate;payment.value=d.payment;
-    helpers.innerHTML=''; d.helpers.forEach(h=>addHelper(h.name,h.salary,h.petrol));
-  });
-}
-
-function exportPDF(){html2pdf().from(document.getElementById('list')).save('work-report.pdf')}
-
-loadWorks();
-</script></body>
-</html>          <p>${d.location} | ${d.company}</p>
-          <p>Amount: ₹${amt}</p>
-          <p>Helpers Cost: ₹${helperCost}</p>
-          <p><b>Profit: ₹${profit}</b></p>
-          <button class='gray' onclick='editWork("${doc.id}")'>Edit</button>
-          <button class='gray' onclick='db.collection("works").doc("${doc.id}").delete()'>Delete</button>
-        </div></div>`;
-    });
-    summary.innerHTML=`This month profit ₹${total} ${total>75000?'🔥 Outstanding!':'💪 Keep growing!'}`;
   });
 }
 
