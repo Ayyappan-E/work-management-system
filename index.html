@@ -15,17 +15,13 @@ body{
   margin:0;font-family:Arial;color:var(--text);
   min-height:100vh;
   background:#0f172a;
-  overflow-x:hidden;
 }
-
-/* Animated background */
 .mobile-bg{
   position:fixed;inset:0;
   background:linear-gradient(120deg,#6366f1,#22c55e,#ec4899);
   background-size:300% 300%;
   animation:bgMove 10s infinite alternate;
-  z-index:-1;
-  opacity:.25;
+  z-index:-1;opacity:.25;
 }
 @keyframes bgMove{
   0%{background-position:0% 50%}
@@ -33,22 +29,11 @@ body{
 }
 
 .container{
-  max-width:1100px;
-  margin:20px auto;
-  background:var(--bg);
-  padding:15px;
+  max-width:1100px;margin:20px auto;
+  background:var(--bg);padding:15px;
   border-radius:16px;
   box-shadow:0 20px 40px rgba(0,0,0,.35);
 }
-
-@media(max-width:768px){
-  .container{margin:16px;animation:float 4s infinite}
-}
-@keyframes float{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-6px)}
-}
-
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
 label{font-size:13px;font-weight:bold}
 input,select,textarea,button{
@@ -56,44 +41,50 @@ input,select,textarea,button{
 }
 button{background:#4f46e5;color:#fff;border:none;cursor:pointer}
 .secondary{background:#059669}
-.danger{background:#dc2626}
 table{width:100%;border-collapse:collapse;margin-top:10px}
 th,td{border:1px solid #ccc;padding:6px;font-size:12px;text-align:center}
-
 .summary{
-  border:2px solid #4f46e5;
-  border-radius:12px;
-  padding:14px;
-  text-align:center;
-  animation:pulse 2.5s infinite;
+  border:2px solid #4f46e5;border-radius:12px;
+  padding:14px;text-align:center
 }
-@keyframes pulse{
-  0%{box-shadow:0 0 0 rgba(79,70,229,.5)}
-  70%{box-shadow:0 0 18px rgba(79,70,229,.6)}
-  100%{box-shadow:0 0 0 rgba(79,70,229,.5)}
-}
-
 .motivation{font-weight:bold;color:#22c55e}
+.hidden{display:none}
 </style>
 </head>
 
 <body>
-
 <div class="mobile-bg"></div>
 
 <div class="container">
-
 <h2>Ayyappan Work Management</h2>
 
 <div class="grid">
 <label>Date<input type="date" id="date"></label>
-<label>Customer<input id="customer"></label>
-<label>Company<input id="company"></label>
-<label>Total Sqft<input type="number" id="sqft" oninput="calc()"></label>
-<label>Sqft Rate<input type="number" id="rate" oninput="calc()"></label>
-<label>Extra<input type="number" id="extra" oninput="calc()"></label>
-<label>Total Amount<input type="number" id="total" readonly></label>
-<label>Job Type<select id="jobtype"><option>Solo</option><option>Partner</option></select></label>
+
+<label>Holiday?
+<select id="holiday" onchange="toggleHoliday()">
+<option value="no">No</option>
+<option value="yes">Yes</option>
+</select>
+</label>
+
+<label class="holidayOnly hidden">
+Holiday Reason
+<textarea id="holidayReason"></textarea>
+</label>
+
+<label class="workOnly">Customer<input id="customer"></label>
+<label class="workOnly">Company<input id="company"></label>
+<label class="workOnly">Total Sqft<input type="number" id="sqft" oninput="calc()"></label>
+<label class="workOnly">Sqft Rate<input type="number" id="rate" oninput="calc()"></label>
+<label class="workOnly">Extra<input type="number" id="extra" oninput="calc()"></label>
+<label class="workOnly">Total Amount<input type="number" id="total" readonly></label>
+<label class="workOnly">Job Type
+<select id="jobtype">
+<option>Solo</option>
+<option>Partner</option>
+</select>
+</label>
 </div>
 
 <br>
@@ -111,7 +102,6 @@ th,td{border:1px solid #ccc;padding:6px;font-size:12px;text-align:center}
 </div>
 
 <div id="reportBox">
-
 <h3>Summary</h3>
 <div class="summary">
 <h2 id="sum">₹0</h2>
@@ -122,13 +112,12 @@ th,td{border:1px solid #ccc;padding:6px;font-size:12px;text-align:center}
 <table>
 <thead>
 <tr>
-<th>Date</th><th>Customer</th><th>Company</th>
-<th>Sqft</th><th>Rate</th><th>Total</th>
+<th>Date</th><th>Type</th><th>Customer</th>
+<th>Company</th><th>Total</th><th>Note</th>
 </tr>
 </thead>
 <tbody id="tbody"></tbody>
 </table>
-
 </div>
 
 <br>
@@ -141,58 +130,76 @@ th,td{border:1px solid #ccc;padding:6px;font-size:12px;text-align:center}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-const firebaseConfig={
+firebase.initializeApp({
   apiKey:"AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
   authDomain:"ayyappan-work-management.firebaseapp.com",
   projectId:"ayyappan-work-management"
-};
-firebase.initializeApp(firebaseConfig);
+});
 const db=firebase.firestore();
-
 let data=[];
+
+function toggleHoliday(){
+  const isHoliday=holiday.value==="yes";
+  document.querySelectorAll(".workOnly").forEach(e=>e.style.display=isHoliday?"none":"block");
+  document.querySelector(".holidayOnly").classList.toggle("hidden",!isHoliday);
+}
 
 function calc(){
   total.value=(+sqft.value||0)*(+rate.value||0)+(+extra.value||0);
 }
 
 function saveData(){
-  db.collection("jobs").add({
-    date:date.value,customer:customer.value,company:company.value,
-    sqft:+sqft.value||0,rate:+rate.value||0,extra:+extra.value||0,
-    total:+total.value||0,jobtype:jobtype.value
-  });
+  if(holiday.value==="yes"){
+    if(!holidayReason.value) return alert("Enter holiday reason");
+    db.collection("jobs").add({
+      date:date.value,
+      type:"Holiday",
+      reason:holidayReason.value,
+      total:0
+    });
+  }else{
+    db.collection("jobs").add({
+      date:date.value,type:"Work",
+      customer:customer.value,company:company.value,
+      sqft:+sqft.value||0,rate:+rate.value||0,
+      extra:+extra.value||0,total:+total.value||0,
+      jobtype:jobtype.value
+    });
+  }
 }
 
 db.collection("jobs").onSnapshot(s=>{
-  data=[];
-  s.forEach(d=>data.push(d.data()));
-  render();
+  data=[];s.forEach(d=>data.push(d.data()));render();
 });
 
 function render(){
-  tbody.innerHTML="";
-  let sum=0;
+  tbody.innerHTML="";let sum=0;
   data.forEach(d=>{
-    if(fJob.value && d.jobtype!==fJob.value) return;
-    if(fCompany.value && !d.company.toLowerCase().includes(fCompany.value.toLowerCase())) return;
-    if(fMonth.value && !d.date.startsWith(fMonth.value)) return;
-    sum+=d.total;
+    if(d.type==="Work"){
+      if(fJob.value && d.jobtype!==fJob.value) return;
+      if(fCompany.value && !d.company?.toLowerCase().includes(fCompany.value.toLowerCase())) return;
+      if(fMonth.value && !d.date.startsWith(fMonth.value)) return;
+      sum+=d.total;
+    }
     tbody.innerHTML+=`<tr>
-    <td>${d.date}</td><td>${d.customer}</td><td>${d.company}</td>
-    <td>${d.sqft}</td><td>${d.rate}</td><td>${d.total}</td></tr>`;
+    <td>${d.date}</td>
+    <td>${d.type}</td>
+    <td>${d.customer||"-"}</td>
+    <td>${d.company||"-"}</td>
+    <td>${d.total||0}</td>
+    <td>${d.reason||""}</td>
+    </tr>`;
   });
-  document.getElementById("sum").innerText="₹"+sum.toLocaleString();
-  document.getElementById("msg").innerText =
-    sum<10000?"Good start 🌱":sum<50000?"Great progress 🔥":sum<100000?"You’re crushing it 🚀":"Elite level 💎";
+  sumEl=document.getElementById("sum");
+  sumEl.innerText="₹"+sum.toLocaleString();
+  msg.innerText=sum<10000?"Good start 🌱":sum<50000?"Great progress 🔥":sum<100000?"You’re crushing it 🚀":"Elite level 💎";
 }
 
 function exportPDF(){
-  html2pdf().from(document.getElementById("reportBox"))
-    .set({filename:"Filtered_Report.pdf",jsPDF:{orientation:"landscape"}}).save();
+  html2pdf().from(reportBox)
+  .set({filename:"Filtered_Report.pdf",jsPDF:{orientation:"landscape"}}).save();
 }
-
 function toggleDark(){document.body.classList.toggle("dark")}
 </script>
-
 </body>
 </html>
