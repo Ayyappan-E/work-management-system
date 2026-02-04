@@ -13,8 +13,7 @@
 
 body{
   margin:0;font-family:Arial;color:var(--text);
-  min-height:100vh;
-  background:#0f172a;
+  background:#0f172a;min-height:100vh;
 }
 .mobile-bg{
   position:fixed;inset:0;
@@ -30,19 +29,19 @@ body{
 
 .container{
   max-width:1100px;margin:20px auto;
-  background:var(--bg);padding:15px;
+  background:var(--bg);padding:16px;
   border-radius:16px;
   box-shadow:0 20px 40px rgba(0,0,0,.35);
 }
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
 label{font-size:13px;font-weight:bold}
 input,select,textarea,button{
-  width:100%;padding:7px;border-radius:6px;border:1px solid #aaa
+  width:100%;padding:8px;border-radius:6px;border:1px solid #aaa
 }
 button{background:#4f46e5;color:#fff;border:none;cursor:pointer}
-.secondary{background:#059669}
 table{width:100%;border-collapse:collapse;margin-top:10px}
 th,td{border:1px solid #ccc;padding:6px;font-size:12px;text-align:center}
+
 .summary{
   border:2px solid #4f46e5;border-radius:12px;
   padding:14px;text-align:center
@@ -56,8 +55,10 @@ th,td{border:1px solid #ccc;padding:6px;font-size:12px;text-align:center}
 <div class="mobile-bg"></div>
 
 <div class="container">
+
 <h2>Ayyappan Work Management</h2>
 
+<!-- ENTRY FORM -->
 <div class="grid">
 <label>Date<input type="date" id="date"></label>
 
@@ -92,16 +93,23 @@ Holiday Reason
 
 <hr>
 
+<!-- FILTERS -->
 <h3>Filters</h3>
 <div class="grid">
-<label>Job Type<select id="fJob" onchange="render()">
-<option value="">All</option><option>Solo</option><option>Partner</option>
-</select></label>
+<label>Job Type
+<select id="fJob" onchange="render()">
+<option value="">All</option>
+<option>Solo</option>
+<option>Partner</option>
+</select>
+</label>
 <label>Company<input id="fCompany" onkeyup="render()"></label>
 <label>Month<input type="month" id="fMonth" onchange="render()"></label>
 </div>
 
+<!-- REPORT -->
 <div id="reportBox">
+
 <h3>Summary</h3>
 <div class="summary">
 <h2 id="sum">₹0</h2>
@@ -112,12 +120,19 @@ Holiday Reason
 <table>
 <thead>
 <tr>
-<th>Date</th><th>Type</th><th>Customer</th>
-<th>Company</th><th>Total</th><th>Note</th>
+<th>Date</th>
+<th>Type</th>
+<th>Customer</th>
+<th>Company</th>
+<th>Sqft</th>
+<th>Rate</th>
+<th>Total</th>
+<th>Note</th>
 </tr>
 </thead>
 <tbody id="tbody"></tbody>
 </table>
+
 </div>
 
 <br>
@@ -126,6 +141,7 @@ Holiday Reason
 
 </div>
 
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
@@ -138,19 +154,25 @@ firebase.initializeApp({
 const db=firebase.firestore();
 let data=[];
 
+/* HOLIDAY TOGGLE */
 function toggleHoliday(){
-  const isHoliday=holiday.value==="yes";
-  document.querySelectorAll(".workOnly").forEach(e=>e.style.display=isHoliday?"none":"block");
-  document.querySelector(".holidayOnly").classList.toggle("hidden",!isHoliday);
+  const h = holiday.value==="yes";
+  document.querySelectorAll(".workOnly").forEach(e=>e.style.display=h?"none":"block");
+  document.querySelector(".holidayOnly").classList.toggle("hidden",!h);
 }
 
+/* AUTO CALC */
 function calc(){
-  total.value=(+sqft.value||0)*(+rate.value||0)+(+extra.value||0);
+  total.value =
+    (Number(sqft.value)||0) *
+    (Number(rate.value)||0) +
+    (Number(extra.value)||0);
 }
 
+/* SAVE */
 function saveData(){
   if(holiday.value==="yes"){
-    if(!holidayReason.value) return alert("Enter holiday reason");
+    if(!holidayReason.value.trim()) return alert("Enter holiday reason");
     db.collection("jobs").add({
       date:date.value,
       type:"Holiday",
@@ -159,47 +181,68 @@ function saveData(){
     });
   }else{
     db.collection("jobs").add({
-      date:date.value,type:"Work",
-      customer:customer.value,company:company.value,
-      sqft:+sqft.value||0,rate:+rate.value||0,
-      extra:+extra.value||0,total:+total.value||0,
+      date:date.value,
+      type:"Work",
+      customer:customer.value,
+      company:company.value,
+      sqft:Number(sqft.value)||0,
+      rate:Number(rate.value)||0,
+      extra:Number(extra.value)||0,
+      total:Number(total.value)||0,
       jobtype:jobtype.value
     });
   }
 }
 
+/* LOAD */
 db.collection("jobs").onSnapshot(s=>{
-  data=[];s.forEach(d=>data.push(d.data()));render();
+  data=[]; s.forEach(d=>data.push(d.data()));
+  render();
 });
 
+/* RENDER */
 function render(){
-  tbody.innerHTML="";let sum=0;
+  tbody.innerHTML="";
+  let sum=0;
+
   data.forEach(d=>{
     if(d.type==="Work"){
       if(fJob.value && d.jobtype!==fJob.value) return;
       if(fCompany.value && !d.company?.toLowerCase().includes(fCompany.value.toLowerCase())) return;
-      if(fMonth.value && !d.date.startsWith(fMonth.value)) return;
-      sum+=d.total;
+      if(fMonth.value && !d.date?.startsWith(fMonth.value)) return;
+      sum+=Number(d.total)||0;
     }
-    tbody.innerHTML+=`<tr>
-    <td>${d.date}</td>
-    <td>${d.type}</td>
-    <td>${d.customer||"-"}</td>
-    <td>${d.company||"-"}</td>
-    <td>${d.total||0}</td>
-    <td>${d.reason||""}</td>
+
+    tbody.innerHTML+=`
+    <tr>
+      <td>${d.date||"-"}</td>
+      <td>${d.type||"-"}</td>
+      <td>${d.customer||"-"}</td>
+      <td>${d.company||"-"}</td>
+      <td>${d.type==="Holiday"?"-":(d.sqft??"-")}</td>
+      <td>${d.type==="Holiday"?"-":(d.rate??"-")}</td>
+      <td>${d.type==="Holiday"?"Holiday":(d.total??0)}</td>
+      <td>${d.reason||""}</td>
     </tr>`;
   });
-  sumEl=document.getElementById("sum");
+
   sumEl.innerText="₹"+sum.toLocaleString();
-  msg.innerText=sum<10000?"Good start 🌱":sum<50000?"Great progress 🔥":sum<100000?"You’re crushing it 🚀":"Elite level 💎";
+  msg.innerText =
+    sum===0?"Let’s start strong 💪":
+    sum<10000?"Good start 🌱":
+    sum<50000?"Great progress 🔥":
+    sum<100000?"You’re crushing it 🚀":"Elite level 💎";
 }
 
+/* PDF */
 function exportPDF(){
   html2pdf().from(reportBox)
-  .set({filename:"Filtered_Report.pdf",jsPDF:{orientation:"landscape"}}).save();
+  .set({filename:"Filtered_Report.pdf",jsPDF:{orientation:"landscape"}})
+  .save();
 }
+
 function toggleDark(){document.body.classList.toggle("dark")}
 </script>
+
 </body>
 </html>
