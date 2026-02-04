@@ -77,21 +77,48 @@ function addHelper(name='',salary='',petrol=''){
 }
 
 function saveWork(){
-  const h=[...helpers.children].map(row=>({
-    name:row.children[0].value,
-    salary:+row.children[1].value,
-    petrol:+row.children[2].value
-  }));
+  try{
+    const h = helpers.children.length
+      ? [...helpers.children].map(row => ({
+          name: row.children[0].value,
+          salary: +row.children[1].value || 0,
+          petrol: +row.children[2].value || 0
+        }))
+      : [];
 
-  const data={
-    date:date.value,customer:customer.value,location:location.value,
-    company:company.value,partner:partner.value,
-    qty:+qty.value,sqft:+sqft.value,rate:+rate.value,
-    helpers:h,payment:payment.value,created:new Date()
-  };
+    const data={
+      date:date.value,
+      customer:customer.value,
+      location:location.value,
+      company:company.value,
+      partner:partner.value,
+      qty:+qty.value||0,
+      sqft:+sqft.value||0,
+      rate:+rate.value||0,
+      helpers:h,
+      payment:payment.value,
+      created:new Date()
+    };
 
-  editId?db.collection('works').doc(editId).set(data):db.collection('works').add(data);
-  editId=null;helpers.innerHTML='';
+    const btn=document.querySelector('button[onclick="saveWork()"]');
+    btn.disabled=true; btn.innerText='Saving...';
+
+    const action = editId
+      ? db.collection('works').doc(editId).set(data)
+      : db.collection('works').add(data);
+
+    action.then(()=>{
+      alert('✅ Work saved successfully');
+      editId=null;
+      helpers.innerHTML='';
+      document.querySelectorAll('input').forEach(i=>i.value='');
+      btn.disabled=false; btn.innerText='Save Work';
+    }).catch(err=>{
+      alert('❌ Save failed: '+err.message);
+      btn.disabled=false; btn.innerText='Save Work';
+    });
+  }catch(e){alert('❌ Error: '+e.message)}
+}
 }
 
 function loadWorks(){
