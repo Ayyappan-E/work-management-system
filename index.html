@@ -25,17 +25,7 @@
 <header>
   <h2>🏗️ PRO WORK MANAGER</h2>
   <div onclick="document.body.classList.toggle('dark')">🌙</div>
-</header><div class="container" id="app"><!-- FILTERS --><div class="card">
-  <h3>Filters</h3>
-  <div class="grid">
-    <input type="month" id="fMonth">
-    <input placeholder="Company" id="fCompany">
-    <input placeholder="Location" id="fLocation">
-    <select id="fPartner"><option value="">All</option><option value="Solo">Solo</option><option value="Partnership">Partnership</option></select>
-  </div><br>
-  <button onclick="loadWorks()">Apply Filter</button>
-  <button class="gray" onclick="exportPDF()">Export PDF</button>
-</div><!-- ADD WORK --><div class="card">
+</header><div class="container" id="app"><!-- ADD WORK --><div class="card">
   <h3>Add / Update Work</h3>
   <div class="grid">
     <input type="date" id="date">
@@ -52,7 +42,21 @@
     <option>Pending</option><option>Partial</option><option>Received</option>
   </select><br><br><button onclick="saveWork()">Save Work</button>
 
-</div><!-- SUMMARY --><div class="card" id="summary"></div><!-- WORK RECORDS AT BOTTOM --><div class="card" id="list"><h3>Work Records</h3></div>
+</div><!-- SUMMARY --><div class="card" id="summary"></div><!-- WORK RECORDS --><div class="card" id="list"><h3>Work Records</h3></div><!-- FILTERS AT BOTTOM --><div class="card">
+  <h3>Filters</h3>
+  <div class="grid">
+    <input type="month" id="fMonth">
+    <input placeholder="Company" id="fCompany">
+    <input placeholder="Location" id="fLocation">
+    <select id="fPartner">
+      <option value="">All</option>
+      <option value="Solo">Solo</option>
+      <option value="Partnership">Partnership</option>
+    </select>
+  </div><br>
+  <button onclick="loadWorks()">Apply Filter</button>
+  <button class="gray" onclick="exportPDF()">Export PDF</button>
+</div>
 </div><footer>© Pro Work Manager</footer><script>
 feather.replace();
 
