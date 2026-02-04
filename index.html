@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Job Entry Report</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+:root{
+  --bg:#f4f4f4;
+  --box:#ffffff;
+  --text:#000;
+}
+.dark{
+  --bg:#121212;
+  --box:#1e1e1e;
+  --text:#fff;
+}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial;
+}
+.container{
+  max-width:1100px;
+  margin:20px auto;
+  background:var(--box);
+  border:2px solid #999;
+  border-radius:10px;
+  padding:15px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:10px;
+}
+label{font-size:13px;}
+input,select,textarea,button{
+  width:100%;
+  padding:6px;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+th,td{
+  border:1px solid #999;
+  padding:6px;
+  font-size:12px;
+}
+button{
+  cursor:pointer;
+}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container" id="reportBox">
+
+<div class="topbar">
+  <button onclick="toggleDark()">🌙 Dark Mode</button>
+  <button onclick="exportPDF()">📄 Export PDF</button>
+  <button onclick="shareReport()">📤 Share</button>
+</div>
+
+<h3>Job Entry Form</h3>
+
+<div class="grid">
+<label>Date<input type="date" id="date"></label>
+<label>QN<input id="qn"></label>
+<label>Customer Name<input id="customer"></label>
+<label>Location<input id="location"></label>
+<label>Window Qty<input type="number" id="qty"></label>
+<label>Total Sqft<input type="number" id="sqft"></label>
+<label>Extra Payment<input type="number" id="extra"></label>
+<label>Total Amount<input type="number" id="total"></label>
+<label>Helpers<input type="number" id="helpers"></label>
+<label>OT<input type="number" id="ot"></label>
+<label>Company Name<input id="company"></label>
+
+<label>Status
+<select id="status">
+<option>Completed</option>
+<option>Pending</option>
+</select>
+</label>
+
+<label>Payment Status
+<select id="payment">
+<option>Paid</option>
+<option>Unpaid</option>
+</select>
+</label>
+
+<label>Balance<input type="number" id="balance"></label>
+
+<label>Job Type
+<select id="jobtype">
+<option>Solo</option>
+<option>Partner</option>
+</select>
+</label>
+
+<label>Today Holiday?
+<select id="holiday">
+<option value="No">No</option>
+<option value="Yes">Yes</option>
+</select>
+</label>
+
+<label>Holiday Reason
+<textarea id="comment"></textarea>
+</label>
+</div>
+
+<button onclick="saveData()">💾 Save</button>
+
+<hr>
+
+<h3>Filters</h3>
+<div class="grid">
+<select id="filterJob" onchange="loadData()">
+<option value="">All Job Types</option>
+<option>Solo</option>
+<option>Partner</option>
+</select>
+
+<input id="filterCompany" placeholder="Filter Company" onkeyup="loadData()">
+
+<input type="month" id="filterMonth" onchange="loadData()">
+</div>
+
+<h3>Reports</h3>
+<table>
+<thead>
+<tr>
+<th>Date</th><th>QN</th><th>Customer</th><th>Company</th>
+<th>Job</th><th>Total</th><th>Balance</th><th>Holiday</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
+  authDomain: "ayyappan-work-management.firebaseapp.com",
+  projectId: "ayyappan-work-management"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function toggleDark(){
+  document.body.classList.toggle("dark");
+}
+
+function saveData(){
+  db.collection("jobs").add({
+    date:date.value,
+    qn:qn.value,
+    customer:customer.value,
+    location:location.value,
+    qty:qty.value,
+    sqft:sqft.value,
+    extra:extra.value,
+    total:total.value,
+    helpers:helpers.value,
+    ot:ot.value,
+    company:company.value,
+    status:status.value,
+    payment:payment.value,
+    balance:balance.value,
+    jobtype:jobtype.value,
+    holiday:holiday.value,
+    comment:comment.value
+  });
+  alert("Saved");
+}
+
+function loadData(){
+  let tbody=document.getElementById("tbody");
+  tbody.innerHTML="";
+  db.collection("jobs").onSnapshot(snap=>{
+    snap.forEach(doc=>{
+      let d=doc.data();
+
+      if(filterJob.value && d.jobtype!==filterJob.value) return;
+      if(filterCompany.value && !d.company.toLowerCase().includes(filterCompany.value.toLowerCase())) return;
+      if(filterMonth.value && !d.date.startsWith(filterMonth.value)) return;
+
+      tbody.innerHTML+=`
+      <tr>
+        <td>${d.date}</td>
+        <td>${d.qn}</td>
+        <td>${d.customer}</td>
+        <td>${d.company}</td>
+        <td>${d.jobtype}</td>
+        <td>${d.total}</td>
+        <td>${d.balance}</td>
+        <td>${d.holiday}</td>
+      </tr>`;
+    });
+  });
+}
+loadData();
+
+function exportPDF(){
+  html2pdf().from(reportBox).save("Job_Report.pdf");
+}
+
+function shareReport(){
+  if(navigator.share){
+    navigator.share({
+      title:"Job Report",
+      text:"Job Report Summary",
+      url:location.href
+    });
+  }else{
+    alert("Sharing not supported");
+  }
+}
+</script>
+
+</body>
+</html>
