@@ -9,57 +9,82 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
-:root {
-  --bg:#f2f2f2;
-  --box:#fff;
+:root{
+  --box-bg:#ffffff;
   --text:#000;
 }
-.dark {
-  --bg:#121212;
-  --box:#1e1e1e;
+.dark{
+  --box-bg:#1e1e1e;
   --text:#fff;
 }
-body {
-  background:var(--bg);
-  color:var(--text);
+
+/* 🌈 GRADIENT BACKGROUND */
+body{
+  margin:0;
+  min-height:100vh;
   font-family:Arial;
+  background:linear-gradient(135deg,#667eea,#764ba2,#6ee7b7);
+  background-size:400% 400%;
+  animation:bgMove 10s ease infinite;
+  color:var(--text);
 }
-.container {
+
+@keyframes bgMove{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+.container{
   max-width:1100px;
   margin:20px auto;
-  background:var(--box);
-  border:2px solid #777;
-  border-radius:10px;
-  padding:15px;
+  background:var(--box-bg);
+  border:2px solid rgba(0,0,0,.2);
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 15px 30px rgba(0,0,0,.25);
 }
-.grid {
+
+.grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:10px;
 }
-label { font-size:13px; }
-input, select, textarea, button {
+
+label{font-size:13px;font-weight:bold;}
+input,select,textarea,button{
   width:100%;
-  padding:6px;
+  padding:7px;
+  border-radius:6px;
+  border:1px solid #aaa;
 }
-table {
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
+
+button{
+  cursor:pointer;
+  border:none;
+  background:#4f46e5;
+  color:white;
+  font-weight:bold;
 }
-th, td {
-  border:1px solid #999;
-  padding:6px;
-  font-size:12px;
-}
-.topbar {
+
+button:hover{opacity:.9}
+
+.topbar{
   display:flex;
   gap:10px;
   flex-wrap:wrap;
   justify-content:space-between;
 }
-button {
-  cursor:pointer;
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+th,td{
+  border:1px solid #ccc;
+  padding:6px;
+  font-size:12px;
 }
 </style>
 </head>
@@ -69,13 +94,15 @@ button {
 <div class="container" id="reportBox">
 
 <div class="topbar">
-  <button type="button" onclick="toggleDark()">🌙 Dark</button>
-  <button type="button" onclick="exportPDF()">📄 PDF</button>
+  <div>
+    <button type="button" onclick="toggleDark()">🌙 Dark</button>
+    <button type="button" onclick="exportPDF()">📄 PDF</button>
+    <button type="button" onclick="shareReport()">📤 Share</button>
+  </div>
 </div>
 
 <h3>Job Entry Form</h3>
 
-<!-- ❗ NO <form> TAG (fixes save issue) -->
 <div class="grid">
 
 <label>Date<input type="date" id="date"></label>
@@ -92,7 +119,6 @@ button {
 
 <label>Status
 <select id="status">
-<option value="">Select</option>
 <option>Completed</option>
 <option>Pending</option>
 </select>
@@ -100,7 +126,6 @@ button {
 
 <label>Payment Status
 <select id="payment">
-<option value="">Select</option>
 <option>Paid</option>
 <option>Unpaid</option>
 </select>
@@ -163,81 +188,85 @@ button {
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
-/* 🔴 REPLACE WITH YOUR CONFIG */
+/* 🔴 FIREBASE CONFIG */
 const firebaseConfig = {
     apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
   authDomain: "ayyappan-work-management.firebaseapp.com",
   projectId: "ayyappan-work-management"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 /* DARK MODE */
-function toggleDark() {
+function toggleDark(){
   document.body.classList.toggle("dark");
 }
 
-/* SAVE DATA — FIXED */
-function saveData() {
-  alert("Save clicked"); // confirms button works
-
+/* SAVE */
+function saveData(){
   db.collection("jobs").add({
-    date: date.value || "",
-    qn: qn.value || "",
-    customer: customer.value || "",
-    location: location.value || "",
-    qty: Number(qty.value) || 0,
-    sqft: Number(sqft.value) || 0,
-    extra: Number(extra.value) || 0,
-    total: Number(total.value) || 0,
-    helpers: Number(helpers.value) || 0,
-    ot: Number(ot.value) || 0,
-    company: company.value || "",
-    status: status.value || "",
-    payment: payment.value || "",
-    balance: Number(balance.value) || 0,
-    jobtype: jobtype.value || "",
-    holiday: holiday.value || "No",
-    comment: comment.value || ""
-  })
-  .then(() => {
-    alert("Saved to Firebase");
-    loadData();
-  })
-  .catch(err => alert(err.message));
+    date:date.value||"",
+    qn:qn.value||"",
+    customer:customer.value||"",
+    location:location.value||"",
+    qty:Number(qty.value)||0,
+    sqft:Number(sqft.value)||0,
+    extra:Number(extra.value)||0,
+    total:Number(total.value)||0,
+    helpers:Number(helpers.value)||0,
+    ot:Number(ot.value)||0,
+    company:company.value||"",
+    status:status.value||"",
+    payment:payment.value||"",
+    balance:Number(balance.value)||0,
+    jobtype:jobtype.value||"",
+    holiday:holiday.value||"No",
+    comment:comment.value||""
+  }).then(()=>alert("Saved"));
 }
 
-/* LOAD + FILTER DATA */
-function loadData() {
-  tbody.innerHTML = "";
-  db.collection("jobs").onSnapshot(snap => {
-    snap.forEach(doc => {
-      let d = doc.data();
+/* LOAD */
+function loadData(){
+  tbody.innerHTML="";
+  db.collection("jobs").onSnapshot(snap=>{
+    snap.forEach(doc=>{
+      let d=doc.data();
+      if(filterJob.value && d.jobtype!==filterJob.value) return;
+      if(filterCompany.value && !d.company.toLowerCase().includes(filterCompany.value.toLowerCase())) return;
+      if(filterMonth.value && !d.date.startsWith(filterMonth.value)) return;
 
-      if (filterJob.value && d.jobtype !== filterJob.value) return;
-      if (filterCompany.value && !d.company.toLowerCase().includes(filterCompany.value.toLowerCase())) return;
-      if (filterMonth.value && !d.date.startsWith(filterMonth.value)) return;
-
-      tbody.innerHTML += `
-        <tr>
-          <td>${d.date}</td>
-          <td>${d.qn}</td>
-          <td>${d.customer}</td>
-          <td>${d.company}</td>
-          <td>${d.jobtype}</td>
-          <td>${d.total}</td>
-          <td>${d.balance}</td>
-          <td>${d.holiday}</td>
-        </tr>`;
+      tbody.innerHTML+=`
+      <tr>
+        <td>${d.date}</td>
+        <td>${d.qn}</td>
+        <td>${d.customer}</td>
+        <td>${d.company}</td>
+        <td>${d.jobtype}</td>
+        <td>${d.total}</td>
+        <td>${d.balance}</td>
+        <td>${d.holiday}</td>
+      </tr>`;
     });
   });
 }
 loadData();
 
-/* PDF EXPORT */
-function exportPDF() {
+/* PDF */
+function exportPDF(){
   html2pdf().from(reportBox).save("Job_Report.pdf");
+}
+
+/* 📤 SHARE */
+function shareReport(){
+  if(navigator.share){
+    navigator.share({
+      title:"Job Report",
+      text:"Job report summary",
+      url:location.href
+    });
+  }else{
+    alert("Sharing not supported on this device");
+  }
 }
 </script>
 
