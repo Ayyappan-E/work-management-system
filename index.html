@@ -1,228 +1,129 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Ayyappan Work Management</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-<style>
-:root{--bg:#fff;--text:#000}
-.dark{--bg:#111;--text:#fff}
-body{margin:0;font-family:Arial;background:#0f172a;color:var(--text)}
-.container{
- max-width:1200px;margin:16px auto;background:var(--bg);
- padding:16px;border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,.35)
-}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
-label{font-size:13px;font-weight:bold}
-input,select,textarea,button{
- width:100%;padding:7px;border-radius:6px;border:1px solid #aaa
-}
-button{background:#4f46e5;color:#fff;border:none;cursor:pointer}
-.danger{background:#dc2626}
-.secondary{background:#059669}
-.summaryBox{
- border:2px solid #4f46e5;border-radius:12px;padding:12px;text-align:center
-}
-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px}
-th,td{border:1px solid #ccc;padding:6px;text-align:center}
-
-/* 📱 Mobile table → cards */
-@media(max-width:768px){
- table,thead{display:none}
- .card{
-   border:1px solid #ccc;border-radius:10px;padding:10px;margin-bottom:10px
- }
- .card div{font-size:13px;margin:3px 0}
-}
-
-.hidden{display:none}
-</style>
-</head>
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pro Work Manager</title>  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>  <!-- Firebase -->  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>  <!-- PDF -->  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>  <style>
+    :root{
+      --accent:#4f46e5; --card:#fff; --text:#111827;
+    }
+    body.dark{--card:#0f172a;--text:#e5e7eb;background:#020617;}
+    body{margin:0;font-family:Inter;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);color:var(--text)}
+    header{display:flex;justify-content:space-between;align-items:center;padding:16px;color:#fff}
+    .container{max-width:1200px;margin:auto;padding:16px}
+    .card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 10px 25px rgba(0,0,0,.15);animation:fade .4s}
+    @keyframes fade{from{opacity:0;transform:translateY(15px)}to{opacity:1}}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+    input,select{padding:10px;border-radius:10px;border:1px solid #ccc}
+    button{background:var(--accent);color:#fff;border:none;padding:10px 16px;border-radius:12px;font-weight:600;cursor:pointer}
+    button.gray{background:#6b7280}
+    .hidden{display:none}
+    .expand{cursor:pointer;color:var(--accent);font-weight:600}
+    footer{text-align:center;color:#fff;padding:20px}
+  </style></head>
 <body>
-<div class="container">
+<header>
+  <h2>🏗️ PRO WORK MANAGER</h2>
+  <div onclick="document.body.classList.toggle('dark')">🌙</div>
+</header><div class="container" id="app"><!-- FILTERS --><div class="card">
+  <h3>Filters</h3>
+  <div class="grid">
+    <input type="month" id="fMonth">
+    <input placeholder="Company" id="fCompany">
+    <input placeholder="Location" id="fLocation">
+    <input placeholder="Partnership" id="fPartner">
+  </div><br>
+  <button onclick="loadWorks()">Apply Filter</button>
+  <button class="gray" onclick="exportPDF()">Export PDF</button>
+</div><!-- ADD WORK --><div class="card">
+  <h3>Add / Update Work</h3>
+  <div class="grid">
+    <input type="date" id="date">
+    <input placeholder="Customer" id="customer">
+    <input placeholder="Location" id="location">
+    <input placeholder="Company" id="company">
+    <input placeholder="Partnership" id="partner">
+    <input type="number" placeholder="Window Qty" id="qty">
+    <input type="number" placeholder="Sqft / Window" id="sqft">
+    <input type="number" placeholder="Rate / Sqft" id="rate">
+  </div><br>  <h4>Helpers</h4>
+  <div id="helpers"></div>
+  <button class="gray" onclick="addHelper()">+ Add Helper</button><br><br>  <select id="payment">
+    <option>Pending</option><option>Partial</option><option>Received</option>
+  </select><br><br><button onclick="saveWork()">Save Work</button>
 
-<h2>Ayyappan Work Management</h2>
+</div><!-- LIST --><div class="card" id="list"><h3>Work Records</h3></div>
+</div><footer id="summary"></footer><script>
+feather.replace();
 
-<!-- FORM -->
-<div class="grid">
-<label>Date<input type="date" id="date"></label>
-<label>QN<input id="qn"></label>
-<label>Customer<input id="customer"></label>
-<label>Location<input id="location"></label>
-
-<label>Holiday?
-<select id="holiday" onchange="toggleHoliday()">
-<option value="no">No</option>
-<option value="yes">Yes</option>
-</select></label>
-
-<label class="holidayOnly hidden">Holiday Reason<textarea id="holidayReason"></textarea></label>
-
-<label class="workOnly">Sqft<input type="number" id="sqft" oninput="calc()"></label>
-<label class="workOnly">Rate<input type="number" id="rate" oninput="calc()"></label>
-<label class="workOnly">Extra<input type="number" id="extra" oninput="calc()"></label>
-<label class="workOnly">Total<input id="total" readonly></label>
-
-<label class="workOnly">Company<input id="company"></label>
-<label class="workOnly">Payment Status
-<select id="paystatus">
-<option>Unpaid</option><option>Partial</option><option>Paid</option>
-</select></label>
-<label class="workOnly">Balance<input id="balance"></label>
-</div>
-
-<br>
-<button onclick="saveData()">Save / Update</button>
-
-<hr>
-
-<!-- SUMMARY -->
-<div class="grid">
-<div class="summaryBox">
-<h3>Total Earnings</h3>
-<h2 id="sum">₹0</h2>
-</div>
-<div class="summaryBox">
-<h3>Balance Pending</h3>
-<h2 id="pending">₹0</h2>
-</div>
-<div class="summaryBox">
-<h3>Company Totals</h3>
-<div id="companyTotals"></div>
-</div>
-</div>
-
-<hr>
-
-<!-- REPORT -->
-<h3>Report</h3>
-<table>
-<thead>
-<tr>
-<th>Date</th><th>Customer</th><th>Company</th>
-<th>Sqft</th><th>Total</th><th>Balance</th><th>Action</th>
-</tr>
-</thead>
-<tbody id="tbody"></tbody>
-</table>
-
-<div id="cards"></div>
-
-<br>
-<button onclick="exportPDF()">Export PDF</button>
-<button onclick="toggleDark()">Dark Mode</button>
-
-</div>
-
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-<script>
-firebase.initializeApp({
- apiKey:"AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
+firebase.initializeApp({apiKey:"AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
  authDomain:"ayyappan-work-management.firebaseapp.com",
- projectId:"ayyappan-work-management"
-});
+ projectId:"ayyappan-work-management"});
 const db=firebase.firestore();
-let data=[],editId=null;
+let editId=null;
 
-function toggleHoliday(){
- const h=holiday.value==="yes";
- document.querySelectorAll(".workOnly").forEach(e=>e.style.display=h?"none":"block");
- document.querySelector(".holidayOnly").classList.toggle("hidden",!h);
+function addHelper(name='',salary='',petrol=''){
+  helpers.innerHTML+=`<div class='grid'>
+    <input placeholder='Helper Name' value='${name}'>
+    <input type='number' placeholder='Salary' value='${salary}'>
+    <input type='number' placeholder='Petrol' value='${petrol}'>
+  </div>`;
 }
 
-function calc(){
- total.value=(+sqft.value||0)*(+rate.value||0)+(+extra.value||0);
+function saveWork(){
+  const h=[...helpers.children].map(row=>({
+    name:row.children[0].value,
+    salary:+row.children[1].value,
+    petrol:+row.children[2].value
+  }));
+
+  const data={
+    date:date.value,customer:customer.value,location:location.value,
+    company:company.value,partner:partner.value,
+    qty:+qty.value,sqft:+sqft.value,rate:+rate.value,
+    helpers:h,payment:payment.value,created:new Date()
+  };
+
+  editId?db.collection('works').doc(editId).set(data):db.collection('works').add(data);
+  editId=null;helpers.innerHTML='';
 }
 
-function saveData(){
- let payload;
- if(holiday.value==="yes"){
-   payload={date:date.value,type:"Holiday",reason:holidayReason.value,total:0,balance:0};
- }else{
-   payload={
-     date:date.value,type:"Work",qn:qn.value,customer:customer.value,
-     location:location.value,sqft:+sqft.value||0,rate:+rate.value||0,
-     extra:+extra.value||0,total:+total.value||0,
-     company:company.value,paystatus:paystatus.value,
-     balance:+balance.value||0
-   };
- }
- editId?db.collection("jobs").doc(editId).set(payload):
-        db.collection("jobs").add(payload);
- editId=null;
+function loadWorks(){
+  list.innerHTML='<h3>Work Records</h3>'; let total=0;
+  db.collection('works').onSnapshot(snap=>{
+    snap.forEach(doc=>{
+      const d=doc.data();
+      const sqft=d.qty*d.sqft; const amt=sqft*d.rate;
+      const helperCost=d.helpers.reduce((s,h)=>s+h.salary+h.petrol,0);
+      const profit=amt-helperCost; total+=profit;
+
+      list.innerHTML+=`<div class='card'>
+        <div class='expand' onclick='this.nextElementSibling.classList.toggle("hidden")'>+ ${d.customer} (${d.date})</div>
+        <div class='hidden'>
+          <p>${d.location} | ${d.company}</p>
+          <p>Amount: ₹${amt}</p>
+          <p>Helpers Cost: ₹${helperCost}</p>
+          <p><b>Profit: ₹${profit}</b></p>
+          <button class='gray' onclick='editWork("${doc.id}")'>Edit</button>
+          <button class='gray' onclick='db.collection("works").doc("${doc.id}").delete()'>Delete</button>
+        </div></div>`;
+    });
+    summary.innerHTML=`This month profit ₹${total} ${total>75000?'🔥 Outstanding!':'💪 Keep growing!'}`;
+  });
 }
 
-db.collection("jobs").onSnapshot(s=>{
- data=[];s.forEach(d=>data.push({id:d.id,...d.data()}));
- render();
-});
-
-function editRow(d){
- editId=d.id;
- Object.keys(d).forEach(k=>{
-   if(document.getElementById(k)) document.getElementById(k).value=d[k];
- });
+function editWork(id){
+  db.collection('works').doc(id).get().then(doc=>{
+    const d=doc.data(); editId=id;
+    date.value=d.date;customer.value=d.customer;location.value=d.location;
+    company.value=d.company;partner.value=d.partner;qty.value=d.qty;
+    sqft.value=d.sqft;rate.value=d.rate;payment.value=d.payment;
+    helpers.innerHTML=''; d.helpers.forEach(h=>addHelper(h.name,h.salary,h.petrol));
+  });
 }
 
-function delRow(id){
- if(confirm("Delete this record?"))
- db.collection("jobs").doc(id).delete();
-}
+function exportPDF(){html2pdf().from(document.getElementById('list')).save('work-report.pdf')}
 
-function render(){
- tbody.innerHTML="";cards.innerHTML="";
- let sum=0,bal=0,companySum={};
-
- data.forEach(d=>{
-   if(d.type==="Work"){
-     sum+=d.total||0;
-     bal+=d.balance||0;
-     companySum[d.company]=(companySum[d.company]||0)+(d.total||0);
-   }
-
-   tbody.innerHTML+=`
-   <tr>
-   <td>${d.date||"-"}</td>
-   <td>${d.customer||"-"}</td>
-   <td>${d.company||"-"}</td>
-   <td>${d.sqft||"-"}</td>
-   <td>${d.total||0}</td>
-   <td>${d.balance||0}</td>
-   <td>
-   <button class="secondary" onclick='editRow(${JSON.stringify(d)})'>✏️</button>
-   <button class="danger" onclick="delRow('${d.id}')">🗑</button>
-   </td>
-   </tr>`;
-
-   cards.innerHTML+=`
-   <div class="card">
-   <div><b>Date:</b> ${d.date}</div>
-   <div><b>Customer:</b> ${d.customer||"-"}</div>
-   <div><b>Total:</b> ₹${d.total||0}</div>
-   <button onclick='editRow(${JSON.stringify(d)})'>Edit</button>
-   </div>`;
- });
-
- sum.innerText="₹"+sum.toLocaleString();
- pending.innerText="₹"+bal.toLocaleString();
-
- companyTotals.innerHTML="";
- Object.keys(companySum).forEach(c=>{
-   companyTotals.innerHTML+=`${c}: ₹${companySum[c].toLocaleString()}<br>`;
- });
-}
-
-function exportPDF(){
- html2pdf().from(document.body)
- .set({filename:"Ayyappan_Report.pdf",jsPDF:{orientation:"landscape"}}).save();
-}
-function toggleDark(){document.body.classList.toggle("dark")}
-</script>
-</body>
+loadWorks();
+</script></body>
 </html>
