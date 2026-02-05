@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayyappan Manager | Pro</title>
+    <title>Ayyappan Manager | Full Pro</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -24,14 +24,14 @@
 
     <div id="settingsModal" class="modal">
         <div class="glass p-6 w-full max-w-sm space-y-4">
-            <h2 class="text-lg font-bold">System Settings</h2>
+            <h2 class="text-lg font-bold border-b border-white/10 pb-2">System Settings</h2>
             <div>
                 <label>Companies (Comma separated)</label>
-                <textarea id="setCompanies" class="input-box h-20"></textarea>
+                <textarea id="setCompanies" class="input-box h-20" placeholder="Sharp, Buildcon, etc."></textarea>
             </div>
             <div>
-                <label>Helpers (Comma separated)</label>
-                <textarea id="setHelpers" class="input-box h-20"></textarea>
+                <label>Helper Names (Comma separated)</label>
+                <textarea id="setHelpers" class="input-box h-20" placeholder="Ravi, Kumar, etc."></textarea>
             </div>
             <button onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-lg font-bold">SAVE SETTINGS</button>
             <button onclick="toggleSettings()" class="w-full text-xs text-gray-500">Close</button>
@@ -40,7 +40,10 @@
 
     <div class="max-w-md mx-auto">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="font-black text-xl">AYYAPPAN <span class="text-blue-500">PRO</span></h1>
+            <div>
+                <h1 class="font-black text-xl">AYYAPPAN <span class="text-blue-500 text-sm">WORKS</span></h1>
+                <p id="liveDate" class="text-[10px] text-gray-400"></p>
+            </div>
             <div class="flex gap-2">
                 <button onclick="exportToPDF()" class="w-10 h-10 glass flex items-center justify-center text-red-400"><i class="fas fa-file-pdf"></i></button>
                 <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-cog"></i></button>
@@ -50,67 +53,82 @@
         <div class="glass p-5 mb-6 space-y-4 shadow-2xl">
             <input type="hidden" id="editId">
             <div class="grid grid-cols-2 gap-3">
-                <div><label>Date</label><input type="date" id="date" class="input-box"></div>
-                <div><label>Qn No</label><input type="text" id="qn" class="input-box"></div>
+                <div><label>Work Date</label><input type="date" id="date" class="input-box"></div>
+                <div><label>Quotation No</label><input type="text" id="qn" class="input-box" placeholder="Qn-001"></div>
             </div>
 
             <div class="flex items-center gap-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <input type="checkbox" id="isHoliday" onchange="checkHoliday()">
-                <label class="m-0 text-red-400">Holiday</label>
+                <input type="checkbox" id="isHoliday" onchange="checkHoliday()" class="w-5 h-5 accent-red-500">
+                <label class="m-0 text-red-400">Mark as Holiday</label>
             </div>
 
-            <div class="grid grid-cols-2 gap-2">
-                <button id="btnWithHelper" onclick="setHelperMode(true)" class="py-2 rounded-lg bg-slate-800 text-[11px] font-bold active-toggle">WITH HELPER</button>
-                <button id="btnNoHelper" onclick="setHelperMode(false)" class="py-2 rounded-lg bg-slate-800 text-[11px] font-bold">ALONE</button>
+            <div id="helperToggleSection">
+                <label>Helper Status</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="btnWithHelper" onclick="setHelperMode(true)" class="py-2 rounded-lg bg-slate-800 text-[11px] font-bold active-toggle">WITH HELPER</button>
+                    <button id="btnNoHelper" onclick="setHelperMode(false)" class="py-2 rounded-lg bg-slate-800 text-[11px] font-bold">ALONE</button>
+                </div>
             </div>
 
             <div id="workFields" class="space-y-4">
-                <div><label>Company</label><select id="company" class="input-box"></select></div>
+                <div><label>Company Name</label><select id="company" class="input-box"></select></div>
                 <div class="grid grid-cols-2 gap-3">
-                    <div><label>Customer</label><input type="text" id="customer" class="input-box"></div>
-                    <div><label>Location</label><input type="text" id="location" class="input-box"></div>
+                    <div><label>Customer Name</label><input type="text" id="customer" class="input-box"></div>
+                    <div><label>Site Location</label><input type="text" id="location" class="input-box"></div>
                 </div>
 
-                <div id="helperSection" class="bg-blue-500/5 p-3 rounded-lg space-y-3">
-                    <label class="text-blue-400">Helpers</label>
+                <div id="helperSection" class="bg-blue-500/5 p-3 rounded-lg border border-blue-500/20 space-y-3">
+                    <label class="text-blue-400">Helper & Expenses</label>
                     <div id="helperList" class="space-y-2"></div>
-                    <button onclick="addHelperRow()" class="text-[10px] text-blue-300">+ ADD</button>
+                    <button onclick="addHelperRow()" class="text-[10px] bg-blue-600/20 px-3 py-1 rounded-full text-blue-300 font-bold">+ ADD HELPER</button>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-3 gap-2">
+                    <div><label>Win Qty</label><input type="number" id="winQty" class="input-box"></div>
                     <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
                     <div><label>Rate/Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
                 </div>
 
-                <div class="p-3 bg-green-500/10 rounded-lg flex justify-between items-center">
-                    <label class="m-0">Total:</label>
-                    <span id="resTotal" class="text-xl font-black text-green-400">₹0</span>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label>Payment Status</label>
+                        <select id="payStatus" class="input-box">
+                            <option>Pending</option>
+                            <option>Partial</option>
+                            <option>Received</option>
+                        </select>
+                    </div>
+                    <div class="p-3 bg-green-500/10 rounded-lg flex flex-col items-center justify-center border border-green-500/20">
+                        <label class="m-0 text-green-500">Total</label>
+                        <span id="resTotal" class="text-xl font-black text-green-400">₹0</span>
+                    </div>
                 </div>
             </div>
 
-            <button onclick="saveData()" id="mainBtn" class="w-full bg-blue-600 py-4 rounded-xl font-bold">SAVE ENTRY</button>
+            <div><label>Notes / Reason</label><textarea id="comment" class="input-box h-16" placeholder="Comments..."></textarea></div>
+
+            <button onclick="saveData()" id="mainBtn" class="w-full bg-blue-600 py-4 rounded-xl font-black text-lg">SAVE WORK RECORD</button>
         </div>
 
-        <div class="glass p-6 text-center mb-6">
-            <p class="text-[10px] text-gray-400">MONTHLY TOTAL</p>
+        <div class="glass p-6 text-center mb-6 border-b-4 border-green-500">
+            <p class="text-[10px] text-gray-400 font-bold uppercase">Monthly Earnings</p>
             <h2 id="monthDisplay" class="text-4xl font-black">₹0</h2>
         </div>
 
+        <div class="mb-4">
+            <input type="text" id="searchFilter" oninput="applyFilters()" placeholder="🔍 Search Customer or Company..." class="input-box">
+        </div>
         <div id="displayArea" class="space-y-4"></div>
     </div>
 
     <script>
-        const firebaseConfig = { 
-            apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58", 
-            authDomain: "ayyappan-work-management.firebaseapp.com", 
-            projectId: "ayyappan-work-management" 
-        };
+        const firebaseConfig = { apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58", authDomain: "ayyappan-work-management.firebaseapp.com", projectId: "ayyappan-work-management" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         let allEntries = [];
         let hasHelper = true;
 
-        // LOAD DATA LOGIC
+        // LOAD DATA
         db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => {
             if (snap.empty) {
                 document.getElementById('displayArea').innerHTML = "<p class='text-center text-gray-500 text-xs mt-10'>No records found.</p>";
@@ -119,13 +137,10 @@
             }
             allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderEntries(allEntries);
-            
             let grandTotal = 0;
             allEntries.forEach(d => { grandTotal += parseFloat(d.total || 0); });
             document.getElementById('monthDisplay').innerText = "₹" + grandTotal.toLocaleString();
-        }, error => {
-            alert("DATABASE ERROR: " + error.message);
-        });
+        }, error => { alert("DATABASE ERROR: " + error.message); });
 
         function renderEntries(data) {
             const container = document.getElementById('displayArea');
@@ -134,27 +149,41 @@
                 const div = document.createElement('div');
                 div.className = "glass p-4 border-l-4 " + (d.isHoliday ? 'border-red-500' : 'border-blue-500');
                 div.innerHTML = `
-                    <div class="flex justify-between" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                    <div class="flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
                         <div>
-                            <p class="text-[10px] text-gray-400">${d.date}</p>
-                            <h4 class="font-bold">${d.customer || 'Holiday'}</h4>
+                            <p class="text-[10px] text-gray-400">${d.date} | Qn: ${d.qn || 'N/A'}</p>
+                            <h4 class="font-bold">${d.isHoliday ? '🌴 HOLIDAY' : (d.customer || 'Unnamed Site')}</h4>
+                            <p class="text-[10px] text-blue-400">${d.company}</p>
                         </div>
-                        <p class="font-bold text-green-400">₹${d.total}</p>
+                        <div class="text-right">
+                            <p class="font-black text-green-400">₹${d.total}</p>
+                            <span class="text-[9px] bg-white/5 px-2 py-1 rounded text-gray-400">${d.status}</span>
+                        </div>
                     </div>
-                    <div class="hidden mt-3 pt-3 border-t border-white/5 text-xs">
-                        <p>Company: ${d.company}</p>
-                        <div class="flex gap-4 mt-2">
-                            <button onclick="editDoc('${d.id}')" class="text-blue-400">Edit</button>
-                            <button onclick="deleteDoc('${d.id}')" class="text-red-400">Delete</button>
+                    <div class="hidden mt-4 pt-4 border-t border-white/5 space-y-3">
+                        <div class="grid grid-cols-2 text-[11px] text-gray-400">
+                            <p><b>Loc:</b> ${d.location || 'N/A'}</p>
+                            <p><b>Sqft:</b> ${d.totalSqft || '0'}</p>
+                        </div>
+                        <p class="text-[11px] italic text-gray-500">"${d.comment || ''}"</p>
+                        <div class="flex gap-4 pt-2">
+                            <button onclick="shareWhatsApp('${d.id}')" class="text-green-400 text-xs font-bold"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                            <button onclick="editDoc('${d.id}')" class="text-blue-400 text-xs font-bold"><i class="fas fa-edit"></i> Edit</button>
+                            <button onclick="deleteDoc('${d.id}')" class="text-red-400 text-xs font-bold"><i class="fas fa-trash"></i> Delete</button>
                         </div>
                     </div>`;
                 container.appendChild(div);
             });
         }
 
-        // SETTINGS & HELPERS
+        // HELPERS & SETTINGS
         function toggleSettings() { 
-            document.getElementById('settingsModal').style.display = (document.getElementById('settingsModal').style.display === 'flex') ? 'none' : 'flex'; 
+            const m = document.getElementById('settingsModal');
+            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; 
+            if(m.style.display === 'flex') {
+                document.getElementById('setCompanies').value = localStorage.getItem('myCompanies') || "";
+                document.getElementById('setHelpers').value = localStorage.getItem('myHelpers') || "";
+            }
         }
         function saveSettings() {
             localStorage.setItem('myCompanies', document.getElementById('setCompanies').value);
@@ -166,22 +195,25 @@
             document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
             const helps = (localStorage.getItem('myHelpers') || "Ravi,Kumar").split(',');
             document.querySelectorAll('.h-name').forEach(sel => {
+                const cur = sel.value;
                 sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
+                if(cur) sel.value = cur;
             });
         }
-        function addHelperRow() {
+        function addHelperRow(data = null) {
             const div = document.createElement('div');
             div.className = "grid grid-cols-4 gap-1 helper-row";
-            div.innerHTML = `<select class="input-box text-[10px] h-8 h-name p-1"></select><input type="number" placeholder="Sal" class="input-box text-[10px] h-8 h-sal p-1"><input type="number" placeholder="Pet" class="input-box text-[10px] h-8 h-pet p-1"><input type="number" placeholder="Food" class="input-box text-[10px] h-8 h-food p-1">`;
+            div.innerHTML = `<select class="input-box text-[10px] h-8 h-name p-1"></select><input type="number" placeholder="Sal" class="input-box text-[10px] h-8 h-sal p-1" value="${data?data.sal:''}"><input type="number" placeholder="Pet" class="input-box text-[10px] h-8 h-pet p-1" value="${data?data.pet:''}"><input type="number" placeholder="Food" class="input-box text-[10px] h-8 h-food p-1" value="${data?data.food:''}">`;
             document.getElementById('helperList').appendChild(div);
             loadDropdowns();
+            if(data) div.querySelector('.h-name').value = data.name;
         }
 
-        // CALCULATIONS & SAVE
+        // CALC & LOGIC
         function calculate() {
-            const s = document.getElementById('totalSqft').value || 0;
-            const r = document.getElementById('amtRate').value || 0;
-            document.getElementById('resTotal').innerText = "₹" + (s * r);
+            const s = parseFloat(document.getElementById('totalSqft').value) || 0;
+            const r = parseFloat(document.getElementById('amtRate').value) || 0;
+            document.getElementById('resTotal').innerText = "₹" + (s * r).toFixed(2);
         }
         function setHelperMode(val) {
             hasHelper = val;
@@ -189,7 +221,11 @@
             document.getElementById('btnWithHelper').classList.toggle('active-toggle', val);
             document.getElementById('btnNoHelper').classList.toggle('active-toggle', !val);
         }
-        function checkHoliday() { document.getElementById('workFields').style.display = document.getElementById('isHoliday').checked ? 'none' : 'block'; }
+        function checkHoliday() { 
+            const h = document.getElementById('isHoliday').checked;
+            document.getElementById('workFields').style.display = h ? 'none' : 'block';
+            document.getElementById('helperToggleSection').style.display = h ? 'none' : 'block';
+        }
 
         async function saveData() {
             const helpers = [];
@@ -201,8 +237,11 @@
             const data = {
                 date: document.getElementById('date').value, qn: document.getElementById('qn').value,
                 isHoliday: document.getElementById('isHoliday').checked, company: document.getElementById('company').value,
-                customer: document.getElementById('customer').value, total: document.getElementById('resTotal').innerText.replace('₹',''),
-                helpers: helpers, hasHelper: hasHelper, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                customer: document.getElementById('customer').value, location: document.getElementById('location').value,
+                winQty: document.getElementById('winQty').value, totalSqft: document.getElementById('totalSqft').value,
+                amtRate: document.getElementById('amtRate').value, status: document.getElementById('payStatus').value,
+                total: document.getElementById('resTotal').innerText.replace('₹',''), helpers: helpers, hasHelper: hasHelper, 
+                comment: document.getElementById('comment').value, timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
             const id = document.getElementById('editId').value;
             if(id) await db.collection("workLogs").doc(id).update(data);
@@ -210,17 +249,51 @@
             location.reload();
         }
 
+        // SHARES & EXPORTS
+        function shareWhatsApp(id) {
+            const d = allEntries.find(e => e.id === id);
+            const text = `*Work Report - ${d.date}*%0A*Customer:* ${d.customer}%0A*Company:* ${d.company}%0A*Sqft:* ${d.totalSqft}%0A*Total:* ₹${d.total}%0A*Status:* ${d.status}`;
+            window.open(`https://wa.me/?text=${text}`);
+        }
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("Ayyappan Work Report", 14, 15);
+            const rows = allEntries.map(e => [e.date, e.customer, e.company, e.totalSqft, e.total, e.status]);
+            doc.autoTable({ head: [['Date', 'Customer', 'Company', 'Sqft', 'Amount', 'Status']], body: rows, startY: 25 });
+            doc.save("Report.pdf");
+        }
+
         async function deleteDoc(id) { if(confirm("Delete?")) await db.collection("workLogs").doc(id).delete(); }
         function editDoc(id) {
             const d = allEntries.find(e => e.id === id);
             document.getElementById('editId').value = id;
             document.getElementById('date').value = d.date;
+            document.getElementById('qn').value = d.qn;
             document.getElementById('customer').value = d.customer;
+            document.getElementById('location').value = d.location;
+            document.getElementById('winQty').value = d.winQty;
+            document.getElementById('totalSqft').value = d.totalSqft;
+            document.getElementById('amtRate').value = d.amtRate;
+            document.getElementById('payStatus').value = d.status;
+            document.getElementById('comment').value = d.comment;
             document.getElementById('resTotal').innerText = "₹" + d.total;
+            document.getElementById('helperList').innerHTML = "";
+            if(d.helpers) d.helpers.forEach(h => addHelperRow(h));
+            setHelperMode(d.hasHelper); checkHoliday();
             window.scrollTo(0,0);
         }
+        function applyFilters() {
+            const s = document.getElementById('searchFilter').value.toLowerCase();
+            const filtered = allEntries.filter(e => e.customer?.toLowerCase().includes(s) || e.company?.toLowerCase().includes(s));
+            renderEntries(filtered);
+        }
 
-        window.onload = () => { document.getElementById('date').valueAsDate = new Date(); loadDropdowns(); addHelperRow(); };
+        window.onload = () => { 
+            document.getElementById('date').valueAsDate = new Date(); 
+            document.getElementById('liveDate').innerText = new Date().toDateString();
+            loadDropdowns(); addHelperRow(); 
+        };
     </script>
 </body>
 </html>
