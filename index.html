@@ -1,225 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Work Manager</title>
-
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-}
-
-.container {
-  max-width: 900px;
-  margin: auto;
-  padding: 16px;
-}
-
-.card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
-  gap: 12px;
-}
-
-label {
-  font-size: 13px;
-  font-weight: bold;
-}
-
-input, select {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-button {
-  padding: 12px 20px;
-  border-radius: 10px;
-  border: none;
-  background: #4f46e5;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  position: relative;
-  z-index: 10;
-}
-
-button:disabled {
-  opacity: 0.6;
-}
-
-.helpers-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProWork Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-grad: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --accent: #3b82f6;
+        }
+        body {
+            background: var(--primary-grad);
+            min-height: 100vh;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+        }
+        .dark-mode {
+            --primary-grad: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #1e293b;
+        }
+        .mobile-box {
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-entry { animation: fadeIn 0.5s ease-out forwards; }
+    </style>
 </head>
+<body class="p-4 md:p-8">
 
-<body>
+    <div class="flex justify-between items-center mb-8 mobile-box">
+        <div class="flex items-center gap-2">
+            <div class="bg-blue-600 p-2 rounded-lg"><i class="fas fa-layer-group text-xl"></i></div>
+            <h1 class="text-2xl font-bold tracking-tight">WorkManager<span class="text-blue-500">.io</span></h1>
+        </div>
+        <button onclick="toggleTheme()" class="p-2 glass-card rounded-full"><i class="fas fa-moon"></i></button>
+    </div>
 
-<div class="container">
+    <div class="glass-card p-6 mb-8 animate-entry mobile-box">
+        <h2 class="text-lg font-semibold mb-4">Log New Entry</h2>
+        <div class="space-y-4">
+            <input type="date" id="date" class="w-full bg-transparent border-b border-gray-500 p-2 focus:outline-none focus:border-blue-500">
+            
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="isHoliday" onchange="handleHoliday()"> 
+                <label for="isHoliday">Is this a Holiday?</label>
+            </div>
 
-<div class="card">
-<h3>Add Work</h3>
+            <div id="workFields" class="space-y-4">
+                <input type="text" placeholder="Customer Name" id="customer" class="w-full bg-transparent border-b border-gray-500 p-2">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="number" placeholder="Window Qty" id="qty" oninput="calculate()" class="bg-transparent border-b border-gray-500 p-2">
+                    <input type="number" placeholder="Amt per Sqft" id="rate" oninput="calculate()" class="bg-transparent border-b border-gray-500 p-2">
+                </div>
+                <div class="text-sm text-gray-400">Total Sqft: <span id="totalSqftDisplay">0</span> | Total: <span id="totalAmtDisplay">$0</span></div>
+                
+                <div class="p-3 border border-dashed border-gray-600 rounded">
+                    <p class="text-xs mb-2">Helper Details</p>
+                    <input type="text" placeholder="Helper Name" class="w-full bg-transparent border-b border-gray-500 p-2 mb-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" placeholder="Salary" class="text-sm bg-transparent border-b border-gray-500 p-1">
+                        <input type="number" placeholder="Petrol" class="text-sm bg-transparent border-b border-gray-500 p-1">
+                    </div>
+                </div>
+            </div>
 
-<div class="grid">
-  <div>
-    <label>Date</label>
-    <input type="date" id="date">
-  </div>
+            <textarea id="comment" placeholder="Holiday reason / Comments" class="w-full bg-transparent border border-gray-600 rounded p-2 h-20"></textarea>
+            
+            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition shadow-lg">Save Entry</button>
+        </div>
+    </div>
 
-  <div>
-    <label>Customer</label>
-    <input id="customer">
-  </div>
+    <div class="glass-card p-6 mb-8 text-center animate-entry mobile-box">
+        <p class="text-gray-400 text-sm">Monthly Earnings</p>
+        <h2 class="text-4xl font-bold my-2 text-green-400">$<span id="monthlyTotal">4,250</span></h2>
+        <p id="motivation" class="italic text-sm text-blue-300">"You're crushing it! Keep building that empire."</p>
+    </div>
 
-  <div>
-    <label>Location</label>
-    <input id="location">
-  </div>
+    <div class="flex gap-2 overflow-x-auto mb-4 pb-2 mobile-box">
+        <select class="bg-slate-800 text-xs p-2 rounded"><option>Month</option></select>
+        <select class="bg-slate-800 text-xs p-2 rounded"><option>Company</option></select>
+        <button class="bg-slate-700 text-xs px-4 py-2 rounded" onclick="exportPDF()">PDF <i class="fas fa-download"></i></button>
+    </div>
 
-  <div>
-    <label>Company</label>
-    <input id="company">
-  </div>
+    <div class="space-y-4 mobile-box">
+        <div class="glass-card p-4">
+            <div class="flex justify-between items-center cursor-pointer" onclick="toggleDetails('detail1')">
+                <div>
+                    <h3 class="font-bold">John Doe - Villa Project</h3>
+                    <p class="text-xs text-gray-400">Feb 05, 2026 • Received</p>
+                </div>
+                <i class="fas fa-plus text-blue-500"></i>
+            </div>
+            <div id="detail1" class="hidden mt-4 pt-4 border-t border-gray-700 text-sm">
+                <p>Days Worked: 3</p>
+                <p>Total Helpers: 2 ($300 Salary)</p>
+                <div class="flex gap-4 mt-2">
+                    <button class="text-blue-400"><i class="fas fa-edit"></i> Edit</button>
+                    <button class="text-red-400"><i class="fas fa-trash"></i> Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  <div>
-    <label>Work Type</label>
-    <select id="partner">
-      <option value="Solo">Solo</option>
-      <option value="Partnership">Partnership</option>
-    </select>
-  </div>
+    <script>
+        function handleHoliday() {
+            const isHoliday = document.getElementById('isHoliday').checked;
+            document.getElementById('workFields').style.opacity = isHoliday ? "0.3" : "1";
+            document.getElementById('workFields').style.pointerEvents = isHoliday ? "none" : "auto";
+        }
 
-  <div>
-    <label>Window Qty</label>
-    <input type="number" id="qty">
-  </div>
-
-  <div>
-    <label>Sqft / Window</label>
-    <input type="number" id="sqft">
-  </div>
-
-  <div>
-    <label>Rate / Sqft</label>
-    <input type="number" id="rate">
-  </div>
-
-  <div>
-    <label>Payment Status</label>
-    <select id="payment">
-      <option>Pending</option>
-      <option>Partial</option>
-      <option>Received</option>
-    </select>
-  </div>
-</div>
-
-<br>
-
-<h4>Helpers</h4>
-<div id="helpers"></div>
-
-<button type="button" onclick="addHelper()">+ Add Helper</button>
-<br><br>
-
-<button id="saveBtn" type="button" onclick="saveWork()">Save Work</button>
-
-</div>
-
-<div class="card" id="records">
-<h3>Work Records</h3>
-</div>
-
-</div>
-
-<script>
-firebase.initializeApp({
+      const firebaseConfig = {
   apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
   authDomain: "ayyappan-work-management.firebaseapp.com",
-  projectId: "ayyappan-work-management"
-});
+  projectId: "ayyappan-work-management",
+  storageBucket: "ayyappan-work-management.firebasestorage.app",
+  messagingSenderId: "530168145580",
+  appId: "1:530168145580:web:5c84cdc9c7ecde33fee109"
+};
 
-const db = firebase.firestore();
+        function calculate() {
+            const qty = document.getElementById('qty').value || 0;
+            const rate = document.getElementById('rate').value || 0;
+            const sqft = qty * 12; // Assuming 12sqft per window as example
+            document.getElementById('totalSqftDisplay').innerText = sqft;
+            document.getElementById('totalAmtDisplay').innerText = "$" + (sqft * rate);
+        }
 
-function addHelper() {
-  helpers.innerHTML += `
-    <div class="helpers-row">
-      <input placeholder="Helper Name">
-      <input type="number" placeholder="Salary">
-      <input type="number" placeholder="Petrol">
-    </div>
-  `;
-}
+        function toggleDetails(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
 
-function saveWork() {
-  const btn = document.getElementById("saveBtn");
-  btn.disabled = true;
-  btn.innerText = "Saving...";
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+        }
 
-  const helpersArr = [...helpers.children].map(row => ({
-    name: row.children[0].value,
-    salary: +row.children[1].value || 0,
-    petrol: +row.children[2].value || 0
-  }));
-
-  const data = {
-    date: date.value,
-    customer: customer.value,
-    location: location.value,
-    company: company.value,
-    partner: partner.value,
-    qty: +qty.value || 0,
-    sqft: +sqft.value || 0,
-    rate: +rate.value || 0,
-    payment: payment.value,
-    helpers: helpersArr,
-    created: new Date()
-  };
-
-  db.collection("works").add(data)
-    .then(() => {
-      alert("✅ Work saved successfully");
-      document.querySelectorAll("input").forEach(i => i.value = "");
-      helpers.innerHTML = "";
-      btn.disabled = false;
-      btn.innerText = "Save Work";
-    })
-    .catch(err => {
-      alert("❌ Error: " + err.message);
-      btn.disabled = false;
-      btn.innerText = "Save Work";
-    });
-}
-
-db.collection("works").orderBy("created","desc")
-.onSnapshot(snap => {
-  records.innerHTML = "<h3>Work Records</h3>";
-  snap.forEach(doc => {
-    const d = doc.data();
-    records.innerHTML += `
-      <p><b>${d.customer}</b> - ${d.location} - ₹${d.qty * d.sqft * d.rate}</p>
-    `;
-  });
-});
-</script>
-
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.text("Work Manager Report", 10, 10);
+            doc.save("Report.pdf");
+        }
+    </script>
 </body>
 </html>
