@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayyappan Manager | Final Pro</title>
+    <title>Ayyappan Manager | Pro</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
     <style>
-        body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #f1f5f9; min-height: 100vh; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #f1f5f9; min-height: 100vh; font-family: 'Inter', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; }
         .input-box { background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 0.6rem; padding: 0.8rem; color: white; width: 100%; outline: none; font-size: 14px; }
-        .input-box:focus { border-color: #3b82f6; }
         label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block; }
-        .mobile-view { max-width: 500px; margin: 0 auto; width: 100%; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .active-toggle { background: #2563eb !important; border-color: #60a5fa !important; }
     </style>
@@ -25,31 +24,23 @@
 
     <div id="settingsModal" class="modal">
         <div class="glass p-6 w-full max-w-sm space-y-4">
-            <h2 class="text-lg font-bold border-b border-white/10 pb-2">System Settings</h2>
+            <h2 class="text-lg font-bold">System Settings</h2>
             <div>
-                <label>Registered Companies (Comma separated)</label>
-                <textarea id="setCompanies" class="input-box h-20" placeholder="Sharp Glass, Buildcon, Digital Infra"></textarea>
+                <label>Companies (Comma separated)</label>
+                <textarea id="setCompanies" class="input-box h-20"></textarea>
             </div>
             <div>
-                <label>Helper Names (Comma separated)</label>
-                <textarea id="setHelpers" class="input-box h-20" placeholder="Ravi, Kumar, Suresh, Mani"></textarea>
+                <label>Helpers (Comma separated)</label>
+                <textarea id="setHelpers" class="input-box h-20"></textarea>
             </div>
             <button onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-lg font-bold">SAVE SETTINGS</button>
-            <button onclick="toggleSettings()" class="w-full text-xs text-gray-500">Close without saving</button>
+            <button onclick="toggleSettings()" class="w-full text-xs text-gray-500">Close</button>
         </div>
     </div>
 
-    <div class="mobile-view">
+    <div class="max-w-md mx-auto">
         <div class="flex justify-between items-center mb-6">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                    <i class="fas fa-layer-group text-white"></i>
-                </div>
-                <div>
-                    <h1 class="font-black text-lg tracking-tight leading-none">AYYAPPAN</h1>
-                    <span class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Work Manager</span>
-                </div>
-            </div>
+            <h1 class="font-black text-xl">AYYAPPAN <span class="text-blue-500">PRO</span></h1>
             <div class="flex gap-2">
                 <button onclick="exportToPDF()" class="w-10 h-10 glass flex items-center justify-center text-red-400"><i class="fas fa-file-pdf"></i></button>
                 <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-cog"></i></button>
@@ -58,306 +49,178 @@
 
         <div class="glass p-5 mb-6 space-y-4 shadow-2xl">
             <input type="hidden" id="editId">
-            
             <div class="grid grid-cols-2 gap-3">
-                <div><label>Work Date</label><input type="date" id="date" class="input-box"></div>
-                <div><label>Quotation No (Qn)</label><input type="text" id="qn" class="input-box" placeholder="Qn-101"></div>
+                <div><label>Date</label><input type="date" id="date" class="input-box"></div>
+                <div><label>Qn No</label><input type="text" id="qn" class="input-box"></div>
             </div>
 
             <div class="flex items-center gap-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <input type="checkbox" id="isHoliday" onchange="checkHoliday()" class="w-5 h-5 accent-red-500">
-                <label class="m-0 text-red-400">Mark as Holiday (No Work)</label>
+                <input type="checkbox" id="isHoliday" onchange="checkHoliday()">
+                <label class="m-0 text-red-400">Holiday</label>
             </div>
 
-            <div id="helperToggleSection">
-                <label>Worker Selection</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <button id="btnWithHelper" onclick="setHelperMode(true)" class="py-2 rounded-lg bg-slate-800 text-[11px] font-bold border border-white/5 active-toggle">WITH HELPER</button>
-                    <button id="btnNoHelper" onclick="setHelperMode(false)" class="py-2 rounded-lg bg-slate-800 text-[11px] font-bold border border-white/5">ALONE (NO HELPER)</button>
-                </div>
+            <div class="grid grid-cols-2 gap-2">
+                <button id="btnWithHelper" onclick="setHelperMode(true)" class="py-2 rounded-lg bg-slate-800 text-[11px] font-bold active-toggle">WITH HELPER</button>
+                <button id="btnNoHelper" onclick="setHelperMode(false)" class="py-2 rounded-lg bg-slate-800 text-[11px] font-bold">ALONE</button>
             </div>
 
             <div id="workFields" class="space-y-4">
-                <div>
-                    <label>Company Name</label>
-                    <select id="company" class="input-box"></select>
-                </div>
+                <div><label>Company</label><select id="company" class="input-box"></select></div>
                 <div class="grid grid-cols-2 gap-3">
-                    <div><label>Customer Name</label><input type="text" id="customer" class="input-box" placeholder="Client name"></div>
-                    <div><label>Location</label><input type="text" id="location" class="input-box" placeholder="Site Area"></div>
+                    <div><label>Customer</label><input type="text" id="customer" class="input-box"></div>
+                    <div><label>Location</label><input type="text" id="location" class="input-box"></div>
                 </div>
 
-                <div id="helperSection" class="bg-blue-500/5 p-3 rounded-lg border border-blue-500/20 space-y-3">
-                    <label class="text-blue-400">Helpers, Salary & Food</label>
-                    <div id="helperList" class="space-y-2">
-                        </div>
-                    <button onclick="addHelperRow()" class="text-[10px] bg-blue-600/20 px-3 py-1 rounded-full text-blue-300 font-bold">+ ADD HELPER</button>
+                <div id="helperSection" class="bg-blue-500/5 p-3 rounded-lg space-y-3">
+                    <label class="text-blue-400">Helpers</label>
+                    <div id="helperList" class="space-y-2"></div>
+                    <button onclick="addHelperRow()" class="text-[10px] text-blue-300">+ ADD</button>
                 </div>
 
-                <div class="grid grid-cols-3 gap-2">
-                    <div><label>Win Qty</label><input type="number" id="winQty" class="input-box"></div>
+                <div class="grid grid-cols-2 gap-3">
                     <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
                     <div><label>Rate/Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="p-3 bg-slate-900/50 rounded-lg">
-                        <label>Payment Status</label>
-                        <select id="payStatus" class="bg-transparent text-sm w-full outline-none text-blue-400 font-bold">
-                            <option value="Pending">Pending</option>
-                            <option value="Partial">Partial</option>
-                            <option value="Received">Received</option>
-                        </select>
-                    </div>
-                    <div class="p-3 bg-green-500/10 rounded-lg flex flex-col items-center justify-center border border-green-500/20">
-                        <label class="m-0 text-green-500">Grand Total</label>
-                        <span id="resTotal" class="text-xl font-black text-green-400">₹0</span>
-                    </div>
+                <div class="p-3 bg-green-500/10 rounded-lg flex justify-between items-center">
+                    <label class="m-0">Total:</label>
+                    <span id="resTotal" class="text-xl font-black text-green-400">₹0</span>
                 </div>
             </div>
 
-            <div><label>Work Comments / Notes</label><textarea id="comment" class="input-box h-16" placeholder="Reason for holiday or specific work notes..."></textarea></div>
-
-            <button onclick="saveData()" id="mainBtn" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-black tracking-widest text-lg shadow-xl shadow-blue-600/20">SAVE RECORD</button>
+            <button onclick="saveData()" id="mainBtn" class="w-full bg-blue-600 py-4 rounded-xl font-bold">SAVE ENTRY</button>
         </div>
 
-        <div class="glass p-6 text-center mb-8 border-b-4 border-green-500">
-            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Monthly Earnings</p>
-            <h2 id="monthDisplay" class="text-4xl font-black text-white my-1">₹0</h2>
-            <p id="motivation" class="text-xs italic text-blue-300">"Your hard work today builds your empire tomorrow!"</p>
-        </div>
-
-        <div class="mb-4 space-y-3">
-            <input type="text" id="searchFilter" oninput="applyFilters()" placeholder="🔍 Search Customer or Company..." class="input-box">
-            <div class="flex gap-2">
-                <select id="monthFilter" onchange="applyFilters()" class="input-box text-xs py-2 bg-slate-800">
-                    <option value="">All Time</option>
-                    <option value="-01-">January</option><option value="-02-">February</option><option value="-03-">March</option>
-                </select>
-                <select id="statusFilter" onchange="applyFilters()" class="input-box text-xs py-2 bg-slate-800">
-                    <option value="">All Status</option>
-                    <option value="Received">Received</option><option value="Pending">Pending</option>
-                </select>
-            </div>
+        <div class="glass p-6 text-center mb-6">
+            <p class="text-[10px] text-gray-400">MONTHLY TOTAL</p>
+            <h2 id="monthDisplay" class="text-4xl font-black">₹0</h2>
         </div>
 
         <div id="displayArea" class="space-y-4"></div>
     </div>
 
     <script>
-        const firebaseConfig = { apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58", authDomain: "ayyappan-work-management.firebaseapp.com", projectId: "ayyappan-work-management" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58", 
+            authDomain: "ayyappan-work-management.firebaseapp.com", 
+            projectId: "ayyappan-work-management" 
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        
-        let hasHelper = true;
         let allEntries = [];
+        let hasHelper = true;
 
-        function toggleSettings() {
-            const m = document.getElementById('settingsModal');
-            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
-            if(m.style.display === 'flex') {
-                document.getElementById('setCompanies').value = localStorage.getItem('myCompanies') || "";
-                document.getElementById('setHelpers').value = localStorage.getItem('myHelpers') || "";
+        // LOAD DATA LOGIC
+        db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => {
+            if (snap.empty) {
+                document.getElementById('displayArea').innerHTML = "<p class='text-center text-gray-500 text-xs mt-10'>No records found.</p>";
+                document.getElementById('monthDisplay').innerText = "₹0";
+                return;
             }
-        }
-
-        function saveSettings() {
-            localStorage.setItem('myCompanies', document.getElementById('setCompanies').value);
-            localStorage.setItem('myHelpers', document.getElementById('setHelpers').value);
-            loadDropdowns();
-            toggleSettings();
-            alert("Settings Updated!");
-        }
-
-        function loadDropdowns() {
-            const comps = (localStorage.getItem('myCompanies') || "Sharp Glass,Buildcon").split(',');
-            document.getElementById('company').innerHTML = comps.map(c => `<option value="${c.trim()}">${c.trim()}</option>`).join('');
+            allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderEntries(allEntries);
             
-            const helperList = (localStorage.getItem('myHelpers') || "Ravi,Kumar").split(',');
-            document.querySelectorAll('.h-name').forEach(sel => {
-                const currentVal = sel.value;
-                sel.innerHTML = helperList.map(h => `<option value="${h.trim()}">${h.trim()}</option>`).join('');
-                if(currentVal) sel.value = currentVal;
+            let grandTotal = 0;
+            allEntries.forEach(d => { grandTotal += parseFloat(d.total || 0); });
+            document.getElementById('monthDisplay').innerText = "₹" + grandTotal.toLocaleString();
+        }, error => {
+            alert("DATABASE ERROR: " + error.message);
+        });
+
+        function renderEntries(data) {
+            const container = document.getElementById('displayArea');
+            container.innerHTML = "";
+            data.forEach(d => {
+                const div = document.createElement('div');
+                div.className = "glass p-4 border-l-4 " + (d.isHoliday ? 'border-red-500' : 'border-blue-500');
+                div.innerHTML = `
+                    <div class="flex justify-between" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                        <div>
+                            <p class="text-[10px] text-gray-400">${d.date}</p>
+                            <h4 class="font-bold">${d.customer || 'Holiday'}</h4>
+                        </div>
+                        <p class="font-bold text-green-400">₹${d.total}</p>
+                    </div>
+                    <div class="hidden mt-3 pt-3 border-t border-white/5 text-xs">
+                        <p>Company: ${d.company}</p>
+                        <div class="flex gap-4 mt-2">
+                            <button onclick="editDoc('${d.id}')" class="text-blue-400">Edit</button>
+                            <button onclick="deleteDoc('${d.id}')" class="text-red-400">Delete</button>
+                        </div>
+                    </div>`;
+                container.appendChild(div);
             });
         }
 
+        // SETTINGS & HELPERS
+        function toggleSettings() { 
+            document.getElementById('settingsModal').style.display = (document.getElementById('settingsModal').style.display === 'flex') ? 'none' : 'flex'; 
+        }
+        function saveSettings() {
+            localStorage.setItem('myCompanies', document.getElementById('setCompanies').value);
+            localStorage.setItem('myHelpers', document.getElementById('setHelpers').value);
+            loadDropdowns(); toggleSettings();
+        }
+        function loadDropdowns() {
+            const comps = (localStorage.getItem('myCompanies') || "Sharp Glass,Buildcon").split(',');
+            document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
+            const helps = (localStorage.getItem('myHelpers') || "Ravi,Kumar").split(',');
+            document.querySelectorAll('.h-name').forEach(sel => {
+                sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
+            });
+        }
+        function addHelperRow() {
+            const div = document.createElement('div');
+            div.className = "grid grid-cols-4 gap-1 helper-row";
+            div.innerHTML = `<select class="input-box text-[10px] h-8 h-name p-1"></select><input type="number" placeholder="Sal" class="input-box text-[10px] h-8 h-sal p-1"><input type="number" placeholder="Pet" class="input-box text-[10px] h-8 h-pet p-1"><input type="number" placeholder="Food" class="input-box text-[10px] h-8 h-food p-1">`;
+            document.getElementById('helperList').appendChild(div);
+            loadDropdowns();
+        }
+
+        // CALCULATIONS & SAVE
+        function calculate() {
+            const s = document.getElementById('totalSqft').value || 0;
+            const r = document.getElementById('amtRate').value || 0;
+            document.getElementById('resTotal').innerText = "₹" + (s * r);
+        }
         function setHelperMode(val) {
             hasHelper = val;
-            const sec = document.getElementById('helperSection');
-            sec.style.opacity = val ? "1" : "0.2";
-            sec.style.pointerEvents = val ? "auto" : "none";
+            document.getElementById('helperSection').style.opacity = val ? "1" : "0.2";
             document.getElementById('btnWithHelper').classList.toggle('active-toggle', val);
             document.getElementById('btnNoHelper').classList.toggle('active-toggle', !val);
         }
-
-        function calculate() {
-            const s = parseFloat(document.getElementById('totalSqft').value) || 0;
-            const r = parseFloat(document.getElementById('amtRate').value) || 0;
-            document.getElementById('resTotal').innerText = "₹" + (s * r).toFixed(2);
-        }
-
-        function checkHoliday() {
-            const h = document.getElementById('isHoliday').checked;
-            document.getElementById('workFields').style.display = h ? 'none' : 'block';
-            document.getElementById('helperToggleSection').style.display = h ? 'none' : 'block';
-        }
-
-        function addHelperRow(data = null) {
-            const div = document.createElement('div');
-            div.className = "grid grid-cols-4 gap-1 helper-row";
-            div.innerHTML = `
-                <select class="input-box text-[10px] h-8 h-name p-1"></select>
-                <input type="number" placeholder="Sal" class="input-box text-[10px] h-8 h-sal p-1" value="${data ? data.sal : ''}">
-                <input type="number" placeholder="Pet" class="input-box text-[10px] h-8 h-pet p-1" value="${data ? data.pet : ''}">
-                <input type="number" placeholder="Food" class="input-box text-[10px] h-8 h-food p-1" value="${data ? data.food : ''}">
-            `;
-            document.getElementById('helperList').appendChild(div);
-            loadDropdowns();
-            if(data) div.querySelector('.h-name').value = data.name;
-        }
+        function checkHoliday() { document.getElementById('workFields').style.display = document.getElementById('isHoliday').checked ? 'none' : 'block'; }
 
         async function saveData() {
-            const id = document.getElementById('editId').value;
             const helpers = [];
-            if(!document.getElementById('isHoliday').checked && hasHelper) {
+            if(hasHelper && !document.getElementById('isHoliday').checked) {
                 document.querySelectorAll('.helper-row').forEach(row => {
-                    const n = row.querySelector('.h-name').value;
-                    if(n) helpers.push({ name: n, sal: row.querySelector('.h-sal').value, pet: row.querySelector('.h-pet').value, food: row.querySelector('.h-food').value });
+                    helpers.push({ name: row.querySelector('.h-name').value, sal: row.querySelector('.h-sal').value, pet: row.querySelector('.h-pet').value, food: row.querySelector('.h-food').value });
                 });
             }
-
             const data = {
-                date: document.getElementById('date').value,
-                qn: document.getElementById('qn').value,
-                isHoliday: document.getElementById('isHoliday').checked,
-                company: document.getElementById('company').value,
-                customer: document.getElementById('customer').value,
-                location: document.getElementById('location').value,
-                winQty: document.getElementById('winQty').value,
-                totalSqft: document.getElementById('totalSqft').value,
-                amtRate: document.getElementById('amtRate').value,
-                total: document.getElementById('resTotal').innerText.replace('₹',''),
-                status: document.getElementById('payStatus').value,
-                helpers: helpers,
-                hasHelper: hasHelper,
-                comment: document.getElementById('comment').value,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                date: document.getElementById('date').value, qn: document.getElementById('qn').value,
+                isHoliday: document.getElementById('isHoliday').checked, company: document.getElementById('company').value,
+                customer: document.getElementById('customer').value, total: document.getElementById('resTotal').innerText.replace('₹',''),
+                helpers: helpers, hasHelper: hasHelper, timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
-
+            const id = document.getElementById('editId').value;
             if(id) await db.collection("workLogs").doc(id).update(data);
             else await db.collection("workLogs").add(data);
             location.reload();
         }
 
-        db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => {
-            allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderEntries(allEntries);
-        });
-
-        function renderEntries(data) {
-            const container = document.getElementById('displayArea');
-            let grandTotal = 0;
-            container.innerHTML = "";
-            data.forEach(d => {
-                grandTotal += parseFloat(d.total || 0);
-                const div = document.createElement('div');
-                div.className = "glass p-4 border-l-4 " + (d.isHoliday ? 'border-red-500' : 'border-blue-500');
-                div.innerHTML = `
-                    <div class="flex justify-between items-center" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                        <div>
-                            <p class="text-[10px] text-gray-500 font-bold uppercase">${d.date} | Qn: ${d.qn || 'NA'}</p>
-                            <h4 class="font-bold text-sm">${d.isHoliday ? '🌴 HOLIDAY' : (d.customer || 'Unnamed Site')}</h4>
-                            <p class="text-[10px] text-blue-400">${d.company}</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="font-black text-green-400">₹${d.total}</p>
-                            <span class="text-[9px] bg-white/5 px-2 py-1 rounded text-gray-400">${d.status}</span>
-                            <i class="fas fa-plus ml-2 text-[10px] text-slate-600"></i>
-                        </div>
-                    </div>
-                    <div class="hidden mt-4 pt-4 border-t border-white/5 space-y-3">
-                        <div class="grid grid-cols-2 text-[11px] text-gray-400">
-                            <p><b>Location:</b> ${d.location}</p>
-                            <p><b>Total Sqft:</b> ${d.totalSqft}</p>
-                        </div>
-                        <div class="text-[11px] bg-black/20 p-2 rounded">
-                            <p class="font-bold text-blue-400 mb-1">Helpers & Costs:</p>
-                            ${d.helpers && d.helpers.length ? d.helpers.map(h => `<div class="flex justify-between border-b border-white/5 pb-1 mt-1"><span>${h.name}</span> <span>Sal:${h.sal} P:${h.pet} F:${h.food}</span></div>`).join('') : 'No helpers recorded'}
-                        </div>
-                        <p class="text-[11px] italic text-gray-500">"${d.comment}"</p>
-                        <div class="flex gap-4 pt-2">
-                            <button onclick="shareWhatsApp('${d.id}')" class="text-green-400 text-xs font-bold"><i class="fab fa-whatsapp"></i> WhatsApp</button>
-                            <button onclick="editDoc('${d.id}')" class="text-blue-400 text-xs font-bold"><i class="fas fa-edit"></i> Edit</button>
-                            <button onclick="deleteDoc('${doc.id}')" class="text-red-400 text-xs font-bold"><i class="fas fa-trash"></i> Delete</button>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-            document.getElementById('monthDisplay').innerText = "₹" + grandTotal.toLocaleString();
-        }
-
-        function shareWhatsApp(id) {
-            const d = allEntries.find(e => e.id === id);
-            const text = `*Work Report - ${d.date}*%0A*Customer:* ${d.customer}%0A*Company:* ${d.company}%0A*Sqft:* ${d.totalSqft}%0A*Total:* ₹${d.total}%0A*Status:* ${d.status}`;
-            window.open(`https://wa.me/?text=${text}`);
-        }
-
-        async function editDoc(id) {
+        async function deleteDoc(id) { if(confirm("Delete?")) await db.collection("workLogs").doc(id).delete(); }
+        function editDoc(id) {
             const d = allEntries.find(e => e.id === id);
             document.getElementById('editId').value = id;
             document.getElementById('date').value = d.date;
-            document.getElementById('qn').value = d.qn;
-            document.getElementById('isHoliday').checked = d.isHoliday;
-            document.getElementById('company').value = d.company;
             document.getElementById('customer').value = d.customer;
-            document.getElementById('location').value = d.location;
-            document.getElementById('winQty').value = d.winQty;
-            document.getElementById('totalSqft').value = d.totalSqft;
-            document.getElementById('amtRate').value = d.amtRate;
             document.getElementById('resTotal').innerText = "₹" + d.total;
-            document.getElementById('payStatus').value = d.status;
-            document.getElementById('comment').value = d.comment;
-            
-            document.getElementById('helperList').innerHTML = "";
-            if(d.helpers) d.helpers.forEach(h => addHelperRow(h));
-            
-            setHelperMode(d.hasHelper);
-            checkHoliday();
-            window.scrollTo({top: 0, behavior: 'smooth'});
+            window.scrollTo(0,0);
         }
 
-        async function deleteDoc(id) {
-            if(confirm("Permanently delete this?")) await db.collection("workLogs").doc(id).delete();
-        }
-
-        function applyFilters() {
-            const search = document.getElementById('searchFilter').value.toLowerCase();
-            const month = document.getElementById('monthFilter').value;
-            const status = document.getElementById('statusFilter').value;
-            const filtered = allEntries.filter(e => {
-                const matchSearch = e.company.toLowerCase().includes(search) || e.customer.toLowerCase().includes(search);
-                const matchMonth = month === "" || e.date.includes(month);
-                const matchStatus = status === "" || e.status === status;
-                return matchSearch && matchMonth && matchStatus;
-            });
-            renderEntries(filtered);
-        }
-
-        function exportToPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text("Ayyappan Work Report", 14, 15);
-            const rows = allEntries.map(e => [e.date, e.customer, e.company, e.totalSqft, e.total, e.status]);
-            doc.autoTable({ head: [['Date', 'Customer', 'Company', 'Sqft', 'Amount', 'Status']], body: rows, startY: 25 });
-            doc.save("Ayyappan_Work_Report.pdf");
-        }
-
-        window.onload = () => { 
-            document.getElementById('date').valueAsDate = new Date(); 
-            loadDropdowns();
-            addHelperRow();
-        };
+        window.onload = () => { document.getElementById('date').valueAsDate = new Date(); loadDropdowns(); addHelperRow(); };
     </script>
 </body>
 </html>
