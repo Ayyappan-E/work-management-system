@@ -1,164 +1,225 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pro Work Manager</title>  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/feather-icons"></script>  <!-- Firebase -->  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>  <!-- PDF -->  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>  <style>
-    :root{
-      --accent:#4f46e5; --card:#fff; --text:#111827;
-    }
-    body.dark{--card:#0f172a;--text:#e5e7eb;background:#020617;}
-    body{margin:0;font-family:Inter;background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);color:var(--text)}
-    header{display:flex;justify-content:space-between;align-items:center;padding:16px;color:#fff}
-    .container{max-width:1200px;margin:auto;padding:16px}
-    .card{background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 10px 25px rgba(0,0,0,.15);animation:fade .4s}
-    @keyframes fade{from{opacity:0;transform:translateY(15px)}to{opacity:1}}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-    input,select{padding:10px;border-radius:10px;border:1px solid #ccc}
-    button{background:var(--accent);color:#fff;border:none;padding:10px 16px;border-radius:12px;font-weight:600;cursor:pointer}
-    button.gray{background:#6b7280}
-    .hidden{display:none}
-    .expand{cursor:pointer;color:var(--accent);font-weight:600}
-    footer{text-align:center;color:#fff;padding:20px}
-  </style></head>
-<body>
-<header>
-  <h2>🏗️ PRO WORK MANAGER</h2>
-  <div onclick="document.body.classList.toggle('dark')">🌙</div>
-</header><div class="container" id="app"><!-- ADD WORK --><div class="card">
-  <h3>Add / Update Work</h3>
-  <div class="grid">
-    <input type="date" aria-label="Date" id="date">
-    <input placeholder="Customer" aria-label="Customer Name" id="customer">
-    <input placeholder="Location" aria-label="Location" id="location">
-    <input placeholder="Company" aria-label="Company" id="company">
-    <select aria-label="Work Type" id="partner"><option value="Solo">Solo</option><option value="Partnership">Partnership</option></select>
-    <input type="number" placeholder="Window Qty" aria-label="Window Quantity" id="qty">
-    <input type="number" placeholder="Sqft / Window" aria-label="Sqft per Window" id="sqft">
-    <input type="number" placeholder="Rate / Sqft" aria-label="Amount per Sqft" id="rate">
-  </div><br>  <h4>Helpers</h4>
-  <div id="helpers"></div>
-  <button class="gray" onclick="addHelper()">+ Add Helper</button><br><br>  <select aria-label="Payment Status" id="payment">
-    <option>Pending</option><option>Partial</option><option>Received</option>
-  </select><br><br><button onclick="saveWork()">Save Work</button>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Work Manager</title>
 
-</div><!-- SUMMARY --><div class="card" id="summary"></div><!-- WORK RECORDS --><div class="card" id="list"><h3>Work Records</h3></div><!-- FILTERS AT BOTTOM --><div class="card">
-  <h3>Filters</h3>
-  <div class="grid">
-    <input type="month" aria-label="Month" id="fMonth">
-    <input placeholder="Company" aria-label="Company Filter" id="fCompany">
-    <input placeholder="Location" aria-label="Location Filter" id="fLocation">
-    <select aria-label="Work Type Filter" id="fPartner">
-      <option value="">All</option>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 16px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+  gap: 12px;
+}
+
+label {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+input, select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+button {
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: none;
+  background: #4f46e5;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  position: relative;
+  z-index: 10;
+}
+
+button:disabled {
+  opacity: 0.6;
+}
+
+.helpers-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="card">
+<h3>Add Work</h3>
+
+<div class="grid">
+  <div>
+    <label>Date</label>
+    <input type="date" id="date">
+  </div>
+
+  <div>
+    <label>Customer</label>
+    <input id="customer">
+  </div>
+
+  <div>
+    <label>Location</label>
+    <input id="location">
+  </div>
+
+  <div>
+    <label>Company</label>
+    <input id="company">
+  </div>
+
+  <div>
+    <label>Work Type</label>
+    <select id="partner">
       <option value="Solo">Solo</option>
       <option value="Partnership">Partnership</option>
     </select>
-  </div><br>
-  <button onclick="loadWorks()">Apply Filter</button>
-  <button class="gray" onclick="exportPDF()">Export PDF</button>
+  </div>
+
+  <div>
+    <label>Window Qty</label>
+    <input type="number" id="qty">
+  </div>
+
+  <div>
+    <label>Sqft / Window</label>
+    <input type="number" id="sqft">
+  </div>
+
+  <div>
+    <label>Rate / Sqft</label>
+    <input type="number" id="rate">
+  </div>
+
+  <div>
+    <label>Payment Status</label>
+    <select id="payment">
+      <option>Pending</option>
+      <option>Partial</option>
+      <option>Received</option>
+    </select>
+  </div>
 </div>
-</div><footer>© Pro Work Manager</footer><script>
-feather.replace();
 
+<br>
+
+<h4>Helpers</h4>
+<div id="helpers"></div>
+
+<button type="button" onclick="addHelper()">+ Add Helper</button>
+<br><br>
+
+<button id="saveBtn" type="button" onclick="saveWork()">Save Work</button>
+
+</div>
+
+<div class="card" id="records">
+<h3>Work Records</h3>
+</div>
+
+</div>
+
+<script>
 firebase.initializeApp({
-  apiKey:"AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
-  authDomain:"ayyappan-work-management.firebaseapp.com",
-  projectId:"ayyappan-work-management"
+  apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58",
+  authDomain: "ayyappan-work-management.firebaseapp.com",
+  projectId: "ayyappan-work-management"
 });
-const db=firebase.firestore();
-let editId=null;
 
-function addHelper(name='',salary='',petrol=''){
-  helpers.innerHTML+=`<div class='grid'>
-    <input placeholder='Helper Name' value='${name}'>
-    <input type='number' placeholder='Salary' value='${salary}'>
-    <input type='number' placeholder='Petrol' value='${petrol}'>
-  </div>`;
+const db = firebase.firestore();
+
+function addHelper() {
+  helpers.innerHTML += `
+    <div class="helpers-row">
+      <input placeholder="Helper Name">
+      <input type="number" placeholder="Salary">
+      <input type="number" placeholder="Petrol">
+    </div>
+  `;
 }
 
-function saveWork(){
-  try{
-    const h = helpers.children.length
-      ? [...helpers.children].map(row => ({
-          name: row.children[0].value,
-          salary: +row.children[1].value || 0,
-          petrol: +row.children[2].value || 0
-        }))
-      : [];
+function saveWork() {
+  const btn = document.getElementById("saveBtn");
+  btn.disabled = true;
+  btn.innerText = "Saving...";
 
-    const data={
-      date:date.value,
-      customer:customer.value,
-      location:location.value,
-      company:company.value,
-      partner:partner.value,
-      qty:+qty.value||0,
-      sqft:+sqft.value||0,
-      rate:+rate.value||0,
-      helpers:h,
-      payment:payment.value,
-      created:new Date()
-    };
+  const helpersArr = [...helpers.children].map(row => ({
+    name: row.children[0].value,
+    salary: +row.children[1].value || 0,
+    petrol: +row.children[2].value || 0
+  }));
 
-    const btn=document.querySelector('button[onclick="saveWork()"]');
-    btn.disabled=true; btn.innerText='Saving...';
+  const data = {
+    date: date.value,
+    customer: customer.value,
+    location: location.value,
+    company: company.value,
+    partner: partner.value,
+    qty: +qty.value || 0,
+    sqft: +sqft.value || 0,
+    rate: +rate.value || 0,
+    payment: payment.value,
+    helpers: helpersArr,
+    created: new Date()
+  };
 
-    const action = editId
-      ? db.collection('works').doc(editId).set(data)
-      : db.collection('works').add(data);
-
-    action.then(()=>{
-      alert('✅ Work saved successfully');
-      editId=null;
-      helpers.innerHTML='';
-      document.querySelectorAll('input').forEach(i=>i.value='');
-      btn.disabled=false; btn.innerText='Save Work';
-    }).catch(err=>{
-      alert('❌ Save failed: '+err.message);
-      btn.disabled=false; btn.innerText='Save Work';
+  db.collection("works").add(data)
+    .then(() => {
+      alert("✅ Work saved successfully");
+      document.querySelectorAll("input").forEach(i => i.value = "");
+      helpers.innerHTML = "";
+      btn.disabled = false;
+      btn.innerText = "Save Work";
+    })
+    .catch(err => {
+      alert("❌ Error: " + err.message);
+      btn.disabled = false;
+      btn.innerText = "Save Work";
     });
-  }catch(e){alert('❌ Error: '+e.message)}
-}
 }
 
-function loadWorks(){
-  list.innerHTML='<h3>Work Records</h3>'; let total=0;
-  db.collection('works').onSnapshot(snap=>{(snap=>{
-    snap.forEach(doc=>{
-      const fP=fPartner.value;
-      if(fP && doc.data().partner!==fP) return;
-      const d=doc.data();
-      const sqft=d.qty*d.sqft; const amt=sqft*d.rate;
-      const helperCost=d.helpers.reduce((s,h)=>s+h.salary+h.petrol,0);
-      const profit=amt-helperCost; total+=profit;
-
-      list.innerHTML+=`<div class='card'>
-        <div class='expand' onclick='this.nextElementSibling.classList.toggle("hidden")'>+ ${d.customer} (${d.date})</div>
-        <div class='hidden'>
-          <p>${d.location} | ${d.company}</p>
-          <p>Amount: ₹${amt}</p>
-          <p>Helpers Cost: ₹${helperCost}</p>
-          <p><b>Profit: ₹${profit}</b></p>
-          <button class='gray' onclick='editWork("${doc.id}")'>Edit</button>
-          <button class='gray' onclick='db.collection("works").doc("${doc.id}").delete()'>Delete</button>
-        </div></div>`;
-    });
-    document.getElementById('summary').innerHTML=`This month profit ₹${total} ${total>75000?'🔥 Outstanding!':'💪 Keep growing!'}`;
+db.collection("works").orderBy("created","desc")
+.onSnapshot(snap => {
+  records.innerHTML = "<h3>Work Records</h3>";
+  snap.forEach(doc => {
+    const d = doc.data();
+    records.innerHTML += `
+      <p><b>${d.customer}</b> - ${d.location} - ₹${d.qty * d.sqft * d.rate}</p>
+    `;
   });
-}
+});
+</script>
 
-function editWork(id){
-  db.collection('works').doc(id).get().then(doc=>{
-    const d=doc.data(); editId=id;
-    date.value=d.date;customer.value=d.customer;location.value=d.location;
-    company.value=d.company;partner.value=d.partner;qty.value=d.qty;
-    sqft.value=d.sqft;rate.value=d.rate;payment.value=d.payment;
-    helpers.innerHTML=''; d.helpers.forEach(h=>addHelper(h.name,h.salary,h.petrol));
-  });
-}
-
-function exportPDF(){html2pdf().from(document.getElementById('list')).save('work-report.pdf')}
-
-loadWorks();
-</script></body>
+</body>
 </html>
