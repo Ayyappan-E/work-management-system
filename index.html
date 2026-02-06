@@ -23,9 +23,9 @@
     <div id="settingsModal" class="modal">
         <div class="glass p-6 w-full max-w-sm space-y-4">
             <h2 class="text-lg font-bold border-b border-white/10 pb-2">Settings</h2>
-            <label>Companies (Comma separated)</label>
+            <label>Companies</label>
             <textarea id="setCompanies" class="input-box h-20" placeholder="Sharp, Buildcon..."></textarea>
-            <label>Helpers (Comma separated)</label>
+            <label>Helpers</label>
             <textarea id="setHelpers" class="input-box h-20" placeholder="Ravi, Kumar..."></textarea>
             <button onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-lg font-bold">SAVE SETTINGS</button>
             <button onclick="toggleSettings()" class="w-full text-xs text-gray-500">Close</button>
@@ -46,18 +46,26 @@
             
             <div class="grid grid-cols-2 gap-3">
                 <div><label>Start Date</label><input type="date" id="startDate" class="input-box"></div>
+                <div><label>Quotation No</label><input type="text" id="qn" class="input-box" placeholder="Qn-001"></div>
+            </div>
+
+            <div><label>Company Name</label><select id="company" class="input-box"></select></div>
+
+            <div class="grid grid-cols-2 gap-3">
                 <div><label>Customer</label><input type="text" id="customer" class="input-box"></div>
+                <div><label>Location</label><input type="text" id="location" class="input-box"></div>
             </div>
 
             <div class="bg-blue-500/5 p-3 rounded-lg border border-blue-500/20">
                 <div class="flex justify-between items-center mb-3">
-                    <label class="text-blue-400 m-0">Helper Logs & OT</label>
-                    <button onclick="addDayRow()" class="text-[10px] bg-blue-600 px-3 py-1 rounded text-white font-bold">+ NEW DAY</button>
+                    <label class="text-blue-400 m-0">Helper Logs, OT & Status</label>
+                    <button onclick="addDayRow()" class="text-[10px] bg-blue-600 px-3 py-1 rounded text-white font-bold">+ ADD DAY</button>
                 </div>
                 <div id="dayLogsContainer"></div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-3 gap-2">
+                <div><label>Win Qty</label><input type="number" id="winQty" class="input-box"></div>
                 <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
                 <div><label>Rate/Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
             </div>
@@ -67,7 +75,7 @@
                 <span id="resTotal" class="text-2xl font-black text-green-400">₹0</span>
             </div>
 
-            <button onclick="saveData()" class="w-full bg-blue-600 py-4 rounded-xl font-black text-lg shadow-lg">SAVE RECORD</button>
+            <button onclick="saveData()" class="w-full bg-blue-600 py-4 rounded-xl font-black text-lg shadow-lg uppercase">Update/Save Record</button>
         </div>
 
         <div id="displayArea" class="space-y-4"></div>
@@ -96,49 +104,31 @@
             dayDiv.className = "day-entry border-l-2 border-blue-400";
             dayDiv.innerHTML = `
                 <div class="grid grid-cols-2 gap-2 mb-2">
-                    <div>
-                        <label>Date</label>
-                        <input type="date" class="input-box h-9 text-[11px] d-date" value="${data ? data.date : new Date().toISOString().split('T')[0]}">
-                    </div>
-                    <div>
-                        <label>Status</label>
-                        <select class="input-box h-9 text-[11px] d-status">
-                            <option>Started</option>
-                            <option>Ongoing</option>
-                            <option>Completed</option>
-                        </select>
-                    </div>
+                    <input type="date" class="input-box h-8 text-[11px] d-date" value="${data ? data.date : new Date().toISOString().split('T')[0]}">
+                    <select class="input-box h-8 text-[11px] d-status">
+                        <option>Started</option><option>Ongoing</option><option>Completed</option>
+                    </select>
                 </div>
                 <div class="grid grid-cols-2 gap-2 mb-2">
-                    <div>
-                        <label>Helper</label>
-                        <select class="input-box h-9 text-[11px] d-helper"></select>
-                    </div>
-                    <div>
-                        <label>OT</label>
-                        <select class="input-box h-9 text-[11px] d-ot">
-                            <option value="0">No OT</option>
-                            <option value="0.5">0.5 OT</option>
-                            <option value="1">1.0 OT</option>
-                            <option value="1.5">1.5 OT</option>
-                            <option value="2">2.0 OT</option>
-                        </select>
-                    </div>
+                    <select class="input-box h-8 text-[11px] d-helper"></select>
+                    <select class="input-box h-8 text-[11px] d-ot">
+                        <option value="0">No OT</option><option value="0.5">0.5 OT</option><option value="1">1.0 OT</option><option value="1.5">1.5 OT</option><option value="2">2.0 OT</option>
+                    </select>
                 </div>
                 <div class="grid grid-cols-3 gap-1 mb-2">
-                    <input type="number" placeholder="Salary" class="input-box h-8 text-[10px] d-sal" value="${data ? data.sal : ''}">
-                    <input type="number" placeholder="Pet" class="input-box h-8 text-[10px] d-pet" value="${data ? data.pet : ''}">
-                    <input type="number" placeholder="Food" class="input-box h-8 text-[10px] d-food" value="${data ? data.food : ''}">
+                    <input type="number" placeholder="Salary" class="input-box h-7 text-[10px] d-sal" value="${data ? data.sal : ''}">
+                    <input type="number" placeholder="Pet" class="input-box h-7 text-[10px] d-pet" value="${data ? data.pet : ''}">
+                    <input type="number" placeholder="Food" class="input-box h-7 text-[10px] d-food" value="${data ? data.food : ''}">
                 </div>
-                <button onclick="this.parentElement.remove()" class="text-[9px] text-red-500 font-bold uppercase">Remove Day</button>
+                <button onclick="this.parentElement.remove()" class="text-[8px] text-red-500 font-bold uppercase">Remove</button>
             `;
             container.appendChild(dayDiv);
             const helpers = (localStorage.getItem('myHelpers') || "Alone,Ravi,Kumar").split(',');
             dayDiv.querySelector('.d-helper').innerHTML = helpers.map(h => `<option>${h.trim()}</option>`).join('');
             if(data) {
                 dayDiv.querySelector('.d-helper').value = data.helper;
-                dayDiv.querySelector('.d-status').value = data.status || "Ongoing";
-                dayDiv.querySelector('.d-ot').value = data.ot || "0";
+                dayDiv.querySelector('.d-status').value = data.status;
+                dayDiv.querySelector('.d-ot').value = data.ot;
             }
         }
 
@@ -152,9 +142,9 @@
             container.innerHTML = "";
             data.forEach(d => {
                 const dayRows = (d.logs || []).map(l => `
-                    <div class="flex justify-between text-[10px] border-b border-white/5 py-1">
+                    <div class="flex justify-between text-[9px] border-b border-white/5 py-1">
                         <span>${l.date} | ${l.helper}</span>
-                        <span class="text-blue-400 font-bold">${l.status} ${parseFloat(l.ot) > 0 ? '(OT: '+l.ot+')' : ''}</span>
+                        <span class="text-blue-400">${l.status} ${parseFloat(l.ot)>0 ? '(OT:'+l.ot+')' : ''}</span>
                     </div>
                 `).join('');
 
@@ -163,14 +153,16 @@
                 div.innerHTML = `
                     <div class="flex justify-between items-start" onclick="this.nextElementSibling.classList.toggle('hidden')">
                         <div>
-                            <p class="text-[9px] text-gray-500">${d.startDate}</p>
-                            <h4 class="font-bold text-sm uppercase">${d.customer}</h4>
+                            <p class="text-[9px] text-gray-500 uppercase">${d.qn || 'NO QN'} • ${d.company}</p>
+                            <h4 class="font-bold text-sm uppercase">${d.customer || 'Unnamed'}</h4>
+                            <p class="text-[9px] text-blue-400">${d.location || ''}</p>
                         </div>
                         <div class="text-right">
                             <p class="font-black text-green-400">₹${d.total}</p>
                         </div>
                     </div>
                     <div class="hidden mt-4 pt-3 border-t border-white/5">
+                        <p class="text-[9px] mb-2 text-gray-400">Sqft: ${d.totalSqft} | Win: ${d.winQty}</p>
                         <div class="max-h-32 overflow-y-auto mb-3">${dayRows || 'No logs'}</div>
                         <div class="flex gap-4">
                             <button onclick="editDoc('${d.id}')" class="text-blue-400 text-xs font-bold">EDIT</button>
@@ -196,7 +188,11 @@
             });
             const data = {
                 startDate: document.getElementById('startDate').value,
+                qn: document.getElementById('qn').value,
+                company: document.getElementById('company').value,
                 customer: document.getElementById('customer').value,
+                location: document.getElementById('location').value,
+                winQty: document.getElementById('winQty').value,
                 totalSqft: document.getElementById('totalSqft').value,
                 amtRate: document.getElementById('amtRate').value,
                 total: document.getElementById('resTotal').innerText.replace('₹',''),
@@ -213,7 +209,11 @@
             const d = allEntries.find(e => e.id === id);
             document.getElementById('editId').value = id;
             document.getElementById('startDate').value = d.startDate;
+            document.getElementById('qn').value = d.qn;
+            document.getElementById('company').value = d.company;
             document.getElementById('customer').value = d.customer;
+            document.getElementById('location').value = d.location;
+            document.getElementById('winQty').value = d.winQty;
             document.getElementById('totalSqft').value = d.totalSqft;
             document.getElementById('amtRate').value = d.amtRate;
             document.getElementById('resTotal').innerText = "₹" + d.total;
@@ -233,6 +233,8 @@
         window.onload = () => {
             document.getElementById('startDate').valueAsDate = new Date();
             document.getElementById('liveDate').innerText = new Date().toDateString();
+            const comps = (localStorage.getItem('myCompanies') || "Sharp, Buildcon").split(',');
+            document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
             document.getElementById('setCompanies').value = localStorage.getItem('myCompanies') || "";
             document.getElementById('setHelpers').value = localStorage.getItem('myHelpers') || "";
             addDayRow();
