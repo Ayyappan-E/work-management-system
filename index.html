@@ -16,17 +16,17 @@
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; }
         .input-box { background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 0.6rem; padding: 0.8rem; color: white; width: 100%; outline: none; font-size: 14px; }
         label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block; }
-        .counter-btn { background: #334155; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+        .day-entry { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 10px; }
     </style>
 </head>
 <body class="p-4 pb-24">
 
     <div id="settingsModal" class="modal">
         <div class="glass p-6 w-full max-w-sm space-y-4">
-            <h2 class="text-lg font-bold border-b border-white/10 pb-2">Settings</h2>
-            <textarea id="setCompanies" class="input-box h-20" placeholder="Companies..."></textarea>
-            <textarea id="setHelpers" class="input-box h-20" placeholder="Helpers..."></textarea>
+            <h2 class="text-lg font-bold border-b border-white/10 pb-2">System Settings</h2>
+            <textarea id="setCompanies" class="input-box h-20" placeholder="Companies (comma separated)"></textarea>
+            <textarea id="setHelpers" class="input-box h-20" placeholder="Helpers (comma separated)"></textarea>
             <button onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-lg font-bold">SAVE</button>
             <button onclick="toggleSettings()" class="w-full text-xs text-gray-500">Close</button>
         </div>
@@ -35,7 +35,7 @@
     <div class="max-w-md mx-auto">
         <div class="flex justify-between items-center mb-6">
             <div>
-                <h1 class="font-black text-xl">AYYAPPAN <span class="text-blue-500 text-sm">PRO</span></h1>
+                <h1 class="font-black text-xl">AYYAPPAN <span class="text-blue-500 text-sm">PROJECTS</span></h1>
                 <p id="liveDate" class="text-[10px] text-gray-400"></p>
             </div>
             <div class="flex gap-2">
@@ -46,46 +46,25 @@
 
         <div class="glass p-5 mb-6 space-y-4 shadow-2xl">
             <input type="hidden" id="editId">
+            
             <div class="grid grid-cols-2 gap-3">
-                <div><label>Start Date</label><input type="date" id="date" class="input-box"></div>
-                <div><label>Quotation No</label><input type="text" id="qn" class="input-box" placeholder="Qn-001"></div>
+                <div><label>Start Date</label><input type="date" id="startDate" class="input-box"></div>
+                <div><label>Quotation No</label><input type="text" id="qn" class="input-box" placeholder="Qn-100"></div>
             </div>
 
-            <div class="flex items-center gap-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <input type="checkbox" id="isHoliday" onchange="checkHoliday()" class="w-5 h-5 accent-red-500">
-                <label class="m-0 text-red-400">Mark as Holiday</label>
-            </div>
-
-            <div id="trackerSection" class="grid grid-cols-2 gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
-                <div>
-                    <label class="text-blue-400">Days Worked</label>
-                    <div class="flex items-center gap-3">
-                        <button onclick="changeVal('dayCount', -1)" class="counter-btn">-</button>
-                        <span id="dayCount" class="font-bold text-lg">1</span>
-                        <button onclick="changeVal('dayCount', 1)" class="counter-btn">+</button>
-                    </div>
-                </div>
-                <div>
-                    <label class="text-orange-400">Total Helpers</label>
-                    <div class="flex items-center gap-3">
-                        <button onclick="changeVal('helpCount', -1)" class="counter-btn">-</button>
-                        <span id="helpCount" class="font-bold text-lg">0</span>
-                        <button onclick="changeVal('helpCount', 1)" class="counter-btn">+</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="workFields" class="space-y-4">
+            <div class="space-y-4">
                 <div><label>Company Name</label><select id="company" class="input-box"></select></div>
                 <div class="grid grid-cols-2 gap-3">
                     <div><label>Customer Name</label><input type="text" id="customer" class="input-box"></div>
                     <div><label>Site Location</label><input type="text" id="location" class="input-box"></div>
                 </div>
 
-                <div id="helperExpenseSection" class="bg-blue-500/5 p-3 rounded-lg border border-blue-500/20 space-y-3">
-                    <label class="text-blue-400 font-bold">Helper Daily Expense Details</label>
-                    <div id="helperList" class="space-y-2"></div>
-                    <button onclick="addHelperRow()" class="text-[10px] bg-blue-600/20 px-3 py-1 rounded-full text-blue-300 font-bold">+ ADD HELPER ENTRY</button>
+                <div class="bg-blue-500/5 p-3 rounded-lg border border-blue-500/20">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-blue-400 m-0">Daily Logs (Work & Helpers)</label>
+                        <button onclick="addDayRow()" class="text-[10px] bg-blue-600 px-3 py-1 rounded text-white">+ ADD DAY</button>
+                    </div>
+                    <div id="dayLogsContainer"></div>
                 </div>
 
                 <div class="grid grid-cols-3 gap-2">
@@ -96,9 +75,9 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label>Payment Status</label>
+                        <label>Status</label>
                         <select id="payStatus" class="input-box">
-                            <option>Pending</option><option>Partial</option><option>Received</option>
+                            <option>Ongoing</option><option>Completed</option><option>Paid</option>
                         </select>
                     </div>
                     <div class="p-3 bg-green-500/10 rounded-lg flex flex-col items-center justify-center border border-green-500/20">
@@ -108,12 +87,9 @@
                 </div>
             </div>
 
-            <div><label>Notes / Reason</label><textarea id="comment" class="input-box h-16" placeholder="Project notes..."></textarea></div>
-
-            <button onclick="saveData()" id="mainBtn" class="w-full bg-blue-600 py-4 rounded-xl font-black text-lg shadow-lg uppercase tracking-widest">Update/Save Record</button>
+            <button onclick="saveData()" class="w-full bg-blue-600 py-4 rounded-xl font-black text-lg">SAVE PROJECT RECORD</button>
         </div>
 
-        <div class="mb-4"><input type="text" id="searchFilter" oninput="applyFilters()" placeholder="🔍 Search Site or Company..." class="input-box"></div>
         <div id="displayArea" class="space-y-4"></div>
     </div>
 
@@ -123,47 +99,59 @@
         const db = firebase.firestore();
         let allEntries = [];
 
+        function addDayRow(data = null) {
+            const container = document.getElementById('dayLogsContainer');
+            const dayDiv = document.createElement('div');
+            dayDiv.className = "day-entry space-y-2";
+            dayDiv.innerHTML = `
+                <div class="flex gap-2">
+                    <input type="date" class="input-box h-8 text-[10px] w-1/2 d-date" value="${data ? data.date : new Date().toISOString().split('T')[0]}">
+                    <select class="input-box h-8 text-[10px] w-1/2 d-helper"></select>
+                </div>
+                <div class="grid grid-cols-3 gap-1">
+                    <input type="number" placeholder="Salary" class="input-box h-8 text-[10px] d-sal" value="${data ? data.sal : ''}">
+                    <input type="number" placeholder="Petrol" class="input-box h-8 text-[10px] d-pet" value="${data ? data.pet : ''}">
+                    <input type="number" placeholder="Food" class="input-box h-8 text-[10px] d-food" value="${data ? data.food : ''}">
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-[8px] text-red-400 uppercase">Remove Day</button>
+            `;
+            container.appendChild(dayDiv);
+            
+            const helperSelect = dayDiv.querySelector('.d-helper');
+            const helpers = (localStorage.getItem('myHelpers') || "Alone,Ravi,Kumar").split(',');
+            helperSelect.innerHTML = helpers.map(h => `<option>${h.trim()}</option>`).join('');
+            if(data) helperSelect.value = data.helper;
+        }
+
         db.collection("workLogs").orderBy("timestamp", "desc").onSnapshot(snap => {
             allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             renderEntries(allEntries);
         });
-
-        function changeVal(id, amt) {
-            let el = document.getElementById(id);
-            let val = parseInt(el.innerText) + amt;
-            if(val < 0) val = 0;
-            el.innerText = val;
-        }
 
         function renderEntries(data) {
             const container = document.getElementById('displayArea');
             container.innerHTML = "";
             data.forEach(d => {
                 const div = document.createElement('div');
-                div.className = "glass p-4 border-l-4 " + (d.isHoliday ? 'border-red-500' : 'border-blue-500');
+                div.className = "glass p-4 border-l-4 border-blue-500";
                 div.innerHTML = `
                     <div class="flex justify-between items-start" onclick="this.nextElementSibling.classList.toggle('hidden')">
                         <div>
-                            <p class="text-[9px] text-gray-500 font-bold uppercase">${d.qn || 'NO QN'} • ${d.date}</p>
-                            <h4 class="font-bold text-sm uppercase">${d.isHoliday ? '🌴 HOLIDAY' : (d.customer || 'Unnamed')}</h4>
-                            <div class="flex gap-2 mt-1">
-                                <span class="text-[8px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-black">DAYS: ${d.dayCount || 1}</span>
-                                <span class="text-[8px] bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded font-black">HELPERS: ${d.helpCount || 0}</span>
-                            </div>
+                            <p class="text-[9px] text-gray-500 uppercase">${d.qn || 'QN-NA'} | ${d.startDate}</p>
+                            <h4 class="font-bold text-sm">${d.customer}</h4>
+                            <p class="text-[10px] text-blue-400 font-bold uppercase">${d.company}</p>
                         </div>
                         <div class="text-right">
                             <p class="font-black text-green-400">₹${d.total}</p>
                             <p class="text-[8px] text-gray-500 uppercase">${d.status}</p>
                         </div>
                     </div>
-                    <div class="hidden mt-4 pt-3 border-t border-white/5 text-[11px] text-gray-400 space-y-2">
-                        <p><b>Company:</b> ${d.company} | <b>Loc:</b> ${d.location}</p>
-                        <p><b>Sqft:</b> ${d.totalSqft} | <b>Win:</b> ${d.winQty}</p>
-                        <p class="italic">"${d.comment || ''}"</p>
-                        <div class="flex gap-4 pt-2">
-                            <button onclick="shareWhatsApp('${d.id}')" class="text-green-400 font-bold"><i class="fab fa-whatsapp"></i> Share</button>
-                            <button onclick="editDoc('${d.id}')" class="text-blue-400 font-bold"><i class="fas fa-edit"></i> Edit</button>
-                            <button onclick="deleteDoc('${d.id}')" class="text-red-400 font-bold"><i class="fas fa-trash"></i> Delete</button>
+                    <div class="hidden mt-4 pt-3 border-t border-white/5 text-[11px] text-gray-400">
+                        <p><b>Location:</b> ${d.location}</p>
+                        <p><b>Days Logged:</b> ${d.logs ? d.logs.length : 0}</p>
+                        <div class="flex gap-4 mt-3">
+                            <button onclick="editDoc('${d.id}')" class="text-blue-400 font-bold">EDIT</button>
+                            <button onclick="deleteDoc('${d.id}')" class="text-red-400 font-bold">DELETE</button>
                         </div>
                     </div>`;
                 container.appendChild(div);
@@ -171,67 +159,60 @@
         }
 
         async function saveData() {
-            const helpers = [];
-            document.querySelectorAll('.helper-row').forEach(row => {
-                helpers.push({ name: row.querySelector('.h-name').value, sal: row.querySelector('.h-sal').value, pet: row.querySelector('.h-pet').value, food: row.querySelector('.h-food').value });
+            const logs = [];
+            document.querySelectorAll('.day-entry').forEach(row => {
+                logs.push({
+                    date: row.querySelector('.d-date').value,
+                    helper: row.querySelector('.d-helper').value,
+                    sal: row.querySelector('.d-sal').value,
+                    pet: row.querySelector('.d-pet').value,
+                    food: row.querySelector('.d-food').value
+                });
             });
+
             const data = {
-                date: document.getElementById('date').value, qn: document.getElementById('qn').value,
-                dayCount: document.getElementById('dayCount').innerText, helpCount: document.getElementById('helpCount').innerText,
-                isHoliday: document.getElementById('isHoliday').checked, company: document.getElementById('company').value,
-                customer: document.getElementById('customer').value, location: document.getElementById('location').value,
-                winQty: document.getElementById('winQty').value, totalSqft: document.getElementById('totalSqft').value,
-                amtRate: document.getElementById('amtRate').value, status: document.getElementById('payStatus').value,
-                total: document.getElementById('resTotal').innerText.replace('₹',''), helpers: helpers,
-                comment: document.getElementById('comment').value, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                startDate: document.getElementById('startDate').value,
+                qn: document.getElementById('qn').value,
+                company: document.getElementById('company').value,
+                customer: document.getElementById('customer').value,
+                location: document.getElementById('location').value,
+                winQty: document.getElementById('winQty').value,
+                totalSqft: document.getElementById('totalSqft').value,
+                amtRate: document.getElementById('amtRate').value,
+                status: document.getElementById('payStatus').value,
+                total: document.getElementById('resTotal').innerText.replace('₹',''),
+                logs: logs,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
+
             const id = document.getElementById('editId').value;
             if(id) await db.collection("workLogs").doc(id).update(data);
             else await db.collection("workLogs").add(data);
             location.reload();
         }
 
-        function addHelperRow(data = null) {
-            const div = document.createElement('div');
-            div.className = "grid grid-cols-4 gap-1 helper-row mb-1";
-            div.innerHTML = `<select class="input-box text-[10px] h-8 h-name p-1"></select><input type="number" placeholder="Sal" class="input-box text-[10px] h-8 h-sal p-1" value="${data?data.sal:''}"><input type="number" placeholder="Pet" class="input-box text-[10px] h-8 h-pet p-1" value="${data?data.pet:''}"><input type="number" placeholder="Food" class="input-box text-[10px] h-8 h-food p-1" value="${data?data.food:''}">`;
-            document.getElementById('helperList').appendChild(div);
-            const helps = (localStorage.getItem('myHelpers') || "Ravi,Kumar").split(',');
-            div.querySelector('.h-name').innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
-            if(data) div.querySelector('.h-name').value = data.name;
-        }
-
         function editDoc(id) {
             const d = allEntries.find(e => e.id === id);
             document.getElementById('editId').value = id;
-            document.getElementById('date').value = d.date;
+            document.getElementById('startDate').value = d.startDate;
             document.getElementById('qn').value = d.qn;
-            document.getElementById('dayCount').innerText = d.dayCount || 1;
-            document.getElementById('helpCount').innerText = d.helpCount || 0;
             document.getElementById('customer').value = d.customer;
             document.getElementById('location').value = d.location;
             document.getElementById('winQty').value = d.winQty;
             document.getElementById('totalSqft').value = d.totalSqft;
             document.getElementById('amtRate').value = d.amtRate;
             document.getElementById('payStatus').value = d.status;
-            document.getElementById('comment').value = d.comment;
             document.getElementById('resTotal').innerText = "₹" + d.total;
-            document.getElementById('helperList').innerHTML = "";
-            if(d.helpers) d.helpers.forEach(h => addHelperRow(h));
-            document.getElementById('isHoliday').checked = d.isHoliday;
-            checkHoliday(); window.scrollTo(0,0);
+            
+            document.getElementById('dayLogsContainer').innerHTML = "";
+            if(d.logs) d.logs.forEach(log => addDayRow(log));
+            window.scrollTo(0,0);
         }
 
         function calculate() {
             const s = parseFloat(document.getElementById('totalSqft').value) || 0;
             const r = parseFloat(document.getElementById('amtRate').value) || 0;
             document.getElementById('resTotal').innerText = "₹" + (s * r).toFixed(2);
-        }
-
-        function checkHoliday() {
-            const h = document.getElementById('isHoliday').checked;
-            document.getElementById('workFields').style.display = h ? 'none' : 'block';
-            document.getElementById('trackerSection').style.display = h ? 'none' : 'grid';
         }
 
         function toggleSettings() { 
@@ -245,29 +226,16 @@
             location.reload();
         }
 
-        function exportToPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            doc.text("Ayyappan Work Report", 14, 15);
-            const rows = allEntries.map(e => [e.date, e.customer, e.dayCount, e.helpCount, e.total, e.status]);
-            doc.autoTable({ head: [['Date', 'Site', 'Days', 'Helpers', 'Total', 'Status']], body: rows, startY: 25 });
-            doc.save("WorkSummary.pdf");
-        }
-
-        function shareWhatsApp(id) {
-            const d = allEntries.find(e => e.id === id);
-            const text = `*Site Report*%0A*Customer:* ${d.customer}%0A*Days Worked:* ${d.dayCount}%0A*Total Helpers:* ${d.helpCount}%0A*Amount:* ₹${d.total}`;
-            window.open(`https://wa.me/?text=${text}`);
-        }
-
-        async function deleteDoc(id) { if(confirm("Delete Record?")) await db.collection("workLogs").doc(id).delete(); }
+        async function deleteDoc(id) { if(confirm("Delete Project?")) await db.collection("workLogs").doc(id).delete(); }
 
         window.onload = () => {
-            document.getElementById('date').valueAsDate = new Date();
+            document.getElementById('startDate').valueAsDate = new Date();
             document.getElementById('liveDate').innerText = new Date().toDateString();
             const comps = (localStorage.getItem('myCompanies') || "Sharp,Buildcon").split(',');
             document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
-            addHelperRow();
+            document.getElementById('setCompanies').value = localStorage.getItem('myCompanies') || "";
+            document.getElementById('setHelpers').value = localStorage.getItem('myHelpers') || "";
+            addDayRow();
         };
     </script>
 </body>
