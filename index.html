@@ -12,31 +12,47 @@
     <style>
         body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #f1f5f9; min-height: 100vh; font-family: 'Inter', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; }
-        .input-box { background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 0.6rem; padding: 0.8rem; color: white; width: 100%; outline: none; font-size: 14px; }
+        .input-box { background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 0.6rem; padding: 0.8rem; color: white; width: 100%; outline: none; font-size: 13px; }
         label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block; }
         .day-entry { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; margin-bottom: 12px; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
     </style>
 </head>
 <body class="p-4 pb-24">
 
+    <div id="settingsModal" class="modal">
+        <div class="glass p-6 w-full max-w-sm space-y-4">
+            <h2 class="text-lg font-bold border-b border-white/10 pb-2">Settings</h2>
+            <label>Companies (Comma separated)</label>
+            <textarea id="setCompanies" class="input-box h-20" placeholder="Sharp, Buildcon..."></textarea>
+            <label>Helpers (Comma separated)</label>
+            <textarea id="setHelpers" class="input-box h-20" placeholder="Ravi, Kumar..."></textarea>
+            <button onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-lg font-bold">SAVE SETTINGS</button>
+            <button onclick="toggleSettings()" class="w-full text-xs text-gray-500">Close</button>
+        </div>
+    </div>
+
     <div class="max-w-md mx-auto">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="font-black text-xl text-white">AYYAPPAN <span class="text-blue-500 text-sm">PRO</span></h1>
-            <p id="liveDate" class="text-[10px] text-gray-400"></p>
+            <div>
+                <h1 class="font-black text-xl text-white">AYYAPPAN <span class="text-blue-500 text-sm">PRO</span></h1>
+                <p id="liveDate" class="text-[10px] text-gray-400"></p>
+            </div>
+            <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-cog"></i></button>
         </div>
 
         <div class="glass p-5 mb-6 space-y-4 shadow-2xl">
             <input type="hidden" id="editId">
             
             <div class="grid grid-cols-2 gap-3">
-                <div><label>Project Start</label><input type="date" id="startDate" class="input-box"></div>
-                <div><label>Customer Name</label><input type="text" id="customer" class="input-box"></div>
+                <div><label>Start Date</label><input type="date" id="startDate" class="input-box"></div>
+                <div><label>Customer</label><input type="text" id="customer" class="input-box"></div>
             </div>
 
             <div class="bg-blue-500/5 p-3 rounded-lg border border-blue-500/20">
                 <div class="flex justify-between items-center mb-3">
-                    <label class="text-blue-400 m-0">Daily Helper & Work Status</label>
-                    <button onclick="addDayRow()" class="text-[10px] bg-blue-600 px-3 py-1 rounded text-white font-bold">+ LOG NEW DAY</button>
+                    <label class="text-blue-400 m-0">Helper Logs & OT</label>
+                    <button onclick="addDayRow()" class="text-[10px] bg-blue-600 px-3 py-1 rounded text-white font-bold">+ NEW DAY</button>
                 </div>
                 <div id="dayLogsContainer"></div>
             </div>
@@ -47,11 +63,11 @@
             </div>
 
             <div class="p-3 bg-green-500/10 rounded-lg flex flex-col items-center justify-center border border-green-500/20">
-                <label class="m-0 text-green-500 text-[10px]">Estimated Total Value</label>
+                <label class="m-0 text-green-500 text-[10px]">Project Value</label>
                 <span id="resTotal" class="text-2xl font-black text-green-400">₹0</span>
             </div>
 
-            <button onclick="saveData()" class="w-full bg-blue-600 py-4 rounded-xl font-black text-lg shadow-lg">SAVE PROJECT RECORD</button>
+            <button onclick="saveData()" class="w-full bg-blue-600 py-4 rounded-xl font-black text-lg shadow-lg">SAVE RECORD</button>
         </div>
 
         <div id="displayArea" class="space-y-4"></div>
@@ -63,41 +79,66 @@
         const db = firebase.firestore();
         let allEntries = [];
 
+        function toggleSettings() {
+            const m = document.getElementById('settingsModal');
+            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function saveSettings() {
+            localStorage.setItem('myCompanies', document.getElementById('setCompanies').value);
+            localStorage.setItem('myHelpers', document.getElementById('setHelpers').value);
+            location.reload();
+        }
+
         function addDayRow(data = null) {
             const container = document.getElementById('dayLogsContainer');
             const dayDiv = document.createElement('div');
             dayDiv.className = "day-entry border-l-2 border-blue-400";
             dayDiv.innerHTML = `
                 <div class="grid grid-cols-2 gap-2 mb-2">
-                    <input type="date" class="input-box h-8 text-[10px] d-date" value="${data ? data.date : new Date().toISOString().split('T')[0]}">
-                    <select class="input-box h-8 text-[10px] d-status">
-                        <option>Full Day</option>
-                        <option>Half Day</option>
-                        <option>Overtime</option>
-                        <option>Completed</option>
-                    </select>
+                    <div>
+                        <label>Date</label>
+                        <input type="date" class="input-box h-9 text-[11px] d-date" value="${data ? data.date : new Date().toISOString().split('T')[0]}">
+                    </div>
+                    <div>
+                        <label>Status</label>
+                        <select class="input-box h-9 text-[11px] d-status">
+                            <option>Started</option>
+                            <option>Ongoing</option>
+                            <option>Completed</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-2 mb-2">
-                    <select class="input-box h-8 text-[10px] d-helper"></select>
-                    <input type="number" placeholder="Salary" class="input-box h-8 text-[10px] d-sal" value="${data ? data.sal : ''}">
-                </div>
-                <div class="flex justify-between items-center">
-                    <div class="flex gap-1">
-                        <input type="number" placeholder="Pet" class="input-box h-8 w-16 text-[10px] d-pet" value="${data ? data.pet : ''}">
-                        <input type="number" placeholder="Food" class="input-box h-8 w-16 text-[10px] d-food" value="${data ? data.food : ''}">
+                    <div>
+                        <label>Helper</label>
+                        <select class="input-box h-9 text-[11px] d-helper"></select>
                     </div>
-                    <button onclick="this.parentElement.parentElement.remove()" class="text-[10px] text-red-500 font-bold"><i class="fas fa-trash"></i></button>
+                    <div>
+                        <label>OT</label>
+                        <select class="input-box h-9 text-[11px] d-ot">
+                            <option value="0">No OT</option>
+                            <option value="0.5">0.5 OT</option>
+                            <option value="1">1.0 OT</option>
+                            <option value="1.5">1.5 OT</option>
+                            <option value="2">2.0 OT</option>
+                        </select>
+                    </div>
                 </div>
+                <div class="grid grid-cols-3 gap-1 mb-2">
+                    <input type="number" placeholder="Salary" class="input-box h-8 text-[10px] d-sal" value="${data ? data.sal : ''}">
+                    <input type="number" placeholder="Pet" class="input-box h-8 text-[10px] d-pet" value="${data ? data.pet : ''}">
+                    <input type="number" placeholder="Food" class="input-box h-8 text-[10px] d-food" value="${data ? data.food : ''}">
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-[9px] text-red-500 font-bold uppercase">Remove Day</button>
             `;
             container.appendChild(dayDiv);
-            
-            const helperSelect = dayDiv.querySelector('.d-helper');
             const helpers = (localStorage.getItem('myHelpers') || "Alone,Ravi,Kumar").split(',');
-            helperSelect.innerHTML = helpers.map(h => `<option>${h.trim()}</option>`).join('');
-            
+            dayDiv.querySelector('.d-helper').innerHTML = helpers.map(h => `<option>${h.trim()}</option>`).join('');
             if(data) {
-                helperSelect.value = data.helper;
-                dayDiv.querySelector('.d-status').value = data.status || "Full Day";
+                dayDiv.querySelector('.d-helper').value = data.helper;
+                dayDiv.querySelector('.d-status').value = data.status || "Ongoing";
+                dayDiv.querySelector('.d-ot').value = data.ot || "0";
             }
         }
 
@@ -111,9 +152,9 @@
             container.innerHTML = "";
             data.forEach(d => {
                 const dayRows = (d.logs || []).map(l => `
-                    <div class="flex justify-between text-[9px] border-b border-white/5 py-1">
-                        <span>${l.date} (${l.helper})</span>
-                        <span class="text-blue-400 font-bold">${l.status}</span>
+                    <div class="flex justify-between text-[10px] border-b border-white/5 py-1">
+                        <span>${l.date} | ${l.helper}</span>
+                        <span class="text-blue-400 font-bold">${l.status} ${parseFloat(l.ot) > 0 ? '(OT: '+l.ot+')' : ''}</span>
                     </div>
                 `).join('');
 
@@ -124,18 +165,15 @@
                         <div>
                             <p class="text-[9px] text-gray-500">${d.startDate}</p>
                             <h4 class="font-bold text-sm uppercase">${d.customer}</h4>
-                            <p class="text-[9px] text-blue-400">${d.logs ? d.logs.length : 0} Days Logged</p>
                         </div>
                         <div class="text-right">
                             <p class="font-black text-green-400">₹${d.total}</p>
-                            <p class="text-[9px] text-gray-500 uppercase">View Details</p>
                         </div>
                     </div>
                     <div class="hidden mt-4 pt-3 border-t border-white/5">
-                        <p class="text-[10px] font-bold text-gray-400 mb-2">DAY-WISE PROGRESS:</p>
-                        ${dayRows || '<p class="text-[9px]">No days logged</p>'}
-                        <div class="flex gap-4 mt-4">
-                            <button onclick="editDoc('${d.id}')" class="text-blue-400 text-xs font-bold">EDIT PROJECT</button>
+                        <div class="max-h-32 overflow-y-auto mb-3">${dayRows || 'No logs'}</div>
+                        <div class="flex gap-4">
+                            <button onclick="editDoc('${d.id}')" class="text-blue-400 text-xs font-bold">EDIT</button>
                             <button onclick="deleteDoc('${d.id}')" class="text-red-400 text-xs font-bold">DELETE</button>
                         </div>
                     </div>`;
@@ -150,12 +188,12 @@
                     date: row.querySelector('.d-date').value,
                     status: row.querySelector('.d-status').value,
                     helper: row.querySelector('.d-helper').value,
+                    ot: row.querySelector('.d-ot').value,
                     sal: row.querySelector('.d-sal').value,
                     pet: row.querySelector('.d-pet').value,
                     food: row.querySelector('.d-food').value
                 });
             });
-
             const data = {
                 startDate: document.getElementById('startDate').value,
                 customer: document.getElementById('customer').value,
@@ -165,7 +203,6 @@
                 logs: logs,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
-
             const id = document.getElementById('editId').value;
             if(id) await db.collection("workLogs").doc(id).update(data);
             else await db.collection("workLogs").add(data);
@@ -180,7 +217,6 @@
             document.getElementById('totalSqft').value = d.totalSqft;
             document.getElementById('amtRate').value = d.amtRate;
             document.getElementById('resTotal').innerText = "₹" + d.total;
-            
             document.getElementById('dayLogsContainer').innerHTML = "";
             if(d.logs) d.logs.forEach(log => addDayRow(log));
             window.scrollTo(0,0);
@@ -197,6 +233,8 @@
         window.onload = () => {
             document.getElementById('startDate').valueAsDate = new Date();
             document.getElementById('liveDate').innerText = new Date().toDateString();
+            document.getElementById('setCompanies').value = localStorage.getItem('myCompanies') || "";
+            document.getElementById('setHelpers').value = localStorage.getItem('myHelpers') || "";
             addDayRow();
         };
     </script>
