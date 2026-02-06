@@ -3,49 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayyappan Manager | Partner Pro</title>
+    <title>Ayyappan Manager | Master Pro</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
         body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #f1f5f9; min-height: 100vh; font-family: 'Inter', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; }
         .input-box { background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 0.6rem; padding: 0.8rem; color: white; width: 100%; outline: none; font-size: 13px; }
+        .input-box:focus { border-color: #3b82f6; }
         label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block; }
-        .day-entry { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 8px; }
+        .day-entry { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; margin-bottom: 12px; }
         .filter-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; border-top: 2px solid #3b82f6; padding: 10px; z-index: 50; }
+        .summary-bar { background: rgba(15, 23, 42, 0.9); padding: 10px; font-size: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
 <body class="p-4 pb-80">
 
     <div class="max-w-md mx-auto">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="font-black text-xl text-white italic">AYYAPPAN <span class="text-blue-500">MANAGER</span></h1>
-            <p id="liveDate" class="text-[10px] text-gray-400 font-bold"></p>
+            <div>
+                <h1 class="font-black text-xl text-white italic">AYYAPPAN <span class="text-blue-500">PRO</span></h1>
+                <p id="liveDate" class="text-[10px] text-gray-400 font-bold uppercase"></p>
+            </div>
+            <button onclick="location.reload()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-sync-alt"></i></button>
         </div>
 
         <div class="glass p-5 mb-6 space-y-4 border-t-4 border-blue-500 shadow-2xl">
             <input type="hidden" id="editId">
             
-            <div class="grid grid-cols-2 gap-2">
-                <div>
-                    <label>Project Type</label>
-                    <select id="projectType" onchange="handleTypeChange()" class="input-box bg-blue-900/30">
+            <div class="grid grid-cols-2 gap-2 bg-white/5 p-3 rounded-xl border border-white/10">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="holidayToggle" onchange="toggleHolidayUI()" class="w-4 h-4 accent-yellow-500">
+                    <label class="m-0 text-yellow-500">Holiday</label>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="m-0">Type:</label>
+                    <select id="projectType" onchange="handleTypeChange()" class="bg-transparent text-[11px] font-bold text-blue-400 outline-none">
                         <option value="Solo">Solo</option>
                         <option value="Partner">Partner</option>
                     </select>
                 </div>
-                <div id="partnerNameDiv" class="hidden">
-                    <label>Partner Name</label>
-                    <input type="text" id="partnerName" class="input-box" placeholder="Name">
-                </div>
+            </div>
+
+            <div id="partnerNameDiv" class="hidden animate-fade-in">
+                <label>Partner Name</label>
+                <input type="text" id="partnerName" class="input-box border-blue-500/50" placeholder="Who is your partner?">
             </div>
 
             <div id="normalFields" class="space-y-4">
                 <div class="grid grid-cols-2 gap-3">
-                    <div><label>Customer Name *</label><input type="text" id="customer" list="custSuggestions" class="input-box" placeholder="Required"><datalist id="custSuggestions"></datalist></div>
-                    <div><label>Window Qty *</label><input type="number" id="winQty" class="input-box" placeholder="Required"></div>
+                    <div>
+                        <label>Customer Name *</label>
+                        <input type="text" id="customer" list="custSuggestions" class="input-box" placeholder="Required">
+                        <datalist id="custSuggestions"></datalist>
+                    </div>
+                    <div><label>Window Qty *</label><input type="number" id="winQty" class="input-box" placeholder="Qty"></div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -59,7 +74,7 @@
                         <div class="text-sm font-black text-green-400">₹<span id="resTotal">0</span></div>
                     </div>
                     <div class="p-2 bg-red-500/10 rounded-lg text-center border border-red-500/20">
-                        <label class="m-0 text-red-400 text-[8px]">Helpers</label>
+                        <label class="m-0 text-red-400 text-[8px]">Helper Exp</label>
                         <div class="text-sm font-black text-red-400">₹<span id="resHelperTotal">0</span></div>
                     </div>
                     <div id="shareDisplay" class="p-2 bg-blue-500/10 rounded-lg text-center border border-blue-500/20 hidden">
@@ -68,29 +83,46 @@
                     </div>
                 </div>
 
-                <div class="bg-white/5 p-3 rounded-lg border border-white/10">
-                    <div class="flex justify-between items-center mb-2"><label class="text-blue-400 m-0 font-bold">Helper Logs</label><button onclick="addDayRow()" class="text-[9px] bg-blue-600 px-3 py-1 rounded font-bold uppercase shadow">+ Day</button></div>
+                <div class="bg-blue-500/5 p-3 rounded-lg border border-blue-500/20">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-blue-400 m-0">Daily Logs</label>
+                        <button onclick="addDayRow()" class="text-[9px] bg-blue-600 px-3 py-1 rounded font-bold uppercase">+ Add Day</button>
+                    </div>
                     <div id="dayLogsContainer"></div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="saveData()" class="bg-blue-600 py-4 rounded-xl font-black uppercase text-sm shadow-lg">Save Record</button>
-                <button onclick="location.reload()" class="bg-slate-700 py-4 rounded-xl font-bold uppercase text-xs text-slate-300">Clear</button>
+            <div id="holidayFields" class="hidden">
+                <label>Holiday Reason</label>
+                <textarea id="holidayReason" class="input-box h-20" placeholder="E.g. Festival, Rain, Sick..."></textarea>
             </div>
+
+            <button onclick="saveData()" class="w-full bg-blue-600 py-4 rounded-xl font-black uppercase tracking-wider shadow-lg active:scale-95 transition-all">Save Daily Record</button>
         </div>
 
         <div id="displayArea" class="space-y-4"></div>
     </div>
 
     <div class="filter-footer max-w-md mx-auto">
-        <div class="grid grid-cols-3 gap-2 bg-slate-900/90 p-3 rounded-t-xl border border-white/10 text-center text-[10px]">
-            <div><p class="text-gray-400">TOTAL PROFIT</p><p id="sumProfit" class="text-green-400 font-bold text-sm">₹0</p></div>
-            <div class="border-x border-white/10"><p class="text-gray-400">EXPENSES</p><p id="sumExp" class="text-red-400 font-bold text-sm">₹0</p></div>
-            <div><p class="text-blue-400">PARTNER PAY</p><p id="sumPartner" class="text-blue-300 font-bold text-sm">₹0</p></div>
+        <div class="summary-bar">
+            <div class="grid grid-cols-3 gap-2 text-center">
+                <div class="border-r border-white/10">
+                    <p class="text-gray-400 text-[8px] uppercase">My Profit</p>
+                    <p id="sumProfit" class="text-green-400 font-bold">₹0</p>
+                </div>
+                <div class="border-r border-white/10">
+                    <p class="text-gray-400 text-[8px] uppercase">Helper Exp</p>
+                    <p id="sumExp" class="text-red-400 font-bold">₹0</p>
+                </div>
+                <div>
+                    <p class="text-blue-400 text-[8px] uppercase">Partner Share</p>
+                    <p id="sumPartner" class="text-blue-300 font-bold">₹0</p>
+                </div>
+            </div>
+            <div id="helperCounts" class="text-[8px] text-gray-500 italic text-center mt-2 border-t border-white/5 pt-1">No activity logged</div>
         </div>
         <select id="filterMonth" onchange="applyFilters()" class="input-box h-12 bg-slate-800 text-center font-bold">
-            <option value="all">ALL TIME HISTORY</option>
+            <option value="all">ALL HISTORY</option>
             <option value="0">JANUARY</option><option value="1">FEBRUARY</option><option value="2">MARCH</option><option value="3">APRIL</option>
             <option value="4">MAY</option><option value="5">JUNE</option><option value="6">JULY</option><option value="7">AUGUST</option>
             <option value="8">SEPTEMBER</option><option value="9">OCTOBER</option><option value="10">NOVEMBER</option><option value="11">DECEMBER</option>
@@ -98,38 +130,24 @@
     </div>
 
     <script>
+        // CONFIG
         const firebaseConfig = { apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58", authDomain: "ayyappan-work-management.firebaseapp.com", projectId: "ayyappan-work-management" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         let allEntries = [];
+
+        // UI LOGIC
+        function toggleHolidayUI() {
+            const isH = document.getElementById('holidayToggle').checked;
+            document.getElementById('normalFields').classList.toggle('hidden', isH);
+            document.getElementById('holidayFields').classList.toggle('hidden', !isH);
+        }
 
         function handleTypeChange() {
             const isP = document.getElementById('projectType').value === 'Partner';
             document.getElementById('partnerNameDiv').classList.toggle('hidden', !isP);
             document.getElementById('shareDisplay').classList.toggle('hidden', !isP);
             calculate();
-        }
-
-        function calculate() {
-            const sqft = parseFloat(document.getElementById('totalSqft').value) || 0;
-            const rate = parseFloat(document.getElementById('amtRate').value) || 0;
-            const projectVal = sqft * rate;
-            
-            let helperExp = 0;
-            document.querySelectorAll('.day-entry').forEach(row => {
-                const s = parseFloat(row.querySelector('.d-sal').value) || 0;
-                const ot = parseFloat(row.querySelector('.d-ot').value) || 0;
-                helperExp += s + (s * 0.5 * ot) + (parseFloat(row.querySelector('.d-pet').value) || 0) + (parseFloat(row.querySelector('.d-food').value) || 0);
-            });
-
-            document.getElementById('resTotal').innerText = projectVal.toLocaleString();
-            document.getElementById('resHelperTotal').innerText = helperExp.toLocaleString();
-            
-            if(document.getElementById('projectType').value === 'Partner') {
-                const share = (projectVal - helperExp) / 2;
-                document.getElementById('resShare').innerText = share > 0 ? share.toLocaleString() : 0;
-            }
-            return projectVal;
         }
 
         function addDayRow(data = null) {
@@ -139,19 +157,47 @@
             dayDiv.innerHTML = `
                 <div class="grid grid-cols-2 gap-2 mb-2">
                     <select class="input-box h-8 text-[11px] d-helper"></select>
-                    <select class="input-box h-8 text-[11px] d-ot" onchange="calculate()"><option value="0">No OT</option><option value="0.5">0.5 OT</option><option value="1">1 OT</option></select>
+                    <select class="input-box h-8 text-[11px] d-ot" onchange="calculate()">
+                        <option value="0">No OT</option><option value="0.5">0.5 OT</option><option value="1">1 OT</option>
+                    </select>
                 </div>
                 <div class="grid grid-cols-3 gap-1">
                     <input type="number" placeholder="Sal" class="input-box h-7 text-[10px] d-sal" oninput="calculate()" value="${data?.sal || ''}">
                     <input type="number" placeholder="Pet" class="input-box h-7 text-[10px] d-pet" oninput="calculate()" value="${data?.pet || ''}">
                     <input type="number" placeholder="Food" class="input-box h-7 text-[10px] d-food" oninput="calculate()" value="${data?.food || ''}">
-                </div>`;
+                </div>
+                <button onclick="this.parentElement.remove(); calculate()" class="text-[8px] text-red-500 mt-2">REMOVE DAY</button>`;
             container.appendChild(dayDiv);
             const helpers = (localStorage.getItem('myHelpers') || "Alone,Ravi,Kumar").split(',');
             dayDiv.querySelector('.d-helper').innerHTML = helpers.map(h => `<option>${h.trim()}</option>`).join('');
-            if(data) { dayDiv.querySelector('.d-helper').value = data.helper; calculate(); }
+            if(data) { dayDiv.querySelector('.d-helper').value = data.helper; dayDiv.querySelector('.d-ot').value = data.ot; calculate(); }
         }
 
+        // MATH LOGIC
+        function calculate() {
+            const sqft = parseFloat(document.getElementById('totalSqft').value) || 0;
+            const rate = parseFloat(document.getElementById('amtRate').value) || 0;
+            const projectVal = sqft * rate;
+            
+            let helperTotal = 0;
+            document.querySelectorAll('.day-entry').forEach(row => {
+                const s = parseFloat(row.querySelector('.d-sal').value) || 0;
+                const ot = parseFloat(row.querySelector('.d-ot').value) || 0;
+                helperTotal += s + (s * 0.5 * ot) + (parseFloat(row.querySelector('.d-pet').value) || 0) + (parseFloat(row.querySelector('.d-food').value) || 0);
+            });
+
+            document.getElementById('resTotal').innerText = projectVal.toLocaleString();
+            document.getElementById('resHelperTotal').innerText = helperTotal.toLocaleString();
+            
+            const isPartner = document.getElementById('projectType').value === 'Partner';
+            if(isPartner) {
+                const share = (projectVal - helperTotal) / 2;
+                document.getElementById('resShare').innerText = share > 0 ? share.toLocaleString() : 0;
+            }
+            return projectVal;
+        }
+
+        // DATABASE LOGIC
         db.collection("workLogs").orderBy("timestamp", "desc").onSnapshot(snap => {
             allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             updateSuggestions();
@@ -164,29 +210,33 @@
         }
 
         async function saveData() {
-            const cust = document.getElementById('customer').value;
-            const win = document.getElementById('winQty').value;
-            if(!cust || !win) return alert("Customer Name and Window Quantity are required!");
+            const isH = document.getElementById('holidayToggle').checked;
+            let data = { isHoliday: isH, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
 
-            const logs = [];
-            document.querySelectorAll('.day-entry').forEach(row => {
-                logs.push({ helper: row.querySelector('.d-helper').value, ot: row.querySelector('.d-ot').value, sal: row.querySelector('.d-sal').value, pet: row.querySelector('.d-pet').value, food: row.querySelector('.d-food').value });
-            });
+            if(!isH) {
+                const cust = document.getElementById('customer').value;
+                const win = document.getElementById('winQty').value;
+                if(!cust || !win) return alert("Error: Customer Name and Window Quantity are required!");
 
-            const data = {
-                projectType: document.getElementById('projectType').value,
-                partnerName: document.getElementById('partnerName').value,
-                customer: cust,
-                winQty: win,
-                totalSqft: document.getElementById('totalSqft').value,
-                amtRate: document.getElementById('amtRate').value,
-                total: calculate(),
-                logs: logs,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
+                const logs = [];
+                document.querySelectorAll('.day-entry').forEach(row => {
+                    logs.push({ helper: row.querySelector('.d-helper').value, ot: row.querySelector('.d-ot').value, sal: row.querySelector('.d-sal').value, pet: row.querySelector('.d-pet').value, food: row.querySelector('.d-food').value });
+                });
+
+                data = { ...data, 
+                    projectType: document.getElementById('projectType').value,
+                    partnerName: document.getElementById('partnerName').value,
+                    customer: cust, winQty: win, 
+                    totalSqft: document.getElementById('totalSqft').value, 
+                    amtRate: document.getElementById('amtRate').value,
+                    total: calculate(), logs: logs 
+                };
+            } else {
+                data.holidayReason = document.getElementById('holidayReason').value;
+            }
 
             await db.collection("workLogs").add(data);
-            location.reload();
+            location.reload(); // Refresh to clear form
         }
 
         function applyFilters() {
@@ -195,44 +245,50 @@
             if(month !== 'all') filtered = filtered.filter(d => new Date(d.timestamp?.toDate() || new Date()).getMonth() == month);
             
             let tProfit = 0, tExp = 0, tPartner = 0;
+            let hMap = {};
             const container = document.getElementById('displayArea');
             container.innerHTML = "";
 
             filtered.forEach(d => {
-                let siteExp = 0;
-                if(d.logs) d.logs.forEach(l => { siteExp += (parseFloat(l.sal)||0) + ((parseFloat(l.sal)||0)*0.5*(parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); });
-                
-                const val = parseFloat(d.total) || 0;
-                const net = val - siteExp;
-                tExp += siteExp;
+                if(d.isHoliday) {
+                    container.innerHTML += `<div class="glass p-3 border-l-4 border-yellow-500 mb-3"><p class="text-[9px] text-yellow-500 font-bold">HOLIDAY</p><p class="text-xs">${d.holidayReason || 'No reason'}</p></div>`;
+                } else {
+                    let siteExp = 0;
+                    if(d.logs) d.logs.forEach(l => {
+                        const cost = (parseFloat(l.sal)||0) + ((parseFloat(l.sal)||0)*0.5*(parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+                        siteExp += cost; tExp += cost;
+                        hMap[l.helper] = (hMap[l.helper] || 0) + 1;
+                    });
+                    
+                    const val = parseFloat(d.total) || 0;
+                    const net = val - siteExp;
+                    if(d.projectType === 'Partner') { tPartner += (net/2); tProfit += (net/2); } else { tProfit += net; }
 
-                if(d.projectType === 'Partner') { tPartner += (net / 2); tProfit += (net / 2); } 
-                else { tProfit += net; }
-
-                const div = document.createElement('div');
-                div.className = "glass p-4 border-l-4 border-blue-500 mb-3";
-                div.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h4 class="font-bold uppercase text-xs">${d.customer}</h4>
-                        <p class="text-[8px] text-gray-400 uppercase">${d.projectType} ${d.partnerName ? 'with '+d.partnerName : ''}</p>
-                        <p class="text-[9px] text-blue-400 font-bold">Wins: ${d.winQty}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-bold text-green-400 text-sm">₹${val.toLocaleString()}</p>
-                        <p class="text-[8px] text-red-400">Exp: ₹${siteExp.toFixed(0)}</p>
-                    </div>
-                </div>`;
-                container.appendChild(div);
+                    container.innerHTML += `
+                    <div class="glass p-4 border-l-4 border-blue-500 mb-3">
+                        <div class="flex justify-between">
+                            <div>
+                                <h4 class="font-bold text-xs uppercase">${d.customer}</h4>
+                                <p class="text-[8px] text-gray-400">${d.projectType} ${d.partnerName ? 'with '+d.partnerName : ''}</p>
+                                <p class="text-[9px] text-blue-400">Wins: ${d.winQty} | Sqft: ${d.totalSqft}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-green-400 font-bold text-sm">₹${val.toLocaleString()}</p>
+                                <p class="text-[8px] text-red-400">Exp: ₹${siteExp.toFixed(0)}</p>
+                            </div>
+                        </div>
+                    </div>`;
+                }
             });
 
-            document.getElementById('sumProfit').innerText = "₹" + tProfit.toLocaleString();
-            document.getElementById('sumExp').innerText = "₹" + tExp.toLocaleString();
-            document.getElementById('sumPartner').innerText = "₹" + tPartner.toLocaleString();
+            document.getElementById('sumProfit').innerText = "₹" + Math.round(tProfit).toLocaleString();
+            document.getElementById('sumExp').innerText = "₹" + Math.round(tExp).toLocaleString();
+            document.getElementById('sumPartner').innerText = "₹" + Math.round(tPartner).toLocaleString();
+            document.getElementById('helperCounts').innerText = Object.entries(hMap).map(([n,c])=>`${n}:${c}d`).join(' | ') || "No activity";
         }
 
         window.onload = () => {
-            document.getElementById('liveDate').innerText = new Date().toDateString().toUpperCase();
+            document.getElementById('liveDate').innerText = new Date().toDateString();
             addDayRow();
         };
     </script>
