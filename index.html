@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayyappan Manager | Project Mode</title>
+    <title>Ayyappan Manager | Master</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,19 +14,19 @@
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; }
         .input-box { background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 0.6rem; padding: 0.8rem; color: white; width: 100%; outline: none; font-size: 14px; }
         label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block; }
-        .counter-btn { background: #334155; width: 35px; height: 35px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-        .active-toggle { background: #2563eb !important; }
+        .counter-btn { background: #334155; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+        .active-toggle { background: #2563eb !important; border-color: #60a5fa !important; }
     </style>
 </head>
 <body class="p-4 pb-24">
 
     <div class="max-w-md mx-auto">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="font-black text-xl tracking-tight">AYYAPPAN <span class="text-blue-500 text-sm">SINGLE RECORD</span></h1>
+            <h1 class="font-black text-xl tracking-tighter">AYYAPPAN <span class="text-blue-500 text-sm">MASTER</span></h1>
             <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-cog"></i></button>
         </div>
 
-        <div class="glass p-5 mb-6 space-y-5 shadow-2xl">
+        <div class="glass p-5 mb-6 space-y-4 shadow-2xl">
             <input type="hidden" id="editId">
             
             <div class="grid grid-cols-2 gap-3">
@@ -34,20 +34,20 @@
                 <div><label>Quotation No</label><input type="text" id="qn" class="input-box" placeholder="Qn-101"></div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 p-4 bg-white/5 rounded-xl border border-white/10">
+            <div class="grid grid-cols-2 gap-3 p-3 bg-white/5 rounded-xl border border-white/10">
                 <div>
-                    <label class="text-blue-400">Total Days Worked</label>
+                    <label class="text-blue-400">Total Days</label>
                     <div class="flex items-center gap-3">
                         <button onclick="changeVal('dayCount', -1)" class="counter-btn">-</button>
-                        <span id="dayCount" class="text-xl font-bold">1</span>
+                        <span id="dayCount" class="font-bold">1</span>
                         <button onclick="changeVal('dayCount', 1)" class="counter-btn">+</button>
                     </div>
                 </div>
                 <div>
-                    <label class="text-orange-400">Total Helper Used</label>
+                    <label class="text-orange-400">Total Helpers</label>
                     <div class="flex items-center gap-3">
                         <button onclick="changeVal('helpCount', -1)" class="counter-btn">-</button>
-                        <span id="helpCount" class="text-xl font-bold">0</span>
+                        <span id="helpCount" class="font-bold">0</span>
                         <button onclick="changeVal('helpCount', 1)" class="counter-btn">+</button>
                     </div>
                 </div>
@@ -55,7 +55,16 @@
 
             <div class="space-y-4">
                 <div><label>Company</label><select id="company" class="input-box"></select></div>
-                <div><label>Customer & Site Location</label><input type="text" id="customer" class="input-box" placeholder="Client Name - Area"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label>Customer Name</label><input type="text" id="customer" class="input-box"></div>
+                    <div><label>Location</label><input type="text" id="location" class="input-box"></div>
+                </div>
+
+                <div id="helperSection" class="bg-blue-500/5 p-3 rounded-lg border border-blue-500/20 space-y-3">
+                    <label class="text-blue-400">Helper Daily Expenses</label>
+                    <div id="helperList" class="space-y-2"></div>
+                    <button onclick="addHelperRow()" class="text-[10px] text-blue-300 font-bold">+ ADD HELPER ENTRY</button>
+                </div>
 
                 <div class="grid grid-cols-3 gap-2">
                     <div><label>Win Qty</label><input type="number" id="winQty" class="input-box"></div>
@@ -77,10 +86,21 @@
                 </div>
             </div>
 
-            <button onclick="saveData()" id="mainBtn" class="w-full bg-blue-600 py-4 rounded-xl font-black text-lg shadow-lg uppercase tracking-widest">Update Site Record</button>
+            <button onclick="saveData()" id="mainBtn" class="w-full bg-blue-600 py-4 rounded-xl font-black text-lg">SAVE PROJECT RECORD</button>
         </div>
 
         <div id="displayArea" class="space-y-4"></div>
+    </div>
+
+    <div id="settingsModal" class="modal fixed inset-0 bg-black/90 hidden items-center justify-center z-50">
+        <div class="glass p-6 w-80 space-y-4">
+            <label>Companies (comma separated)</label>
+            <textarea id="setCompanies" class="input-box h-20"></textarea>
+            <label>Helpers (comma separated)</label>
+            <textarea id="setHelpers" class="input-box h-20"></textarea>
+            <button onclick="saveSettings()" class="w-full bg-blue-600 py-2 rounded-lg font-bold">SAVE</button>
+            <button onclick="toggleSettings()" class="w-full text-xs text-gray-500">Close</button>
+        </div>
     </div>
 
     <script>
@@ -101,6 +121,20 @@
             el.innerText = val;
         }
 
+        function addHelperRow(data = null) {
+            const div = document.createElement('div');
+            div.className = "grid grid-cols-4 gap-1 helper-row mb-1";
+            div.innerHTML = `
+                <select class="input-box text-[10px] h-8 p-1 h-name"></select>
+                <input type="number" placeholder="Sal" class="input-box text-[10px] h-8 p-1 h-sal" value="${data?data.sal:''}">
+                <input type="number" placeholder="Pet" class="input-box text-[10px] h-8 p-1 h-pet" value="${data?data.pet:''}">
+                <input type="number" placeholder="Food" class="input-box text-[10px] h-8 p-1 h-food" value="${data?data.food:''}">`;
+            document.getElementById('helperList').appendChild(div);
+            const helps = (localStorage.getItem('myHelpers') || "Ravi,Kumar").split(',');
+            div.querySelector('.h-name').innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
+            if(data) div.querySelector('.h-name').value = data.name;
+        }
+
         function renderEntries(data) {
             const container = document.getElementById('displayArea');
             container.innerHTML = "";
@@ -109,12 +143,13 @@
                 div.className = "glass p-4 border-l-4 " + (d.workStatus.includes('Completed') ? 'border-green-500' : 'border-blue-500');
                 div.innerHTML = `
                     <div class="flex justify-between items-start" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                        <div class="space-y-1">
+                        <div>
                             <p class="text-[9px] text-gray-500 font-bold uppercase">${d.qn || 'NO QN'} • ${d.date}</p>
                             <h4 class="font-bold text-sm uppercase">${d.customer}</h4>
-                            <div class="flex gap-2">
-                                <span class="text-[9px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-bold">DAYS: ${d.dayCount}</span>
-                                <span class="text-[9px] bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded font-bold">HELPERS: ${d.helpCount}</span>
+                            <p class="text-[9px] text-blue-400 font-bold uppercase">${d.company} • ${d.location || 'No Loc'}</p>
+                            <div class="flex gap-2 mt-1">
+                                <span class="text-[8px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-black">DAYS: ${d.dayCount}</span>
+                                <span class="text-[8px] bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded font-black">HELPERS: ${d.helpCount}</span>
                             </div>
                         </div>
                         <div class="text-right">
@@ -123,9 +158,9 @@
                         </div>
                     </div>
                     <div class="hidden mt-4 pt-3 border-t border-white/5 text-[11px] text-gray-400">
-                        <p><b>Company:</b> ${d.company} | <b>Sqft:</b> ${d.totalSqft}</p>
+                        <p><b>Sqft:</b> ${d.totalSqft} | <b>Win Qty:</b> ${d.winQty || 0}</p>
                         <div class="flex gap-4 pt-3">
-                            <button onclick="editDoc('${d.id}')" class="text-blue-400 font-bold uppercase">Update Data</button>
+                            <button onclick="editDoc('${d.id}')" class="text-blue-400 font-bold uppercase">Update Project</button>
                             <button onclick="deleteDoc('${d.id}')" class="text-red-400 font-bold uppercase">Delete</button>
                         </div>
                     </div>`;
@@ -134,25 +169,23 @@
         }
 
         async function saveData() {
-            if(!document.getElementById('customer').value) return alert("Enter Site Name");
+            const helpers = [];
+            document.querySelectorAll('.helper-row').forEach(row => {
+                helpers.push({ name: row.querySelector('.h-name').value, sal: row.querySelector('.h-sal').value, pet: row.querySelector('.h-pet').value, food: row.querySelector('.h-food').value });
+            });
             const data = {
-                date: document.getElementById('date').value,
-                qn: document.getElementById('qn').value,
-                dayCount: document.getElementById('dayCount').innerText,
-                helpCount: document.getElementById('helpCount').innerText,
-                company: document.getElementById('company').value,
-                customer: document.getElementById('customer').value,
-                winQty: document.getElementById('winQty').value,
-                totalSqft: document.getElementById('totalSqft').value,
-                amtRate: document.getElementById('amtRate').value,
-                workStatus: document.getElementById('workStatus').value,
-                total: document.getElementById('resTotal').innerText.replace('₹',''),
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                date: document.getElementById('date').value, qn: document.getElementById('qn').value,
+                dayCount: document.getElementById('dayCount').innerText, helpCount: document.getElementById('helpCount').innerText,
+                company: document.getElementById('company').value, customer: document.getElementById('customer').value,
+                location: document.getElementById('location').value, winQty: document.getElementById('winQty').value,
+                totalSqft: document.getElementById('totalSqft').value, amtRate: document.getElementById('amtRate').value,
+                workStatus: document.getElementById('workStatus').value, total: document.getElementById('resTotal').innerText.replace('₹',''),
+                helpers: helpers, timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
             const id = document.getElementById('editId').value;
             if(id) await db.collection("workLogs").doc(id).update(data);
             else await db.collection("workLogs").add(data);
-            resetForm();
+            location.reload();
         }
 
         function calculate() {
@@ -166,30 +199,39 @@
             document.getElementById('editId').value = id;
             document.getElementById('qn').value = d.qn;
             document.getElementById('customer').value = d.customer;
+            document.getElementById('location').value = d.location;
             document.getElementById('dayCount').innerText = d.dayCount;
             document.getElementById('helpCount').innerText = d.helpCount;
             document.getElementById('totalSqft').value = d.totalSqft;
             document.getElementById('amtRate').value = d.amtRate;
             document.getElementById('workStatus').value = d.workStatus;
             document.getElementById('resTotal').innerText = "₹" + d.total;
+            document.getElementById('helperList').innerHTML = "";
+            if(d.helpers) d.helpers.forEach(h => addHelperRow(h));
             window.scrollTo(0,0);
         }
 
-        function resetForm() {
-            document.getElementById('editId').value = "";
-            document.getElementById('dayCount').innerText = "1";
-            document.getElementById('helpCount').innerText = "0";
-            document.getElementById('customer').value = "";
-            document.getElementById('totalSqft').value = "";
-            document.getElementById('resTotal').innerText = "₹0";
+        function toggleSettings() { 
+            const m = document.getElementById('settingsModal');
+            m.classList.toggle('hidden');
+            m.classList.toggle('flex');
+            document.getElementById('setCompanies').value = localStorage.getItem('myCompanies') || "";
+            document.getElementById('setHelpers').value = localStorage.getItem('myHelpers') || "";
         }
 
-        async function deleteDoc(id) { if(confirm("Delete Site?")) await db.collection("workLogs").doc(id).delete(); }
+        function saveSettings() {
+            localStorage.setItem('myCompanies', document.getElementById('setCompanies').value);
+            localStorage.setItem('myHelpers', document.getElementById('setHelpers').value);
+            location.reload();
+        }
+
+        async function deleteDoc(id) { if(confirm("Delete Project?")) await db.collection("workLogs").doc(id).delete(); }
 
         window.onload = () => {
             document.getElementById('date').valueAsDate = new Date();
             const comps = (localStorage.getItem('myCompanies') || "Sharp,Buildcon").split(',');
             document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
+            addHelperRow();
         };
     </script>
 </body>
