@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayyappan Manager | Pro Payroll</title>
+    <title>Ayyappan Manager | Pro Master</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -55,41 +55,45 @@
                     <input type="checkbox" id="isHoliday" onchange="checkHoliday()" class="w-4 h-4 accent-red-500">
                     <label class="m-0 text-red-400">Holiday</label>
                 </div>
-                <select id="projectType" onchange="handleTypeChange()" class="bg-transparent text-[10px] font-bold text-blue-400 outline-none">
+                <select id="projectType" onchange="handleTypeChange()" class="bg-transparent text-[10px] font-bold text-blue-400 outline-none uppercase">
                     <option value="Solo">SOLO WORK</option>
                     <option value="Partner">PARTNER WORK</option>
                 </select>
             </div>
 
-            <div id="partnerNameDiv" class="hidden"><label>Partner Name</label><input type="text" id="partnerName" class="input-box border-blue-500/50"></div>
+            <div id="partnerNameDiv" class="hidden"><label>Partner Name</label><input type="text" id="partnerName" class="input-box border-blue-500/50" placeholder="Enter Partner Name"></div>
 
             <div id="workFields" class="space-y-4">
+                <div><label>Company</label><select id="company" class="input-box"></select></div>
+                
                 <div class="grid grid-cols-2 gap-3">
-                    <div><label>Company</label><select id="company" class="input-box"></select></div>
                     <div><label>Customer *</label><input type="text" id="customer" class="input-box"></div>
+                    <div><label>Location</label><input type="text" id="location" class="input-box" placeholder="Area/City"></div>
                 </div>
 
                 <div class="bg-blue-500/5 p-3 rounded-lg border border-blue-500/20">
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-blue-400 m-0 font-black">Daily Helper Payroll</label>
-                        <button onclick="addDayRow()" class="text-[8px] bg-blue-600 px-3 py-1 rounded font-bold uppercase">+ Add Day</button>
+                        <button onclick="addDayRow()" class="text-[8px] bg-blue-600 px-3 py-1 rounded font-bold uppercase shadow">+ Add Day</button>
                     </div>
                     <div id="dayLogsContainer" class="space-y-2"></div>
                 </div>
 
                 <div class="grid grid-cols-3 gap-2">
                     <div><label>Total Window</label><input type="number" id="totalWindow" class="input-box" placeholder="Qty"></div>
-                    <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
-                    <div><label>Rate/Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
+                    <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box" placeholder="Sqft"></div>
+                    <div><label>Rate/Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box" placeholder="Rate"></div>
                 </div>
 
                 <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/10">
                     <div><label class="m-0 text-green-500">Project Value</label><div id="resTotal" class="text-lg font-black text-green-400">₹0</div></div>
-                    <div class="text-right"><label class="m-0 text-red-400 text-[8px]">Deducted Exp</label><div id="resExpDisplay" class="text-xs font-bold text-red-400">₹0</div></div>
+                    <div class="text-right"><label class="m-0 text-red-400 text-[8px]">Daily Expenses</label><div id="resExpDisplay" class="text-xs font-bold text-red-400">₹0</div></div>
                 </div>
+
+                <div><label>Work Notes / Comments</label><textarea id="workNotes" class="input-box h-12" placeholder="Ex: Handle repair, glass change..."></textarea></div>
             </div>
 
-            <div id="holidayReasonDiv" class="hidden"><label>Comment</label><textarea id="comment" class="input-box h-12"></textarea></div>
+            <div id="holidayReasonDiv" class="hidden"><label>Holiday Reason</label><textarea id="holidayReason" class="input-box h-12" placeholder="Why holiday?"></textarea></div>
 
             <div class="grid grid-cols-3 gap-2">
                 <button onclick="saveData()" class="col-span-2 bg-blue-600 py-3 rounded-xl font-black uppercase text-sm">Save Record</button>
@@ -230,12 +234,13 @@
                 partnerName: document.getElementById('partnerName').value,
                 company: document.getElementById('company').value,
                 customer: document.getElementById('customer').value,
+                location: document.getElementById('location').value,
                 totalWindow: document.getElementById('totalWindow').value,
                 totalSqft: document.getElementById('totalSqft').value,
                 amtRate: document.getElementById('amtRate').value,
                 total: cal.val,
                 logs: logs,
-                comment: document.getElementById('comment').value,
+                comment: document.getElementById('isHoliday').checked ? document.getElementById('holidayReason').value : document.getElementById('workNotes').value,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
@@ -276,6 +281,7 @@
                         <div>
                             <p class="text-[8px] text-gray-500">${d.date} | ${d.company}</p>
                             <h4 class="font-bold text-xs uppercase">${d.isHoliday ? '🌴 Holiday' : d.customer}</h4>
+                            <p class="text-[9px] text-blue-400">${d.location || ''}</p>
                         </div>
                         <div class="text-right">
                             <p class="text-green-400 font-bold text-xs">₹${Math.round(d.total)}</p>
@@ -284,8 +290,8 @@
                     </div>
                     <div class="hidden mt-2 pt-2 border-t border-white/5 space-y-1">
                         <div class="flex justify-between text-[9px]">
-                            <span>Windows: ${d.totalWindow || 0} | Sqft: ${d.totalSqft}</span>
-                            <span class="text-red-400">Exp: ₹${Math.round(siteExp)}</span>
+                            <span>Wins: ${d.totalWindow || 0} | Sqft: ${d.totalSqft || 0}</span>
+                            <span class="text-red-400">Helper Exp: ₹${Math.round(siteExp)}</span>
                         </div>
                         <p class="text-[9px] italic text-gray-400">"${d.comment || ''}"</p>
                     </div>
@@ -307,13 +313,15 @@
             document.getElementById('date').value = d.date;
             document.getElementById('qn').value = d.qn;
             document.getElementById('customer').value = d.customer;
+            document.getElementById('location').value = d.location || "";
             document.getElementById('totalWindow').value = d.totalWindow || "";
-            document.getElementById('totalSqft').value = d.totalSqft;
-            document.getElementById('amtRate').value = d.amtRate;
+            document.getElementById('totalSqft').value = d.totalSqft || "";
+            document.getElementById('amtRate').value = d.amtRate || "";
             document.getElementById('projectType').value = d.projectType;
             document.getElementById('partnerName').value = d.partnerName || "";
             document.getElementById('isHoliday').checked = d.isHoliday;
-            document.getElementById('comment').value = d.comment || "";
+            if(d.isHoliday) document.getElementById('holidayReason').value = d.comment || "";
+            else document.getElementById('workNotes').value = d.comment || "";
             document.getElementById('dayLogsContainer').innerHTML = "";
             if(d.logs) d.logs.forEach(l => addDayRow(l));
             handleTypeChange(); checkHoliday();
@@ -323,9 +331,9 @@
         function exportToPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.text("Work Report", 14, 15);
-            const rows = allEntries.map(e => [e.date, e.customer, e.totalWindow, e.totalSqft, e.total]);
-            doc.autoTable({ head: [['Date', 'Customer', 'Win', 'Sqft', 'Amt']], body: rows, startY: 25 });
+            doc.text("Ayyappan Work Report", 14, 15);
+            const rows = allEntries.map(e => [e.date, e.customer, e.location, e.totalSqft, e.total]);
+            doc.autoTable({ head: [['Date', 'Customer', 'Location', 'Sqft', 'Amount']], body: rows, startY: 25 });
             doc.save("Report.pdf");
         }
 
