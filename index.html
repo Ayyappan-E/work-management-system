@@ -19,6 +19,12 @@
         .day-entry { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 10px; margin-bottom: 8px; position: relative; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .summary-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #070b14; border-top: 2px solid #3b82f6; padding: 10px; z-index: 50; }
+        .toggle-switch { position: relative; display: inline-block; width: 34px; height: 18px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider:before { transform: translateX(16px); }
     </style>
 </head>
 <body class="p-4 pb-72">
@@ -73,8 +79,14 @@
 
                 <div class="bg-blue-500/5 p-3 rounded-lg border border-blue-500/20">
                     <div class="flex justify-between items-center mb-2">
-                        <label class="text-blue-400 m-0 font-black">Daily Helper Payroll</label>
-                        <button onclick="addDayRow()" class="text-[8px] bg-blue-600 px-3 py-1 rounded font-bold uppercase shadow">+ Add Day</button>
+                        <div class="flex items-center gap-2">
+                            <label class="text-blue-400 m-0 font-black">Helpers</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="helperToggle" checked onchange="toggleHelperSection()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <button id="addDayBtn" onclick="addDayRow()" class="text-[8px] bg-blue-600 px-3 py-1 rounded font-bold uppercase shadow">+ Add Day</button>
                     </div>
                     <div id="dayLogsContainer" class="space-y-2"></div>
                 </div>
@@ -106,28 +118,16 @@
 
     <div class="summary-footer max-w-md mx-auto">
         <div id="helperPayrollSummary" class="text-[9px] grid grid-cols-2 gap-2 text-gray-300 mb-2 px-2"></div>
-        
         <div class="grid grid-cols-3 gap-1 text-center mb-3">
             <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-[8px] text-gray-400 uppercase">My Profit</p><p id="sumProfit" class="text-green-400 font-bold text-xs">₹0</p></div>
             <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-[8px] text-gray-400 uppercase">Helper Pay</p><p id="sumExp" class="text-red-400 font-bold text-xs">₹0</p></div>
             <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-[8px] text-blue-400 uppercase">Partner</p><p id="sumPartner" class="text-blue-300 font-bold text-xs">₹0</p></div>
         </div>
-
         <div class="grid grid-cols-3 gap-2 px-2 pb-1">
-            <select id="filterType" onchange="applyFilters()" class="input-box h-8 py-0 bg-slate-800 text-[10px] font-bold uppercase">
-                <option value="all">TYPE: ALL</option>
-                <option value="Solo">Solo</option>
-                <option value="Partner">Partner</option>
-            </select>
-            <select id="filterCompany" onchange="applyFilters()" class="input-box h-8 py-0 bg-slate-800 text-[10px] font-bold uppercase">
-                <option value="all">COMP: ALL</option>
-            </select>
+            <select id="filterType" onchange="applyFilters()" class="input-box h-8 py-0 bg-slate-800 text-[10px] font-bold uppercase"><option value="all">TYPE: ALL</option><option value="Solo">Solo</option><option value="Partner">Partner</option></select>
+            <select id="filterCompany" onchange="applyFilters()" class="input-box h-8 py-0 bg-slate-800 text-[10px] font-bold uppercase"><option value="all">COMP: ALL</option></select>
             <select id="filterMonth" onchange="applyFilters()" class="input-box h-8 py-0 bg-slate-800 text-[10px] font-bold uppercase">
-                <option value="all">MONTH: ALL</option>
-                <option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option>
-                <option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option>
-                <option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option>
-                <option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
+                <option value="all">MONTH: ALL</option><option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option><option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
             </select>
         </div>
     </div>
@@ -165,6 +165,15 @@
             });
         }
 
+        function toggleHelperSection() {
+            const container = document.getElementById('dayLogsContainer');
+            const btn = document.getElementById('addDayBtn');
+            const isEnabled = document.getElementById('helperToggle').checked;
+            container.style.display = isEnabled ? 'block' : 'none';
+            btn.style.display = isEnabled ? 'block' : 'none';
+            calculate();
+        }
+
         function checkHoliday() {
             const h = document.getElementById('isHoliday').checked;
             document.getElementById('workFields').style.display = h ? 'none' : 'block';
@@ -183,12 +192,8 @@
             dayDiv.innerHTML = `
                 <div class="grid grid-cols-3 gap-2 mb-2">
                     <select class="input-box h-7 py-0 d-helper"></select>
-                    <select class="input-box h-7 py-0 d-status font-bold text-blue-400">
-                        <option>Started</option><option>Ongoing</option><option>Completed</option>
-                    </select>
-                    <select class="input-box h-7 py-0 d-ot text-orange-400 font-bold" onchange="calculate()">
-                        <option value="0">No OT</option><option value="0.5">0.5 OT (1/2)</option><option value="1">1 OT (Extra)</option>
-                    </select>
+                    <select class="input-box h-7 py-0 d-status font-bold text-blue-400"><option>Started</option><option>Ongoing</option><option>Completed</option></select>
+                    <select class="input-box h-7 py-0 d-ot text-orange-400 font-bold" onchange="calculate()"><option value="0">No OT</option><option value="0.5">0.5 OT (1/2)</option><option value="1">1 OT (Extra)</option></select>
                 </div>
                 <div class="grid grid-cols-4 gap-1">
                     <input type="number" placeholder="Sal" class="input-box h-7 d-sal" oninput="calculate()" value="${data?.sal || ''}">
@@ -210,13 +215,15 @@
         function calculate() {
             const val = (parseFloat(document.getElementById('totalSqft').value) || 0) * (parseFloat(document.getElementById('amtRate').value) || 0);
             let totalHExp = 0;
-            document.querySelectorAll('.day-entry').forEach(row => {
-                const s = parseFloat(row.querySelector('.d-sal').value) || 0;
-                const ot = parseFloat(row.querySelector('.d-ot').value) || 0;
-                const rowTotal = s + (s * 0.5 * ot) + (parseFloat(row.querySelector('.d-pet').value) || 0) + (parseFloat(row.querySelector('.d-food').value) || 0);
-                row.querySelector('.d-row-total').innerText = "₹" + Math.round(rowTotal);
-                totalHExp += rowTotal;
-            });
+            if(document.getElementById('helperToggle').checked) {
+                document.querySelectorAll('.day-entry').forEach(row => {
+                    const s = parseFloat(row.querySelector('.d-sal').value) || 0;
+                    const ot = parseFloat(row.querySelector('.d-ot').value) || 0;
+                    const rowTotal = s + (s * 0.5 * ot) + (parseFloat(row.querySelector('.d-pet').value) || 0) + (parseFloat(row.querySelector('.d-food').value) || 0);
+                    row.querySelector('.d-row-total').innerText = "₹" + Math.round(rowTotal);
+                    totalHExp += rowTotal;
+                });
+            }
             document.getElementById('resTotal').innerText = "₹" + Math.round(val);
             document.getElementById('resExpDisplay').innerText = "₹" + Math.round(totalHExp);
             return { val, totalHExp };
@@ -228,81 +235,48 @@
         });
 
         async function saveData() {
-            // Validation: Stop empty records
             const cust = document.getElementById('customer').value;
             const sqft = document.getElementById('totalSqft').value;
             const holiday = document.getElementById('isHoliday').checked;
-            
-            if(!holiday && (!cust || !sqft)) {
-                alert("❌ Cannot save! Customer name and Total Sqft are required.");
-                return;
-            }
-
+            if(!holiday && (!cust || !sqft)) { alert("❌ Required: Customer & Sqft"); return; }
             const cal = calculate();
             const logs = [];
-            document.querySelectorAll('.day-entry').forEach(row => {
-                logs.push({ 
-                    helper: row.querySelector('.d-helper').value, 
-                    status: row.querySelector('.d-status').value,
-                    ot: row.querySelector('.d-ot').value, 
-                    sal: row.querySelector('.d-sal').value, 
-                    pet: row.querySelector('.d-pet').value, 
-                    food: row.querySelector('.d-food').value 
+            if(document.getElementById('helperToggle').checked) {
+                document.querySelectorAll('.day-entry').forEach(row => {
+                    logs.push({ helper: row.querySelector('.d-helper').value, status: row.querySelector('.d-status').value, ot: row.querySelector('.d-ot').value, sal: row.querySelector('.d-sal').value, pet: row.querySelector('.d-pet').value, food: row.querySelector('.d-food').value });
                 });
-            });
-
+            }
             const data = {
-                date: document.getElementById('date').value,
-                qn: document.getElementById('qn').value,
-                isHoliday: holiday,
-                projectType: document.getElementById('projectType').value,
-                partnerName: document.getElementById('partnerName').value,
-                company: document.getElementById('company').value,
-                customer: cust,
-                location: document.getElementById('location').value,
-                totalWindow: document.getElementById('totalWindow').value,
-                totalSqft: sqft,
-                amtRate: document.getElementById('amtRate').value,
-                total: cal.val,
-                logs: logs,
-                comment: holiday ? document.getElementById('holidayReason').value : document.getElementById('workNotes').value,
+                date: document.getElementById('date').value, qn: document.getElementById('qn').value, isHoliday: holiday,
+                projectType: document.getElementById('projectType').value, partnerName: document.getElementById('partnerName').value,
+                company: document.getElementById('company').value, customer: cust, location: document.getElementById('location').value,
+                totalWindow: document.getElementById('totalWindow').value, totalSqft: sqft, amtRate: document.getElementById('amtRate').value,
+                total: cal.val, logs: logs, comment: holiday ? document.getElementById('holidayReason').value : document.getElementById('workNotes').value,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
-
             const id = document.getElementById('editId').value;
-            if(id) await db.collection("workLogs").doc(id).update(data);
-            else await db.collection("workLogs").add(data);
+            if(id) await db.collection("workLogs").doc(id).update(data); else await db.collection("workLogs").add(data);
             location.reload();
         }
 
         function applyFilters() {
-            const fMonth = document.getElementById('filterMonth').value;
-            const fType = document.getElementById('filterType').value;
-            const fComp = document.getElementById('filterCompany').value;
+            const fMonth = document.getElementById('filterMonth').value, fType = document.getElementById('filterType').value, fComp = document.getElementById('filterCompany').value;
             let filtered = allEntries;
             if(fMonth !== 'all') filtered = filtered.filter(d => new Date(d.date).getMonth() == fMonth);
             if(fType !== 'all') filtered = filtered.filter(d => d.projectType === fType);
             if(fComp !== 'all') filtered = filtered.filter(d => d.company === fComp);
-
             let tProfit = 0, tExp = 0, tPartner = 0, helperSummary = {};
             const container = document.getElementById('displayArea');
             container.innerHTML = "";
-
             filtered.forEach(d => {
                 let siteExp = 0;
                 if(d.logs) d.logs.forEach(l => {
-                    const s = parseFloat(l.sal)||0;
-                    const rowPay = s + (s * 0.5 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
-                    siteExp += rowPay;
-                    helperSummary[l.helper] = (helperSummary[l.helper] || 0) + rowPay;
+                    const s = parseFloat(l.sal)||0, rowPay = s + (s * 0.5 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+                    siteExp += rowPay; helperSummary[l.helper] = (helperSummary[l.helper] || 0) + rowPay;
                 });
                 tExp += siteExp;
                 const net = (parseFloat(d.total)||0) - siteExp;
-                if(!d.isHoliday) {
-                    if(d.projectType === 'Partner') { tPartner += (net/2); tProfit += (net/2); } 
-                    else { tProfit += net; }
-                }
-
+                if(!d.isHoliday) { if(d.projectType === 'Partner') { tPartner += (net/2); tProfit += (net/2); } else { tProfit += net; } }
                 container.innerHTML += `
                 <div class="glass p-3 border-l-4 ${d.isHoliday ? 'border-red-500':'border-blue-500'}">
                     <div class="flex justify-between items-start">
@@ -319,67 +293,41 @@
                         </div>
                     </div>
                     <div class="hidden mt-2 pt-2 border-t border-white/5 space-y-1">
-                        <div class="flex justify-between text-[9px]">
-                            <span>Wins: ${d.totalWindow || 0} | Sqft: ${d.totalSqft || 0}</span>
-                            <span class="text-red-400">Helper Exp: ₹${Math.round(siteExp)}</span>
-                        </div>
+                        <div class="flex justify-between text-[9px]"><span>Wins: ${d.totalWindow || 0} | Sqft: ${d.totalSqft || 0}</span><span class="text-red-400">Helper Exp: ₹${Math.round(siteExp)}</span></div>
                         <p class="text-[9px] italic text-gray-400">"${d.comment || ''}"</p>
                     </div>
                 </div>`;
             });
-
             document.getElementById('sumProfit').innerText = "₹" + Math.round(tProfit).toLocaleString();
             document.getElementById('sumExp').innerText = "₹" + Math.round(tExp).toLocaleString();
             document.getElementById('sumPartner').innerText = "₹" + Math.round(tPartner).toLocaleString();
-            document.getElementById('helperPayrollSummary').innerHTML = Object.entries(helperSummary).map(([name, amt]) => 
-                `<div class="flex justify-between bg-white/5 p-1 px-2 rounded"><span>${name}</span><span class="text-orange-400 font-bold">₹${Math.round(amt)}</span></div>`
-            ).join('') || "";
+            document.getElementById('helperPayrollSummary').innerHTML = Object.entries(helperSummary).map(([name, amt]) => `<div class="flex justify-between bg-white/5 p-1 px-2 rounded"><span>${name}</span><span class="text-orange-400 font-bold">₹${Math.round(amt)}</span></div>`).join('') || "";
         }
 
         async function deleteDoc(id) { if(confirm("Confirm Delete?")) await db.collection("workLogs").doc(id).delete(); }
-
-        function copyDoc(id) {
-            editDoc(id);
-            document.getElementById('editId').value = ""; // Clear ID so it saves as NEW
-            document.getElementById('date').valueAsDate = new Date(); // Update to today
-            alert("Record copied! Update the date/details and Save as new.");
-        }
-
+        function copyDoc(id) { editDoc(id); document.getElementById('editId').value = ""; document.getElementById('date').valueAsDate = new Date(); alert("Copied! Change date/details & Save."); }
         function editDoc(id) {
             const d = allEntries.find(e => e.id === id);
-            document.getElementById('editId').value = id;
-            document.getElementById('date').value = d.date;
-            document.getElementById('qn').value = d.qn;
-            document.getElementById('customer').value = d.customer;
-            document.getElementById('location').value = d.location || "";
-            document.getElementById('totalWindow').value = d.totalWindow || "";
-            document.getElementById('totalSqft').value = d.totalSqft || "";
-            document.getElementById('amtRate').value = d.amtRate || "";
-            document.getElementById('projectType').value = d.projectType;
-            document.getElementById('partnerName').value = d.partnerName || "";
-            document.getElementById('company').value = d.company;
+            document.getElementById('editId').value = id; document.getElementById('date').value = d.date; document.getElementById('qn').value = d.qn;
+            document.getElementById('customer').value = d.customer; document.getElementById('location').value = d.location || "";
+            document.getElementById('totalWindow').value = d.totalWindow || ""; document.getElementById('totalSqft').value = d.totalSqft || "";
+            document.getElementById('amtRate').value = d.amtRate || ""; document.getElementById('projectType').value = d.projectType;
+            document.getElementById('partnerName').value = d.partnerName || ""; document.getElementById('company').value = d.company;
             document.getElementById('isHoliday').checked = d.isHoliday;
-            if(d.isHoliday) document.getElementById('holidayReason').value = d.comment || "";
-            else document.getElementById('workNotes').value = d.comment || "";
+            document.getElementById('helperToggle').checked = (d.logs && d.logs.length > 0);
+            if(d.isHoliday) document.getElementById('holidayReason').value = d.comment || ""; else document.getElementById('workNotes').value = d.comment || "";
             document.getElementById('dayLogsContainer').innerHTML = "";
             if(d.logs) d.logs.forEach(l => addDayRow(l));
-            handleTypeChange(); checkHoliday();
-            window.scrollTo(0,0);
+            handleTypeChange(); checkHoliday(); toggleHelperSection(); window.scrollTo(0,0);
         }
-
         function exportToPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
             doc.text("Ayyappan Work Report", 14, 15);
             const rows = allEntries.map(e => [e.date, e.customer, e.location, e.totalSqft, e.total]);
             doc.autoTable({ head: [['Date', 'Customer', 'Location', 'Sqft', 'Amount']], body: rows, startY: 25 });
             doc.save("Report.pdf");
         }
-
-        window.onload = () => {
-            document.getElementById('date').valueAsDate = new Date();
-            loadDropdowns(); addDayRow();
-        };
+        window.onload = () => { document.getElementById('date').valueAsDate = new Date(); loadDropdowns(); addDayRow(); toggleHelperSection(); };
     </script>
 </body>
 </html>
