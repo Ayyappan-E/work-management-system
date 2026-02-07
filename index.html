@@ -21,7 +21,7 @@
         .summary-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #070b14; border-top: 2px solid #3b82f6; padding: 10px; z-index: 50; }
     </style>
 </head>
-<body class="p-4 pb-64">
+<body class="p-4 pb-72">
 
     <div id="settingsModal" class="modal">
         <div class="glass p-6 w-full max-w-sm space-y-4">
@@ -106,18 +106,30 @@
 
     <div class="summary-footer max-w-md mx-auto">
         <div id="helperPayrollSummary" class="text-[9px] grid grid-cols-2 gap-2 text-gray-300 mb-2 px-2"></div>
+        
         <div class="grid grid-cols-3 gap-1 text-center mb-3">
             <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-[8px] text-gray-400 uppercase">My Profit</p><p id="sumProfit" class="text-green-400 font-bold text-xs">₹0</p></div>
             <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-[8px] text-gray-400 uppercase">Helper Pay</p><p id="sumExp" class="text-red-400 font-bold text-xs">₹0</p></div>
             <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-[8px] text-blue-400 uppercase">Partner</p><p id="sumPartner" class="text-blue-300 font-bold text-xs">₹0</p></div>
         </div>
-        <select id="filterMonth" onchange="applyFilters()" class="input-box h-9 bg-slate-800 text-center font-bold text-xs uppercase">
-            <option value="all">Full History</option>
-            <option value="0">January</option><option value="1">February</option><option value="2">March</option>
-            <option value="3">April</option><option value="4">May</option><option value="5">June</option>
-            <option value="6">July</option><option value="7">August</option><option value="8">September</option>
-            <option value="9">October</option><option value="10">November</option><option value="11">December</option>
-        </select>
+
+        <div class="grid grid-cols-3 gap-2 px-2 pb-1">
+            <select id="filterType" onchange="applyFilters()" class="input-box h-8 py-0 bg-slate-800 text-[10px] font-bold uppercase">
+                <option value="all">TYPE: ALL</option>
+                <option value="Solo">Solo</option>
+                <option value="Partner">Partner</option>
+            </select>
+            <select id="filterCompany" onchange="applyFilters()" class="input-box h-8 py-0 bg-slate-800 text-[10px] font-bold uppercase">
+                <option value="all">COMP: ALL</option>
+            </select>
+            <select id="filterMonth" onchange="applyFilters()" class="input-box h-8 py-0 bg-slate-800 text-[10px] font-bold uppercase">
+                <option value="all">MONTH: ALL</option>
+                <option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option>
+                <option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option>
+                <option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option>
+                <option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
+            </select>
+        </div>
     </div>
 
     <script>
@@ -140,8 +152,16 @@
             loadDropdowns(); toggleSettings();
         }
         function loadDropdowns() {
-            const comps = (localStorage.getItem('myCompanies') || "Sharp,Buildcon").split(',');
+            const compsStr = localStorage.getItem('myCompanies') || "Sharp,Buildcon";
+            const comps = compsStr.split(',');
+            
+            // Main Form Dropdown
             document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
+            
+            // Bottom Filter Dropdown
+            const filterComp = document.getElementById('filterCompany');
+            filterComp.innerHTML = `<option value="all">COMP: ALL</option>` + comps.map(c => `<option value="${c.trim()}">${c.trim()}</option>`).join('');
+
             const helps = (localStorage.getItem('myHelpers') || "Ravi,Kumar").split(',');
             document.querySelectorAll('.d-helper').forEach(sel => {
                 const cur = sel.value;
@@ -251,9 +271,16 @@
         }
 
         function applyFilters() {
-            const month = document.getElementById('filterMonth').value;
+            const fMonth = document.getElementById('filterMonth').value;
+            const fType = document.getElementById('filterType').value;
+            const fComp = document.getElementById('filterCompany').value;
+
             let filtered = allEntries;
-            if(month !== 'all') filtered = filtered.filter(d => new Date(d.date).getMonth() == month);
+            
+            // Multi-Filter Logic
+            if(fMonth !== 'all') filtered = filtered.filter(d => new Date(d.date).getMonth() == fMonth);
+            if(fType !== 'all') filtered = filtered.filter(d => d.projectType === fType);
+            if(fComp !== 'all') filtered = filtered.filter(d => d.company === fComp);
 
             let tProfit = 0, tExp = 0, tPartner = 0, helperSummary = {};
             const container = document.getElementById('displayArea');
@@ -294,6 +321,7 @@
                             <span class="text-red-400">Helper Exp: ₹${Math.round(siteExp)}</span>
                         </div>
                         <p class="text-[9px] italic text-gray-400">"${d.comment || ''}"</p>
+                        <button onclick="deleteDoc('${d.id}')" class="text-red-500 text-[8px] uppercase font-bold pt-2">Delete Record</button>
                     </div>
                 </div>`;
             });
@@ -307,6 +335,8 @@
             ).join('') || "";
         }
 
+        async function deleteDoc(id) { if(confirm("Confirm Delete?")) await db.collection("workLogs").doc(id).delete(); }
+
         function editDoc(id) {
             const d = allEntries.find(e => e.id === id);
             document.getElementById('editId').value = id;
@@ -319,6 +349,7 @@
             document.getElementById('amtRate').value = d.amtRate || "";
             document.getElementById('projectType').value = d.projectType;
             document.getElementById('partnerName').value = d.partnerName || "";
+            document.getElementById('company').value = d.company;
             document.getElementById('isHoliday').checked = d.isHoliday;
             if(d.isHoliday) document.getElementById('holidayReason').value = d.comment || "";
             else document.getElementById('workNotes').value = d.comment || "";
