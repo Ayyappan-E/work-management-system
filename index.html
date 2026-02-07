@@ -21,7 +21,6 @@
         .day-entry { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; margin-bottom: 10px; position: relative; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .summary-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #070b14; border-top: 3px solid #3b82f6; padding: 12px; z-index: 50; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
-        .delete-btn { background: rgba(220, 38, 38, 0.2); color: #ef4444; border: 1px solid rgba(220, 38, 38, 0.5); padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; }
     </style>
 </head>
 <body class="p-4 pb-96">
@@ -30,7 +29,7 @@
         <div class="flex-1">
             <label>Month</label>
             <select id="filterMonth" onchange="applyFilters()" class="input-box bg-[#1e293b] font-bold text-blue-400">
-                <option value="all">All Records</option>
+                <option value="all">All Months</option>
                 <option value="0">January</option><option value="1">February</option>
                 <option value="2">March</option><option value="3">April</option>
                 <option value="4">May</option><option value="5">June</option>
@@ -48,37 +47,40 @@
     <div class="max-w-md mx-auto">
         <div class="flex justify-between items-center mb-6">
             <h1 class="font-black text-2xl italic uppercase tracking-tighter">Ayyappan <span class="text-blue-500">Pro</span></h1>
-            <div class="flex gap-3">
-                <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-cog"></i></button>
-            </div>
+            <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-cog"></i></button>
         </div>
 
         <div class="glass p-4 mb-6 border-l-4 border-yellow-500">
             <div class="flex justify-between items-end mb-2">
-                <label id="targetLabel" class="m-0 text-yellow-500">Monthly Progress</label>
-                <span id="targetRem" class="text-xs font-bold">₹0</span>
+                <label id="targetLabel" class="m-0 text-yellow-500 font-bold">Progress</label>
+                <span id="targetRem" class="text-xs font-bold text-yellow-200">₹0 Left</span>
             </div>
-            <div class="w-full bg-white/10 h-2 rounded-full"><div id="targetBar" class="bg-yellow-500 h-full rounded-full" style="width:0%"></div></div>
+            <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                <div id="targetBar" class="bg-yellow-500 h-full transition-all duration-1000" style="width:0%"></div>
+            </div>
         </div>
 
-        <div class="glass p-5 mb-8 space-y-4 border-t-4 border-blue-600">
+        <div class="glass p-5 mb-8 space-y-4 border-t-4 border-blue-600 shadow-2xl">
             <input type="hidden" id="editId">
             <div class="grid grid-cols-2 gap-4">
                 <div><label>Date</label><input type="date" id="date" class="input-box"></div>
                 <div>
                     <label>Company Name</label>
-                    <input list="companyListSuggestions" id="companyName" class="input-box" placeholder="Type/Select">
+                    <input list="companyListSuggestions" id="companyName" class="input-box" placeholder="Search/Type">
                     <datalist id="companyListSuggestions"></datalist>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
-                <div><label>QN No</label><input type="text" id="qn" class="input-box" placeholder="QN-101"></div>
-                <div><label>Site Name</label><input type="text" id="customer" class="input-box"></div>
+                <div><label>QN Number</label><input type="text" id="qn" class="input-box" placeholder="QN-000"></div>
+                <div><label>Site Name *</label><input type="text" id="customer" class="input-box"></div>
             </div>
 
             <div class="bg-blue-600/10 p-4 rounded-xl">
-                <div class="flex justify-between items-center mb-3"><label class="m-0">Helper Wages</label><button onclick="addDayRow()" class="bg-blue-600 px-3 py-1 rounded text-[10px]">+ Add</button></div>
+                <div class="flex justify-between items-center mb-3">
+                    <label class="m-0 text-blue-400">Helper Logs</label>
+                    <button onclick="addDayRow()" class="bg-blue-600 px-3 py-1 rounded text-[10px] font-bold">+ Row</button>
+                </div>
                 <div id="dayLogsContainer" class="space-y-2"></div>
             </div>
 
@@ -88,9 +90,9 @@
                 <div><label>Type</label><select id="projectType" class="input-box"><option value="Solo">Solo</option><option value="Partner">Partner</option></select></div>
             </div>
 
-            <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+            <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/10">
                 <div class="text-green-400 text-xl font-black" id="resTotal">₹0</div>
-                <button onclick="saveData()" class="bg-blue-600 px-8 py-3 rounded-xl font-bold uppercase text-xs">Save Record</button>
+                <button onclick="saveData()" class="bg-blue-600 px-8 py-3 rounded-xl font-black uppercase text-xs">Save</button>
             </div>
         </div>
 
@@ -99,17 +101,20 @@
 
     <div id="settingsModal" class="modal">
         <div class="glass p-6 w-full max-w-sm space-y-4">
-            <h2 class="text-center font-bold text-blue-400 uppercase">System Settings</h2>
-            <div><label>Target Amount</label><input type="number" id="setTarget" class="input-box"></div>
-            <div><label>Companies (Comma Separated)</label><textarea id="setCompanies" class="input-box h-20"></textarea></div>
-            <div><label>Helpers (Comma Separated)</label><textarea id="setHelpers" class="input-box h-20"></textarea></div>
-            <button onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-xl font-bold uppercase">Save & Sync</button>
-            <button onclick="toggleSettings()" class="w-full text-gray-500 text-xs">CANCEL</button>
+            <h2 class="text-center font-bold text-blue-400 uppercase tracking-widest">Settings</h2>
+            <div><label>Monthly Target (₹)</label><input type="number" id="setTarget" class="input-box"></div>
+            <div><label>Company Database (Comma Separated)</label><textarea id="setCompanies" class="input-box h-20" placeholder="Comp A, Comp B..."></textarea></div>
+            <div><label>Helper List (Comma Separated)</label><textarea id="setHelpers" class="input-box h-20" placeholder="Name 1, Name 2..."></textarea></div>
+            <button onclick="saveSettings()" class="w-full bg-blue-600 py-4 rounded-xl font-black uppercase">Update & Sync</button>
+            <button onclick="toggleSettings()" class="w-full text-gray-500 text-xs">CLOSE</button>
         </div>
     </div>
 
     <div class="summary-footer max-w-md mx-auto">
-        <div class="flex justify-between items-center px-6"><span class="text-xs font-bold text-gray-400 uppercase">Net Earned</span><span id="tblGrandTotal" class="text-2xl font-black text-yellow-400">₹0</span></div>
+        <div class="flex justify-between items-center px-6">
+            <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Month Total</span>
+            <span id="tblGrandTotal" class="text-2xl font-black text-yellow-400">₹0</span>
+        </div>
     </div>
 
     <script>
@@ -120,7 +125,7 @@
         let allEntries = [];
         let globalSettings = { target: 500000, helpers: "", companies: "" };
 
-        window.onload = async () => {
+        window.onload = () => {
             const yearSel = document.getElementById('filterYear');
             const currentYear = new Date().getFullYear();
             for (let i = currentYear - 1; i <= currentYear + 1; i++) {
@@ -131,7 +136,7 @@
             document.getElementById('date').valueAsDate = new Date();
             document.getElementById('filterMonth').value = new Date().getMonth();
 
-            // Listen for settings change
+            // Real-time Settings Sync
             db.collection("appSettings").doc("userConfig").onSnapshot(doc => {
                 if(doc.exists) {
                     globalSettings = doc.data();
@@ -142,7 +147,7 @@
                 }
             });
 
-            // Listen for data change
+            // Real-time Data Sync
             db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => {
                 allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 applyFilters();
@@ -151,16 +156,17 @@
         };
 
         function refreshDatalists() {
+            // Update Company Suggestions
             const comps = (globalSettings.companies || "").split(',').map(c => c.trim()).filter(c => c);
-            const dl = document.getElementById('companyListSuggestions');
-            dl.innerHTML = comps.map(c => `<option value="${c}">`).join('');
+            const dataList = document.getElementById('companyListSuggestions');
+            dataList.innerHTML = comps.map(c => `<option value="${c}">`).join('');
             
-            // Also refresh helpers in the rows
+            // Update Helper select menus
             const helps = (globalSettings.helpers || "").split(',').map(h => h.trim()).filter(h => h);
             document.querySelectorAll('.d-helper').forEach(sel => {
-                const cur = sel.value;
+                const curVal = sel.value;
                 sel.innerHTML = helps.map(h => `<option value="${h}">${h}</option>`).join('');
-                if(cur) sel.value = cur;
+                if(curVal) sel.value = curVal;
             });
         }
 
@@ -184,9 +190,9 @@
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <input type="number" placeholder="Salary" class="input-box h-8 d-sal" oninput="calculate()" value="${data?.sal || ''}">
-                    <input type="number" placeholder="Others" class="input-box h-8 d-oth" oninput="calculate()" value="${data?.oth || ''}">
+                    <input type="number" placeholder="Food/Pet" class="input-box h-8 d-oth" oninput="calculate()" value="${data?.oth || ''}">
                 </div>
-                <button onclick="this.parentElement.remove(); calculate()" class="absolute -top-1 -right-1 text-red-500"><i class="fas fa-times-circle"></i></button>`;
+                <button onclick="this.parentElement.remove(); calculate()" class="absolute -top-1 -right-1 text-red-500 bg-black rounded-full"><i class="fas fa-times-circle"></i></button>`;
             container.appendChild(div);
             refreshDatalists();
             if(data) div.querySelector('.d-helper').value = data.helper;
@@ -199,7 +205,9 @@
         }
 
         async function saveData() {
-            const id = document.getElementById('editId').value;
+            const customer = document.getElementById('customer').value;
+            if(!customer) return alert("Site name is required");
+            
             const logs = [];
             document.querySelectorAll('.day-entry').forEach(row => {
                 logs.push({
@@ -213,7 +221,7 @@
             const data = {
                 date: document.getElementById('date').value,
                 companyName: document.getElementById('companyName').value,
-                customer: document.getElementById('customer').value,
+                customer: customer,
                 qn: document.getElementById('qn').value,
                 totalSqft: document.getElementById('totalSqft').value,
                 amtRate: document.getElementById('amtRate').value,
@@ -222,22 +230,16 @@
                 logs
             };
 
+            const id = document.getElementById('editId').value;
             if(id) await db.collection("workLogs").doc(id).update(data);
             else await db.collection("workLogs").add(data);
             
-            // Reset Form
+            // Reset form
             document.getElementById('editId').value = "";
             document.getElementById('customer').value = "";
             document.getElementById('dayLogsContainer').innerHTML = "";
             addDayRow();
             calculate();
-        }
-
-        async function deleteDoc(id, e) {
-            e.stopPropagation();
-            if(confirm("Delete this record permanently?")) {
-                await db.collection("workLogs").doc(id).delete();
-            }
         }
 
         function applyFilters() {
@@ -256,13 +258,12 @@
                 earned += profit;
 
                 cont.innerHTML += `
-                <div class="glass p-4 border-l-4 border-blue-500" onclick="editDoc('${d.id}')">
-                    <div class="flex justify-between text-[10px] text-gray-400 mb-1">
-                        <span>${d.date} | ${d.companyName}</span>
-                        <button class="delete-btn" onclick="deleteDoc('${d.id}', event)">DELETE</button>
+                <div class="glass p-4 border-l-4 border-blue-500 mb-3" onclick="editDoc('${d.id}')">
+                    <div class="flex justify-between text-[10px] text-gray-400 font-bold mb-1">
+                        <span>${d.date} | ${d.companyName || 'No Company'}</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="font-bold uppercase">${d.customer}</span>
+                        <span class="font-bold uppercase text-white">${d.customer}</span>
                         <span class="text-green-400 font-black">₹${Math.round(profit).toLocaleString()}</span>
                     </div>
                 </div>`;
@@ -275,14 +276,14 @@
             const target = parseFloat(globalSettings.target) || 500000;
             const perc = Math.min((earned / target) * 100, 100);
             document.getElementById('targetBar').style.width = perc + "%";
-            document.getElementById('targetRem').innerText = "₹" + Math.round(target - earned).toLocaleString() + " to go";
+            document.getElementById('targetRem').innerText = "₹" + Math.round(Math.max(0, target - earned)).toLocaleString() + " Left";
         }
 
         function editDoc(id) {
             const d = allEntries.find(i => i.id === id);
             document.getElementById('editId').value = id;
             document.getElementById('date').value = d.date;
-            document.getElementById('companyName').value = d.companyName;
+            document.getElementById('companyName').value = d.companyName || "";
             document.getElementById('customer').value = d.customer;
             document.getElementById('qn').value = d.qn || "";
             document.getElementById('totalSqft').value = d.totalSqft;
