@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayyappan Manager | Master Pro</title>
+    <title>Ayyappan Manager | Pro Status</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,14 +14,17 @@
     <style>
         body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #f1f5f9; min-height: 100vh; font-family: 'Inter', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; }
-        .input-box { background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 0.6rem; padding: 0.8rem; color: white; width: 100%; outline: none; font-size: 14px; }
+        .input-box { background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 0.6rem; padding: 0.8rem; color: white; width: 100%; outline: none; font-size: 13px; }
         label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; display: block; }
         .day-entry { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; margin-bottom: 8px; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .summary-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #0f172a; border-top: 2px solid #3b82f6; padding: 10px; z-index: 50; }
+        .status-started { color: #60a5fa; } /* Blue */
+        .status-ongoing { color: #fbbf24; } /* Yellow */
+        .status-completed { color: #34d399; } /* Green */
     </style>
 </head>
-<body class="p-4 pb-60">
+<body class="p-4 pb-64">
 
     <div id="settingsModal" class="modal">
         <div class="glass p-6 w-full max-w-sm space-y-4">
@@ -35,7 +38,7 @@
 
     <div class="max-w-md mx-auto">
         <div class="flex justify-between items-center mb-6">
-            <h1 class="font-black text-xl italic text-white uppercase">Ayyappan <span class="text-blue-500">Works</span></h1>
+            <h1 class="font-black text-xl italic uppercase">Ayyappan <span class="text-blue-500">Works</span></h1>
             <div class="flex gap-2">
                 <button onclick="exportToPDF()" class="w-10 h-10 glass flex items-center justify-center text-red-400"><i class="fas fa-file-pdf"></i></button>
                 <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-cog"></i></button>
@@ -63,14 +66,10 @@
                 </div>
             </div>
 
-            <div id="partnerNameDiv" class="hidden animate-fade-in">
-                <label>Partner Name</label>
-                <input type="text" id="partnerName" class="input-box border-blue-500/50" placeholder="Enter name">
-            </div>
+            <div id="partnerNameDiv" class="hidden"><label>Partner Name</label><input type="text" id="partnerName" class="input-box border-blue-500/50"></div>
 
             <div id="workFields" class="space-y-4">
                 <div><label>Company</label><select id="company" class="input-box"></select></div>
-                
                 <div class="grid grid-cols-2 gap-3">
                     <div><label>Customer *</label><input type="text" id="customer" class="input-box"></div>
                     <div><label>Location</label><input type="text" id="location" class="input-box"></div>
@@ -78,7 +77,7 @@
 
                 <div class="bg-blue-500/5 p-3 rounded-lg border border-blue-500/20">
                     <div class="flex justify-between items-center mb-2">
-                        <label class="text-blue-400 m-0">Daily Helper Logs</label>
+                        <label class="text-blue-400 m-0 font-black">Helper Logs & Status</label>
                         <button onclick="addDayRow()" class="text-[9px] bg-blue-600 px-3 py-1 rounded font-bold uppercase shadow">+ Add Day</button>
                     </div>
                     <div id="dayLogsContainer"></div>
@@ -89,24 +88,10 @@
                     <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
                     <div><label>Rate/Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
                 </div>
-
-                <div class="grid grid-cols-3 gap-2">
-                    <div class="p-2 bg-green-500/10 rounded-lg text-center border border-green-500/20">
-                        <label class="m-0 text-green-500 text-[8px]">Value</label>
-                        <div id="resTotal" class="text-xs font-black text-green-400">₹0</div>
-                    </div>
-                    <div class="p-2 bg-red-500/10 rounded-lg text-center border border-red-500/20">
-                        <label class="m-0 text-red-400 text-[8px]">Exp</label>
-                        <div id="resExp" class="text-xs font-black text-red-400">₹0</div>
-                    </div>
-                    <div id="shareBox" class="p-2 bg-blue-500/10 rounded-lg text-center border border-blue-500/20 hidden">
-                        <label class="m-0 text-blue-400 text-[8px]">Partner Share</label>
-                        <div id="resPartnerShare" class="text-xs font-black text-blue-300">₹0</div>
-                    </div>
-                </div>
             </div>
 
-            <div id="holidayReasonDiv" class="hidden"><label>Reason</label><textarea id="comment" class="input-box h-16"></textarea></div>
+            <div id="holidayReasonDiv" class="hidden"><label>Comment / Reason</label><textarea id="comment" class="input-box h-16"></textarea></div>
+            <div id="normalCommentDiv"><label>Work Notes</label><textarea id="commentNormal" class="input-box h-12"></textarea></div>
 
             <div class="grid grid-cols-3 gap-2">
                 <button onclick="saveData()" class="col-span-2 bg-blue-600 py-4 rounded-xl font-black uppercase shadow-lg">Save Record</button>
@@ -114,17 +99,16 @@
             </div>
         </div>
 
-        <div class="mb-4"><input type="text" id="searchFilter" oninput="applyFilters()" placeholder="🔍 Search Customer..." class="input-box"></div>
         <div id="displayArea" class="space-y-4"></div>
     </div>
 
     <div class="summary-footer max-w-md mx-auto">
         <div class="grid grid-cols-3 gap-1 text-center text-[9px] mb-2">
-            <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-gray-400">MY PROFIT</p><p id="sumProfit" class="text-green-400 font-bold text-xs">₹0</p></div>
-            <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-gray-400">HELPER EXP</p><p id="sumExp" class="text-red-400 font-bold text-xs">₹0</p></div>
-            <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-blue-400">PARTNER PAY</p><p id="sumPartner" class="text-blue-300 font-bold text-xs">₹0</p></div>
+            <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-gray-400 uppercase">My Profit</p><p id="sumProfit" class="text-green-400 font-bold text-xs">₹0</p></div>
+            <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-gray-400 uppercase">Expenses</p><p id="sumExp" class="text-red-400 font-bold text-xs">₹0</p></div>
+            <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-blue-400 uppercase">Partner Pay</p><p id="sumPartner" class="text-blue-300 font-bold text-xs">₹0</p></div>
         </div>
-        <div id="helperCounts" class="text-[8px] text-gray-500 italic text-center mb-2 bg-black/20 py-1">No Activity</div>
+        <div id="helperCounts" class="text-[8px] text-gray-500 italic text-center mb-2">No activity logged</div>
         <select id="filterMonth" onchange="applyFilters()" class="input-box h-10 bg-slate-800 text-center font-bold">
             <option value="all">ALL HISTORY</option>
             <option value="0">JANUARY</option><option value="1">FEBRUARY</option><option value="2">MARCH</option><option value="3">APRIL</option>
@@ -167,36 +151,42 @@
             const h = document.getElementById('isHoliday').checked;
             document.getElementById('workFields').style.display = h ? 'none' : 'block';
             document.getElementById('holidayReasonDiv').classList.toggle('hidden', !h);
+            document.getElementById('normalCommentDiv').classList.toggle('hidden', h);
         }
 
         function handleTypeChange() {
             const isP = document.getElementById('projectType').value === 'Partner';
             document.getElementById('partnerNameDiv').classList.toggle('hidden', !isP);
-            document.getElementById('shareBox').classList.toggle('hidden', !isP);
             calculate();
         }
 
         function addDayRow(data = null) {
             const container = document.getElementById('dayLogsContainer');
             const dayDiv = document.createElement('div');
-            dayDiv.className = "day-entry border-l-2 border-blue-400";
+            dayDiv.className = "day-entry border-l-2 border-blue-500";
             dayDiv.innerHTML = `
                 <div class="grid grid-cols-2 gap-2 mb-2">
                     <select class="input-box h-8 text-[11px] d-helper"></select>
-                    <select class="input-box h-8 text-[11px] d-ot" onchange="calculate()">
-                        <option value="0">No OT</option><option value="0.5">0.5 OT</option><option value="1">1 OT</option>
+                    <select class="input-box h-8 text-[11px] d-status font-bold">
+                        <option value="Started">Started</option>
+                        <option value="Ongoing">Ongoing</option>
+                        <option value="Completed">Completed</option>
                     </select>
                 </div>
-                <div class="grid grid-cols-3 gap-1">
-                    <input type="number" placeholder="Sal" class="input-box h-7 text-[10px] d-sal" oninput="calculate()" value="${data?.sal || ''}">
-                    <input type="number" placeholder="Pet" class="input-box h-7 text-[10px] d-pet" oninput="calculate()" value="${data?.pet || ''}">
-                    <input type="number" placeholder="Food" class="input-box h-7 text-[10px] d-food" oninput="calculate()" value="${data?.food || ''}">
+                <div class="grid grid-cols-4 gap-1">
+                    <select class="input-box h-8 text-[10px] d-ot p-0" onchange="calculate()">
+                        <option value="0">No OT</option><option value="0.5">0.5 OT</option><option value="1">1 OT</option>
+                    </select>
+                    <input type="number" placeholder="Sal" class="input-box h-8 text-[10px] d-sal" oninput="calculate()" value="${data?.sal || ''}">
+                    <input type="number" placeholder="Pet" class="input-box h-8 text-[10px] d-pet" oninput="calculate()" value="${data?.pet || ''}">
+                    <input type="number" placeholder="Food" class="input-box h-8 text-[10px] d-food" oninput="calculate()" value="${data?.food || ''}">
                 </div>
-                <button onclick="this.parentElement.remove(); calculate()" class="text-[8px] text-red-500 mt-2">REMOVE</button>`;
+                <button onclick="this.parentElement.remove(); calculate()" class="text-[8px] text-red-500 mt-2 uppercase font-bold">Remove Day</button>`;
             container.appendChild(dayDiv);
             loadDropdowns();
             if(data) { 
                 dayDiv.querySelector('.d-helper').value = data.helper; 
+                dayDiv.querySelector('.d-status').value = data.status || 'Started';
                 dayDiv.querySelector('.d-ot').value = data.ot;
                 calculate();
             }
@@ -210,12 +200,6 @@
                 const ot = parseFloat(row.querySelector('.d-ot').value) || 0;
                 hExp += s + (s * 0.5 * ot) + (parseFloat(row.querySelector('.d-pet').value) || 0) + (parseFloat(row.querySelector('.d-food').value) || 0);
             });
-            document.getElementById('resTotal').innerText = "₹" + Math.round(val);
-            document.getElementById('resExp').innerText = "₹" + Math.round(hExp);
-            if(document.getElementById('projectType').value === 'Partner') {
-                const share = (val - hExp) / 2;
-                document.getElementById('resPartnerShare').innerText = "₹" + Math.round(share > 0 ? share : 0);
-            }
             return { val, hExp };
         }
 
@@ -230,6 +214,7 @@
             document.querySelectorAll('.day-entry').forEach(row => {
                 logs.push({ 
                     helper: row.querySelector('.d-helper').value, 
+                    status: row.querySelector('.d-status').value,
                     ot: row.querySelector('.d-ot').value, 
                     sal: row.querySelector('.d-sal').value, 
                     pet: row.querySelector('.d-pet').value, 
@@ -251,7 +236,7 @@
                 amtRate: document.getElementById('amtRate').value,
                 total: cal.val,
                 logs: logs,
-                comment: document.getElementById('comment').value,
+                comment: document.getElementById('isHoliday').checked ? document.getElementById('comment').value : document.getElementById('commentNormal').value,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
@@ -262,9 +247,8 @@
         }
 
         function applyFilters() {
-            const search = document.getElementById('searchFilter').value.toLowerCase();
             const month = document.getElementById('filterMonth').value;
-            let filtered = allEntries.filter(e => e.customer?.toLowerCase().includes(search));
+            let filtered = allEntries;
             if(month !== 'all') filtered = filtered.filter(d => new Date(d.date).getMonth() == month);
 
             let tProfit = 0, tExp = 0, tPartner = 0, hMap = {};
@@ -273,16 +257,21 @@
 
             filtered.forEach(d => {
                 let siteExp = 0;
-                if(d.logs) d.logs.forEach(l => {
+                let dailyStatusHtml = "";
+                if(d.logs) d.logs.forEach((l, index) => {
                     const s = parseFloat(l.sal)||0;
-                    const cost = s + (s * 0.5 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
-                    siteExp += cost;
+                    siteExp += s + (s * 0.5 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
                     hMap[l.helper] = (hMap[l.helper] || 0) + 1;
+                    
+                    const sClass = l.status === 'Completed' ? 'status-completed' : (l.status === 'Ongoing' ? 'status-ongoing' : 'status-started');
+                    dailyStatusHtml += `<div class="text-[9px] flex justify-between border-b border-white/5 pb-1">
+                        <span>Day ${index+1}: ${l.helper}</span>
+                        <span class="font-bold ${sClass}">${l.status}</span>
+                    </div>`;
                 });
                 
                 tExp += siteExp;
                 const net = (parseFloat(d.total)||0) - siteExp;
-
                 if(!d.isHoliday) {
                     if(d.projectType === 'Partner') { tPartner += (net/2); tProfit += (net/2); } 
                     else { tProfit += net; }
@@ -291,24 +280,21 @@
                 container.innerHTML += `
                 <div class="glass p-4 border-l-4 ${d.isHoliday ? 'border-red-500':'border-blue-500'} mb-3">
                     <div onclick="this.nextElementSibling.classList.toggle('hidden')">
-                        <div class="flex justify-between">
+                        <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-[9px] text-gray-500">${d.date} | ${d.company}</p>
                                 <h4 class="font-bold text-sm uppercase">${d.isHoliday ? '🌴 Holiday' : d.customer}</h4>
+                                <p class="text-[10px] text-blue-400">₹${Math.round(d.total)} | Exp: ₹${Math.round(siteExp)}</p>
                             </div>
                             <div class="text-right">
-                                <p class="text-green-400 font-bold">₹${Math.round(d.total)}</p>
-                                <p class="text-[8px] text-red-400">Exp: ₹${Math.round(siteExp)}</p>
+                                <button onclick="editDoc('${d.id}')" class="text-blue-400 text-[10px] font-bold mr-3">EDIT</button>
+                                <button onclick="deleteDoc('${d.id}')" class="text-red-500 text-[10px] font-bold">DEL</button>
                             </div>
                         </div>
                     </div>
                     <div class="hidden mt-3 pt-3 border-t border-white/5 space-y-2">
-                        <p class="text-[9px]"><b>Type:</b> ${d.projectType} ${d.partnerName?'with '+d.partnerName:''}</p>
-                        <p class="text-[9px] text-blue-300"><b>Wins:</b> ${d.winQty} | <b>Sqft:</b> ${d.totalSqft}</p>
-                        <div class="flex gap-4">
-                            <button onclick="editDoc('${d.id}')" class="text-blue-400 text-xs font-bold">Edit</button>
-                            <button onclick="deleteDoc('${d.id}')" class="text-red-400 text-xs font-bold">Delete</button>
-                        </div>
+                        <div class="space-y-1">${dailyStatusHtml}</div>
+                        <p class="text-[10px] italic text-gray-400">"${d.comment || ''}"</p>
                     </div>
                 </div>`;
             });
@@ -334,7 +320,8 @@
             document.getElementById('projectType').value = d.projectType;
             document.getElementById('partnerName').value = d.partnerName || "";
             document.getElementById('isHoliday').checked = d.isHoliday;
-            document.getElementById('comment').value = d.comment || "";
+            if(d.isHoliday) document.getElementById('comment').value = d.comment;
+            else document.getElementById('commentNormal').value = d.comment;
             document.getElementById('dayLogsContainer').innerHTML = "";
             if(d.logs) d.logs.forEach(l => addDayRow(l));
             handleTypeChange(); checkHoliday();
@@ -352,7 +339,6 @@
 
         window.onload = () => {
             document.getElementById('date').valueAsDate = new Date();
-            document.getElementById('liveDate').innerText = new Date().toDateString();
             loadDropdowns(); addDayRow();
         };
     </script>
