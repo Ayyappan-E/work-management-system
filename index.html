@@ -1,55 +1,4 @@
-('.d-helper').value = data.helper; dayDiv.querySelector('.d-status').value = data.status; calculate(); }
-        }
-
-        function loadHelperOptions() {
-            const helps = (globalSettings.helpers || "").split(',');
-            document.querySelectorAll('.d-helper').forEach(sel => {
-                const cur = sel.value;
-                sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
-                if(cur) sel.value = cur;
-            });
-        }
-
-        function calculate() {
-            const val = (parseFloat(document.getElementById('totalSqft').value) || 0) * (parseFloat(document.getElementById('amtRate').value) || 0);
-            let siteExp = 0; 
-            document.querySelectorAll('.day-entry').forEach(row => { siteExp += (parseFloat(row.querySelector('.d-sal').value) || 0) + (parseFloat(row.querySelector('.d-ot').value) || 0) + (parseFloat(row.querySelector('.d-pet').value) || 0) + (parseFloat(row.querySelector('.d-food').value) || 0); });
-            document.getElementById('resTotal').innerText = "₹" + Math.round(val).toLocaleString();
-            document.getElementById('resExpDisplay').innerText = "₹" + Math.round(siteExp).toLocaleString();
-            return { val, siteExp };
-        }
-
-        function autoCalcOT(salInput) {
-            const row = salInput.closest('.day-entry');
-            row.querySelector('.d-ot').value = Math.round((parseFloat(salInput.value) || 0) / 2);
-        }
-
-        function toggleSettings() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
-        function checkHoliday() { document.getElementById('workFields').style.display = document.getElementById('isHoliday').checked ? 'none' : 'block'; document.getElementById('holidayReasonDiv').classList.toggle('hidden', !document.getElementById('isHoliday').checked); }
-
-        async function saveSettings() {
-            globalSettings = { target: document.getElementById('setTarget').value, helpers: document.getElementById('setHelpers').value };
-            await db.collection("appSettings").doc("userConfig").set(globalSettings);
-            loadHelperOptions(); toggleSettings();
-        }
-
-        db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => { allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); applyFilters(); });
-
-        window.onload = async () => { 
-            const today = new Date();
-            document.getElementById('date').valueAsDate = today; 
-            document.getElementById('monthNav').value = today.getMonth().toString();
-            document.getElementById('yearNav').value = today.getFullYear().toString();
-            const doc = await db.collection("appSettings").doc("userConfig").get();
-            if(doc.exists) {
-                globalSettings = doc.data();
-                document.getElementById('setTarget').value = globalSettings.target;
-                document.getElementById('setHelpers').value = globalSettings.helpers;
-            }
-            addDayRow(); 
-        };
-    </script>
-</<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -332,4 +281,11 @@
         window.onload = async () => { 
             const today = new Date();
             document.getElementById('date').valueAsDate = today; 
-            d
+            document.getElementById('monthNav').value = today.getMonth().toString();
+            document.getElementById('yearNav').value = today.getFullYear().toString();
+            await syncSettings(); 
+            addDayRow(); 
+        };
+    </script>
+</body>
+</html>
