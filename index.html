@@ -91,18 +91,18 @@
                 </div>
 
                 <div class="grid grid-cols-3 gap-2">
-                    <div><label>Total Window</label><input type="number" id="totalWindow" class="input-box" placeholder="Qty"></div>
-                    <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box" placeholder="Sqft"></div>
-                    <div><label>Rate/Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box" placeholder="Rate"></div>
+                    <div><label>Total Window</label><input type="number" id="totalWindow" class="input-box"></div>
+                    <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
+                    <div><label>Rate/Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
                 </div>
                 <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/10">
                     <div><label class="m-0 text-green-500">Project Value</label><div id="resTotal" class="text-lg font-black text-green-400">₹0</div></div>
                     <div class="text-right"><label class="m-0 text-red-400 text-[8px]">Site Helper Total</label><div id="resExpDisplay" class="text-xs font-bold text-red-400">₹0</div></div>
                 </div>
-                <div><label>Work Notes</label><textarea id="workNotes" class="input-box h-12" placeholder="Ex: Handle repair..."></textarea></div>
+                <div><label>Work Notes</label><textarea id="workNotes" class="input-box h-12"></textarea></div>
             </div>
 
-            <div id="holidayReasonDiv" class="hidden"><label>Holiday Reason</label><textarea id="holidayReason" class="input-box h-12" placeholder="Why holiday?"></textarea></div>
+            <div id="holidayReasonDiv" class="hidden"><label>Holiday Reason</label><textarea id="holidayReason" class="input-box h-12"></textarea></div>
             
             <div class="grid grid-cols-3 gap-2">
                 <button onclick="saveData()" class="col-span-2 bg-blue-600 py-3 rounded-xl font-black uppercase text-sm">Save Record</button>
@@ -119,6 +119,7 @@
                     <tbody class="text-gray-200">
                         <tr class="border-b border-white/5"><td class="p-1 px-2">Solo Profit (100%)</td><td id="tblSolo" class="p-1 text-right px-2 font-bold text-green-400">₹0</td></tr>
                         <tr class="border-b border-white/5"><td class="p-1 px-2">Partner Profit (50%)</td><td id="tblPartnerMine" class="p-1 text-right px-2 font-bold text-blue-400">₹0</td></tr>
+                        <tr class="border-b border-white/5 bg-white/5"><td class="p-1 px-2 font-black text-white uppercase">Total Net Earned</td><td id="tblGrandTotal" class="p-1 text-right px-2 font-black text-yellow-400 text-xs">₹0</td></tr>
                         <tr><td class="p-1 px-2 text-gray-500">Total Helper Payout</td><td id="tblTotalHelper" class="p-1 text-right px-2 font-bold text-red-400">₹0</td></tr>
                     </tbody>
                 </table>
@@ -145,7 +146,6 @@
         const db = firebase.firestore();
         let allEntries = [];
 
-        // PDF GENERATORS
         function exportPartnerPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -157,9 +157,9 @@
                 grandTotal += netShare;
                 return [e.date, e.customer, `Rs.${Math.round(e.total)}`, `Rs.${Math.round(siteExp)}`, `Rs.${Math.round(netShare)}` ];
             });
-            partnerRows.push([{content: 'GRAND TOTAL', colSpan: 4, styles: {halign: 'right', fontStyle: 'bold'}}, `Rs.${Math.round(grandTotal)}`]);
-            doc.text(`Partner Report: ${fMonth}`, 14, 20);
-            doc.autoTable({ head: [['Date', 'Customer', 'Value', 'Exp', 'Share']], body: partnerRows, startY: 30 });
+            partnerRows.push([{content: 'TOTAL PARTNER SHARE', colSpan: 4, styles: {halign: 'right', fontStyle: 'bold'}}, `Rs.${Math.round(grandTotal)}`]);
+            doc.text(`Partner Settlement: ${fMonth}`, 14, 20);
+            doc.autoTable({ head: [['Date', 'Customer', 'Project Val', 'Exp', '50% Share']], body: partnerRows, startY: 30 });
             doc.save(`Partner_Settlement.pdf`);
         }
 
@@ -176,7 +176,7 @@
                 });
             });
             helperData.push([{content: 'TOTAL WAGES', colSpan: 4, styles: {halign: 'right', fontStyle: 'bold'}}, `Rs.${Math.round(grandTotal)}`]);
-            doc.text("Helper Attendance Report", 14, 20);
+            doc.text("Helper Wages Report", 14, 20);
             doc.autoTable({ head: [['Date', 'Helper', 'Site', 'Status', 'Amount']], body: helperData, startY: 30 });
             doc.save(`Helper_Wages.pdf`);
         }
@@ -184,13 +184,12 @@
         function exportFullPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.text(`Full Report`, 14, 15);
+            doc.text(`Full Work Report`, 14, 15);
             const rows = allEntries.map(e => [e.date, e.customer, e.projectType, `Rs.${Math.round(e.total)}` ]);
             doc.autoTable({ head: [['Date', 'Customer', 'Type', 'Amount']], body: rows, startY: 25 });
             doc.save(`Full_Report.pdf`);
         }
 
-        // SETTINGS
         function toggleSettings() {
             const m = document.getElementById('settingsModal');
             m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
@@ -219,7 +218,6 @@
             });
         }
 
-        // MULTI-DAY ATTENDANCE LOGIC
         function addDayRow(data = null) {
             const container = document.getElementById('dayLogsContainer');
             const dayDiv = document.createElement('div');
@@ -227,8 +225,8 @@
             dayDiv.className = "day-entry border-l-2 border-blue-500";
             dayDiv.innerHTML = `
                 <div class="flex justify-between items-center mb-1">
-                    <span class="text-[9px] font-bold text-blue-400 uppercase">Day ${dayCount}</span>
-                    <input type="date" class="bg-transparent text-[9px] text-gray-400 outline-none d-hdate" value="${data?.hDate || document.getElementById('date').value}">
+                    <span class="text-[9px] font-bold text-blue-400">DAY ${dayCount}</span>
+                    <input type="date" class="bg-transparent text-[9px] text-gray-400 d-hdate" value="${data?.hDate || document.getElementById('date').value}">
                 </div>
                 <div class="grid grid-cols-3 gap-2 mb-2">
                     <select class="input-box h-7 py-0 d-helper"></select>
@@ -305,12 +303,10 @@
                 let siteExp = 0; d.logs?.forEach(l => { siteExp += (parseFloat(l.sal)||0) + (parseFloat(l.sal)*0.5*(parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); });
                 const net = (parseFloat(d.total)||0) - siteExp;
                 
-                // Track Target
                 if(!d.isHoliday) {
                     if(d.projectType === 'Partner') currentEarned += (net/2); else currentEarned += net;
                 }
 
-                // Filter logic
                 if(fMonth !== 'all' && new Date(d.date).getMonth() != fMonth) return;
                 if(fComp !== 'all' && d.company !== fComp) return;
                 if(fType !== 'all' && d.projectType !== fType) return;
@@ -330,16 +326,13 @@
                         </div>
                         <button onclick="editDoc('${d.id}')" class="bg-blue-600/20 text-blue-400 text-[8px] px-2 py-1 rounded">Update</button>
                     </div>
-                    <div class="hidden mt-2 pt-2 border-t border-white/5 text-[9px]">
-                        <p>Total Days Worked: ${d.logs?.length || 0}</p>
-                        <p>Site Expenses: ₹${Math.round(siteExp)}</p>
-                        <p class="italic text-gray-400">${d.comment || ''}</p>
-                    </div>
                 </div>`;
             });
 
+            const grandTotalNet = soloEarn + partnerEarn;
             document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
             document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
+            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(grandTotalNet).toLocaleString();
             document.getElementById('tblTotalHelper').innerText = "₹" + Math.round(totalHelperPayout).toLocaleString();
             updateTargetUI(currentEarned);
         }
