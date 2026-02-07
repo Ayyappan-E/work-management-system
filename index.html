@@ -26,6 +26,7 @@
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .summary-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #070b14; border-top: 3px solid #3b82f6; padding: 12px; z-index: 50; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
         select.input-box { -webkit-appearance: none; appearance: none; cursor: pointer; }
+        .delete-btn { background: rgba(220, 38, 38, 0.2); color: #ef4444; border: 1px solid rgba(220, 38, 38, 0.5); padding: 5px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; }
     </style>
 </head>
 <body class="p-4 pb-96">
@@ -33,7 +34,7 @@
     <div class="max-w-md mx-auto flex gap-3 mb-6 sticky top-0 z-40 bg-[#0f172a]/95 backdrop-blur-md py-4 border-b border-white/10">
         <div class="flex-1">
             <label>Month</label>
-            <select id="filterMonth" onchange="applyFilters()" class="input-box bg-[#1e293b] font-bold uppercase">
+            <select id="filterMonth" onchange="applyFilters()" class="input-box bg-[#1e293b] font-bold uppercase text-blue-400">
                 <option value="all">All Months</option>
                 <option value="0">January</option><option value="1">February</option>
                 <option value="2">March</option><option value="3">April</option>
@@ -45,37 +46,30 @@
         </div>
         <div class="w-28">
             <label>Year</label>
-            <select id="filterYear" onchange="applyFilters()" class="input-box bg-[#1e293b] font-bold">
-                </select>
+            <select id="filterYear" onchange="applyFilters()" class="input-box bg-[#1e293b] font-bold text-blue-400"></select>
         </div>
     </div>
 
     <div id="settingsModal" class="modal">
-        <div class="glass p-6 w-full max-w-sm space-y-4 text-center">
-            <h2 class="text-xl font-bold text-blue-400 uppercase">System Settings</h2>
+        <div class="glass p-6 w-full max-w-sm space-y-4">
+            <h2 class="text-xl font-bold text-blue-400 uppercase text-center">System Settings</h2>
             
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="backupData()" class="bg-gray-700 py-3 rounded-lg font-bold uppercase text-[10px]"><i class="fas fa-download mr-1"></i> Export JSON</button>
-                <button onclick="document.getElementById('importFile').click()" class="bg-gray-700 py-3 rounded-lg font-bold uppercase text-[10px]"><i class="fas fa-upload mr-1"></i> Import JSON</button>
-                <input type="file" id="importFile" class="hidden" onchange="restoreData(event)">
-            </div>
-
-            <div class="text-left border-t border-white/10 pt-4">
+            <div class="text-left">
                 <label class="text-yellow-500">Monthly Target (₹)</label>
                 <input type="number" id="setTarget" class="input-box font-bold text-yellow-400">
             </div>
             
             <div class="text-left">
-                <label>Company List (Comma Separated)</label>
-                <textarea id="setCompanies" class="input-box h-16" placeholder="L&T, Reliance, ABC Corp..."></textarea>
+                <label>Company Database (Comma Separated)</label>
+                <textarea id="setCompanies" class="input-box h-16" placeholder="Comp A, Comp B..."></textarea>
             </div>
 
             <div class="text-left">
                 <label>Helper List (Comma Separated)</label>
-                <textarea id="setHelpers" class="input-box h-16" placeholder="Ravi, Kumar..."></textarea>
+                <textarea id="setHelpers" class="input-box h-16" placeholder="Helper 1, Helper 2..."></textarea>
             </div>
 
-            <button onclick="saveSettings()" class="w-full bg-green-600 py-3 rounded-lg font-black uppercase">Sync & Save Cloud</button>
+            <button onclick="saveSettings()" class="w-full bg-green-600 py-3 rounded-lg font-black uppercase shadow-lg">Save & Sync Cloud</button>
             <button onclick="toggleSettings()" class="w-full text-sm text-gray-500">Close</button>
         </div>
     </div>
@@ -91,11 +85,11 @@
 
         <div class="glass p-4 mb-6 border-l-4 border-yellow-500 shadow-xl">
             <div class="flex justify-between items-end mb-2">
-                <label class="m-0 text-yellow-500" id="targetLabel">Monthly Target</label>
-                <span id="targetRem" class="text-xs font-bold">₹0</span>
+                <label class="m-0 text-yellow-500" id="targetLabel">Target</label>
+                <span id="targetRem" class="text-xs font-bold text-yellow-200">₹0 Left</span>
             </div>
-            <div class="w-full bg-white/10 h-2 rounded-full mb-2">
-                <div id="targetBar" class="bg-yellow-500 h-full rounded-full transition-all duration-700" style="width:0%"></div>
+            <div class="w-full bg-white/10 h-2 rounded-full mb-2 overflow-hidden">
+                <div id="targetBar" class="bg-yellow-500 h-full transition-all duration-700" style="width:0%"></div>
             </div>
             <div class="flex justify-between text-[10px] font-bold text-gray-400">
                 <span id="targetEarned">₹0 Earned</span>
@@ -108,7 +102,7 @@
             <div class="grid grid-cols-2 gap-4">
                 <div><label>Date</label><input type="date" id="date" class="input-box"></div>
                 <div>
-                    <label>Type</label>
+                    <label>Work Type</label>
                     <select id="projectType" class="input-box font-bold">
                         <option value="Solo">Solo</option>
                         <option value="Partner">Partner</option>
@@ -120,46 +114,45 @@
                 <div><label>QN Number</label><input type="text" id="qn" class="input-box" placeholder="QN-101"></div>
                 <div>
                     <label>Company Name</label>
-                    <input list="companyListSuggestions" id="companyName" class="input-box" placeholder="Select Company">
+                    <input list="companyListSuggestions" id="companyName" class="input-box" placeholder="Select/Add New">
                     <datalist id="companyListSuggestions"></datalist>
                 </div>
             </div>
 
-            <div id="workFields" class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label>Site/Customer *</label><input type="text" id="customer" class="input-box"></div>
-                    <div><label>Location</label><input type="text" id="location" class="input-box"></div>
-                </div>
-                
-                <div class="bg-blue-600/10 p-4 rounded-xl border border-blue-500/30">
-                    <div class="flex justify-between items-center mb-3">
-                        <label class="text-blue-400 m-0">Helper Payroll</label>
-                        <button onclick="addDayRow()" class="text-[10px] bg-blue-600 px-3 py-1 rounded">+ Helper</button>
-                    </div>
-                    <div id="dayLogsContainer" class="space-y-3"></div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-3">
-                    <div><label>Qty</label><input type="number" id="totalWindow" class="input-box"></div>
-                    <div><label>Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
-                    <div><label>Rate</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
-                </div>
-
-                <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <div><label class="m-0 text-green-500 text-[10px]">Gross</label><div id="resTotal" class="text-2xl font-black text-green-400">₹0</div></div>
-                    <div class="text-right"><label class="m-0 text-red-400 text-[10px]">Wages</label><div id="resExpDisplay" class="text-lg font-bold text-red-400">₹0</div></div>
-                </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div><label>Site/Customer *</label><input type="text" id="customer" class="input-box"></div>
+                <div><label>Location</label><input type="text" id="location" class="input-box"></div>
             </div>
             
-            <button onclick="saveData()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase">Save Record</button>
+            <div class="bg-blue-600/10 p-4 rounded-xl border border-blue-500/30">
+                <div class="flex justify-between items-center mb-3">
+                    <label class="text-blue-400 m-0">Helper Payroll</label>
+                    <button onclick="addDayRow()" class="text-[10px] bg-blue-600 px-3 py-1 rounded">+ Helper</button>
+                </div>
+                <div id="dayLogsContainer" class="space-y-3"></div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+                <div><label>Qty</label><input type="number" id="totalWindow" class="input-box"></div>
+                <div><label>Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
+                <div><label>Rate</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
+            </div>
+
+            <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/10">
+                <div><label class="m-0 text-green-500 text-[10px]">Net Site Gross</label><div id="resTotal" class="text-2xl font-black text-green-400">₹0</div></div>
+                <div class="text-right"><label class="m-0 text-red-400 text-[10px]">Total Wages</label><div id="resExpDisplay" class="text-lg font-bold text-red-400">₹0</div></div>
+            </div>
+            
+            <button onclick="saveData()" id="saveBtn" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase shadow-lg active:scale-95 transition-transform">Save Record</button>
+            <button onclick="resetForm()" id="cancelEdit" class="hidden w-full text-xs text-gray-500 font-bold uppercase">Cancel Edit</button>
         </div>
 
-        <div id="displayArea" class="space-y-4 pb-32"></div>
+        <div id="displayArea" class="space-y-4 pb-48"></div>
     </div>
 
     <div id="workHistoryModal" class="modal">
         <div class="glass p-6 w-full max-w-2xl max-h-[85vh] overflow-y-auto space-y-6">
-            <h2 class="text-xl font-bold text-blue-400 border-b border-white/10 pb-2">MONTHLY SITE SUMMARY</h2>
+            <h2 class="text-xl font-bold text-blue-400 border-b border-white/10 pb-2 uppercase">Site Profit Summary</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-[11px]">
                     <thead class="text-blue-400 border-b border-white/10"><tr><th class="p-2">SITE</th><th class="p-2">COMPANY</th><th class="p-2 text-right">NET</th></tr></thead>
@@ -170,24 +163,26 @@
         </div>
     </div>
 
-    <div class="summary-footer max-w-md mx-auto rounded-t-3xl shadow-2xl">
+    <div id="pdfDateModal" class="modal">
+        <div class="glass p-6 w-full max-w-sm space-y-4">
+            <h2 class="font-bold text-blue-400 uppercase">Export Report</h2><input type="hidden" id="pdfType">
+            <div class="grid grid-cols-2 gap-2">
+                <div><label>From</label><input type="date" id="pdfFrom" class="input-box"></div>
+                <div><label>To</label><input type="date" id="pdfTo" class="input-box"></div>
+            </div>
+            <button onclick="generateFilteredPDF()" class="w-full bg-green-600 py-3 rounded-lg font-black uppercase">Download PDF</button>
+            <button onclick="document.getElementById('pdfDateModal').style.display='none'" class="w-full text-gray-500">Cancel</button>
+        </div>
+    </div>
+
+    <div class="summary-footer max-w-md mx-auto rounded-t-3xl">
         <div class="flex justify-between items-center px-6">
             <span class="text-gray-400 font-bold uppercase text-xs">Total Earned</span>
             <span id="tblGrandTotal" class="text-2xl font-black text-yellow-400">₹0</span>
         </div>
         <div class="grid grid-cols-2 gap-3 px-4 mt-3">
-            <button onclick="startPdfExport('partner')" class="bg-blue-700 py-2 rounded-lg text-[10px] font-black uppercase">Partner PDF</button>
-            <button onclick="startPdfExport('helper')" class="bg-orange-700 py-2 rounded-lg text-[10px] font-black uppercase">Helper PDF</button>
-        </div>
-    </div>
-
-    <div id="pdfDateModal" class="modal">
-        <div class="glass p-6 w-full max-w-sm space-y-4">
-            <h2 class="font-bold text-blue-400 uppercase">Export Report</h2><input type="hidden" id="pdfType">
-            <div><label>From</label><input type="date" id="pdfFrom" class="input-box"></div>
-            <div><label>To</label><input type="date" id="pdfTo" class="input-box"></div>
-            <button onclick="generateFilteredPDF()" class="w-full bg-green-600 py-3 rounded-lg font-black">GENERATE</button>
-            <button onclick="document.getElementById('pdfDateModal').style.display='none'" class="w-full text-gray-500">Cancel</button>
+            <button onclick="startPdfExport('partner')" class="bg-blue-700 py-2.5 rounded-xl text-[10px] font-black uppercase">Partner Report</button>
+            <button onclick="startPdfExport('helper')" class="bg-orange-700 py-2.5 rounded-xl text-[10px] font-black uppercase">Helper Payroll</button>
         </div>
     </div>
 
@@ -208,35 +203,41 @@
                 yearSel.appendChild(opt);
             }
             document.getElementById('date').valueAsDate = new Date(); 
-            const today = new Date();
-            document.getElementById('filterMonth').value = today.getMonth();
-            await syncSettings(); 
+            document.getElementById('filterMonth').value = new Date().getMonth();
+
+            // Real-time Settings Sync
+            db.collection("appSettings").doc("userConfig").onSnapshot(doc => {
+                if(doc.exists) {
+                    globalSettings = doc.data();
+                    document.getElementById('setTarget').value = globalSettings.target || 500000;
+                    document.getElementById('setHelpers').value = globalSettings.helpers || "";
+                    document.getElementById('setCompanies').value = globalSettings.companies || "";
+                    refreshDropdowns();
+                }
+            });
+
+            // Real-time Data Sync
+            db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => {
+                allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                applyFilters();
+            });
+            
             addDayRow(); 
         };
 
-        async function syncSettings() {
-            const doc = await db.collection("appSettings").doc("userConfig").get();
-            if(doc.exists) {
-                globalSettings = doc.data();
-                document.getElementById('setTarget').value = globalSettings.target || 500000;
-                document.getElementById('setHelpers').value = globalSettings.helpers || "";
-                document.getElementById('setCompanies').value = globalSettings.companies || "";
-            }
-            loadDropdowns();
-        }
+        function refreshDropdowns() {
+            // Update Company Datalist
+            const comps = (globalSettings.companies || "").split(',').map(c => c.trim()).filter(c => c);
+            const dl = document.getElementById('companyListSuggestions');
+            dl.innerHTML = comps.map(c => `<option value="${c}">`).join('');
 
-        function loadDropdowns() {
-            // Helpers for Row
+            // Update Helper Dropdowns in existing rows
             const helps = (globalSettings.helpers || "").split(',').map(h => h.trim()).filter(h => h);
             document.querySelectorAll('.d-helper').forEach(sel => {
                 const prev = sel.value;
                 sel.innerHTML = helps.map(h => `<option value="${h}">${h}</option>`).join('');
-                if(prev) sel.value = prev;
+                if(prev && helps.includes(prev)) sel.value = prev;
             });
-            // Companies for Datalist
-            const comps = (globalSettings.companies || "").split(',').map(c => c.trim()).filter(c => c);
-            const dataList = document.getElementById('companyListSuggestions');
-            dataList.innerHTML = comps.map(c => `<option value="${c}">`).join('');
         }
 
         async function saveSettings() {
@@ -246,17 +247,7 @@
                 companies: document.getElementById('setCompanies').value 
             };
             await db.collection("appSettings").doc("userConfig").set(globalSettings);
-            loadDropdowns();
             toggleSettings();
-            applyFilters();
-        }
-
-        function backupData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allEntries, null, 2));
-            const dl = document.createElement('a');
-            dl.setAttribute("href", dataStr);
-            dl.setAttribute("download", `Ayyappan_Data_${new Date().toLocaleDateString()}.json`);
-            dl.click();
         }
 
         function addDayRow(data = null) {
@@ -268,18 +259,20 @@
                     <select class="input-box h-8 py-0 d-helper"></select>
                 </div>
                 <div class="grid grid-cols-4 gap-1">
-                    <input type="number" placeholder="Salary" class="input-box h-8 d-sal px-1 text-center" oninput="calculate()" value="${data?.sal || ''}">
+                    <input type="number" placeholder="Sal" class="input-box h-8 d-sal px-1 text-center" oninput="calculate()" value="${data?.sal || ''}">
                     <input type="number" placeholder="OT" class="input-box h-8 d-ot px-1 text-center bg-blue-900/20" oninput="calculate()" value="${data?.ot || ''}">
                     <input type="number" placeholder="Pet" class="input-box h-8 d-pet px-1 text-center" oninput="calculate()" value="${data?.pet || ''}">
                     <input type="number" placeholder="Food" class="input-box h-8 d-food px-1 text-center" oninput="calculate()" value="${data?.food || ''}">
                 </div>
                 <button onclick="this.parentElement.remove(); calculate()" class="absolute -top-2 -right-2 bg-red-600 text-white w-5 h-5 rounded-full text-xs">×</button>`;
             container.appendChild(div);
-            loadDropdowns();
-            if(data) {
-                div.querySelector('.d-helper').value = data.helper;
-                calculate();
-            }
+            
+            // Re-populate helper options for this specific new select
+            const helps = (globalSettings.helpers || "").split(',').map(h => h.trim()).filter(h => h);
+            const sel = div.querySelector('.d-helper');
+            sel.innerHTML = helps.map(h => `<option value="${h}">${h}</option>`).join('');
+            
+            if(data) { sel.value = data.helper; calculate(); }
         }
 
         function calculate() {
@@ -296,6 +289,7 @@
         async function saveData() {
             const customer = document.getElementById('customer').value.trim();
             if(!customer) { alert("Site Name Required"); return; }
+            
             const cal = calculate(), logs = [];
             document.querySelectorAll('.day-entry').forEach(row => {
                 logs.push({ 
@@ -322,13 +316,31 @@
             
             const id = document.getElementById('editId').value;
             if(id) await db.collection("workLogs").doc(id).update(data); else await db.collection("workLogs").add(data);
-            location.reload();
+            resetForm();
         }
 
-        db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => {
-            allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            applyFilters();
-        });
+        async function deleteDoc(id, e) {
+            e.stopPropagation();
+            if(confirm("Delete this site record forever?")) {
+                await db.collection("workLogs").doc(id).delete();
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('editId').value = "";
+            document.getElementById('customer').value = "";
+            document.getElementById('qn').value = "";
+            document.getElementById('companyName').value = "";
+            document.getElementById('location').value = "";
+            document.getElementById('totalSqft').value = "";
+            document.getElementById('amtRate').value = "";
+            document.getElementById('totalWindow').value = "";
+            document.getElementById('dayLogsContainer').innerHTML = "";
+            document.getElementById('saveBtn').innerText = "Save Record";
+            document.getElementById('cancelEdit').classList.add('hidden');
+            addDayRow();
+            calculate();
+        }
 
         function applyFilters() {
             const selMonth = document.getElementById('filterMonth').value;
@@ -348,16 +360,21 @@
                 currentEarned += profit;
 
                 container.innerHTML += `
-                <div class="glass p-5 border-l-4 border-blue-600 mb-4" onclick="editDoc('${d.id}')">
-                    <div class="flex justify-between text-[10px] text-gray-400 font-bold mb-1">
-                        <span>${d.date} | ${d.projectType}</span>
-                        <span class="text-blue-400">${d.companyName || ''}</span>
+                <div class="glass p-5 border-l-4 border-blue-500 mb-4 flex justify-between items-center" onclick="editDoc('${d.id}')">
+                    <div class="flex-1">
+                        <div class="flex justify-between text-[10px] text-gray-400 font-bold mb-1">
+                            <span>${d.date} | ${d.projectType}</span>
+                            <span class="text-blue-400">${d.companyName || ''}</span>
+                        </div>
+                        <h4 class="font-black uppercase text-white">${d.customer}</h4>
+                        <div class="flex justify-between mt-2 border-t border-white/5 pt-2">
+                            <span class="text-[10px] text-gray-400">${d.location || ''}</span>
+                            <span class="text-green-400 font-bold">₹${Math.round(profit).toLocaleString()}</span>
+                        </div>
                     </div>
-                    <h4 class="font-black uppercase text-white">${d.customer}</h4>
-                    <div class="flex justify-between mt-2 border-t border-white/5 pt-2">
-                        <span class="text-[10px] text-gray-400">${d.location || ''}</span>
-                        <span class="text-green-400 font-bold">₹${Math.round(profit).toLocaleString()}</span>
-                    </div>
+                    <button onclick="deleteDoc('${d.id}', event)" class="ml-4 delete-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>`;
             });
             
@@ -386,8 +403,12 @@
             document.getElementById('projectType').value = d.projectType;
             document.getElementById('totalSqft').value = d.totalSqft || ""; 
             document.getElementById('amtRate').value = d.amtRate || "";
+            document.getElementById('totalWindow').value = d.totalWindow || "";
             document.getElementById('dayLogsContainer').innerHTML = "";
             d.logs?.forEach(l => addDayRow(l));
+            
+            document.getElementById('saveBtn').innerText = "Update Record";
+            document.getElementById('cancelEdit').classList.remove('hidden');
             calculate(); window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
@@ -414,14 +435,20 @@
         function startPdfExport(type) { document.getElementById('pdfType').value = type; document.getElementById('pdfDateModal').style.display = 'flex'; }
         async function generateFilteredPDF() {
             const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            const filtered = allEntries.filter(d => d.date >= document.getElementById('pdfFrom').value && d.date <= document.getElementById('pdfTo').value);
+            const from = document.getElementById('pdfFrom').value;
+            const to = document.getElementById('pdfTo').value;
+            if(!from || !to) { alert("Select Dates"); return; }
+            
+            const filtered = allEntries.filter(d => d.date >= from && d.date <= to);
             let rows = [];
             filtered.forEach(d => { d.logs?.forEach(l => { 
                 const w = (parseFloat(l.sal)||0)+(parseFloat(l.ot)||0)+(parseFloat(l.pet)||0)+(parseFloat(l.food)||0); 
                 rows.push([l.hDate, d.customer, l.helper, w]); 
             }); });
-            doc.autoTable({ head: [['Date', 'Site', 'Helper', 'Wage']], body: rows });
-            doc.save(`Ayyappan_Report.pdf`);
+            
+            doc.text(`Work Report: ${from} to ${to}`, 14, 15);
+            doc.autoTable({ head: [['Date', 'Site', 'Helper', 'Wage']], body: rows, startY: 20 });
+            doc.save(`Ayyappan_Report_${from}.pdf`);
         }
     </script>
 </body>
