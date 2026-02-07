@@ -7,103 +7,139 @@
     
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3252/3252994.png">
     
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Ayyappan Pro","short_name":"Ayyappan","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#0f172a","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3252/3252994.png","sizes":"512x512","type":"image/png"}]}'>
+
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #f1f5f9; min-height: 100vh; font-family: 'Inter', sans-serif; }
+        body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #f1f5f9; min-height: 100vh; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; }
         .input-box { background: rgba(0,0,0,0.4); border: 1px solid #475569; border-radius: 0.6rem; padding: 0.7rem; color: white; width: 100%; outline: none; font-size: 14px; }
-        label { font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; margin-bottom: 4px; display: block; }
+        label { font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; margin-bottom: 4px; display: block; letter-spacing: 0.5px; }
         .day-entry { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; margin-bottom: 10px; position: relative; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
-        .summary-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #070b14; border-top: 2px solid #3b82f6; padding: 12px; z-index: 50; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+        .summary-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #070b14; border-top: 3px solid #3b82f6; padding: 12px; z-index: 50; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        select option { background-color: #0f172a; color: white; }
     </style>
 </head>
 <body class="p-4 pb-96">
 
-    <div class="max-w-md mx-auto sticky top-0 z-40 bg-[#0f172a]/90 backdrop-blur-md py-3 flex gap-2">
-        <select id="filterMonth" onchange="applyFilters()" class="flex-1 bg-slate-800 border border-slate-700 text-white rounded-lg px-3 py-2 text-sm font-bold">
-            <option value="all">All Months</option>
-            <option value="0">January</option><option value="1">February</option><option value="2">March</option>
-            <option value="3">April</option><option value="4">May</option><option value="5">June</option>
-            <option value="6">July</option><option value="7">August</option><option value="8">September</option>
-            <option value="9">October</option><option value="10">November</option><option value="11">December</option>
-        </select>
-        <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-cog"></i></button>
+    <div class="max-w-md mx-auto sticky top-0 z-40 bg-[#0f172a]/95 backdrop-blur-md pt-2 pb-4">
+        <div class="glass p-1 flex gap-2">
+            <select id="monthSelect" onchange="switchMonth(this.value)" class="w-full bg-transparent text-white font-bold p-2 outline-none uppercase text-sm">
+                <option value="all">All Records</option>
+                <option value="0">January</option>
+                <option value="1">February</option>
+                <option value="2">March</option>
+                <option value="3">April</option>
+                <option value="4">May</option>
+                <option value="5">June</option>
+                <option value="6">July</option>
+                <option value="7">August</option>
+                <option value="8">September</option>
+                <option value="9">October</option>
+                <option value="10">November</option>
+                <option value="11">December</option>
+            </select>
+            <div class="border-l border-white/20 mx-1"></div>
+            <button onclick="toggleSettings()" class="px-3 text-blue-400"><i class="fas fa-cog"></i></button>
+        </div>
     </div>
 
     <div id="settingsModal" class="modal">
-        <div class="glass p-6 w-full max-w-sm space-y-4">
-            <h2 class="text-xl font-bold text-blue-400 text-center uppercase">Control Panel</h2>
+        <div class="glass p-6 w-full max-w-sm space-y-4 text-center">
+            <h2 class="text-xl font-bold text-blue-400 uppercase">Control Panel</h2>
             
-            <div class="grid grid-cols-2 gap-2">
-                <div><label>Target Year</label>
-                    <select id="setYear" class="input-box" onchange="applyFilters()">
-                        <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
-                    </select>
-                </div>
-                <div><label>Yearly Target (₹)</label><input type="number" id="setTarget" class="input-box"></div>
+            <div class="bg-blue-900/20 p-3 rounded-lg border border-blue-500/30">
+                <label class="text-blue-300">Active Financial Year</label>
+                <select id="setYear" class="input-box text-center font-bold text-lg" onchange="saveSettings()">
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                </select>
             </div>
 
-            <div><label>Helper Database (Comma Separated)</label><textarea id="setHelpers" class="input-box h-16"></textarea></div>
+            <button onclick="toggleWorkHistory()" class="w-full bg-blue-600 py-3 rounded-lg font-black uppercase text-xs"><i class="fas fa-list-check mr-2"></i> Site Summary Report</button>
+            <button onclick="toggleReport()" class="w-full bg-purple-600 py-3 rounded-lg font-black uppercase text-xs"><i class="fas fa-chart-line mr-2"></i> Performance Insights</button>
             
-            <div class="space-y-2 pt-2">
-                <button onclick="toggleWorkHistory()" class="w-full bg-slate-700 py-2 rounded-lg text-xs font-bold uppercase">Site Summary Report</button>
-                <button onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-lg font-bold uppercase">Save & Sync</button>
-                <button onclick="toggleSettings()" class="w-full text-sm text-gray-500">Close</button>
-            </div>
+            <div class="text-left"><label>Target (₹)</label><input type="number" id="setTarget" class="input-box"></div>
+            <div class="text-left"><label>Helper Database</label><textarea id="setHelpers" class="input-box h-16"></textarea></div>
+            
+            <button id="saveSettingsBtn" onclick="saveSettings()" class="w-full bg-green-600 py-3 rounded-lg font-bold uppercase">Sync Cloud</button>
+            <button onclick="toggleSettings()" class="w-full text-sm text-gray-500">Close</button>
         </div>
     </div>
 
-    <div class="max-w-md mx-auto mt-4">
+    <div id="workHistoryModal" class="modal">
+        <div class="glass p-6 w-full max-w-2xl max-h-[85vh] overflow-y-auto space-y-6">
+            <div class="flex justify-between items-center border-b border-white/10 pb-4"><h2 class="text-xl font-bold text-blue-400">SITE WISE REPORT</h2><button onclick="toggleWorkHistory()"><i class="fas fa-times"></i></button></div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-[11px]">
+                    <thead class="text-blue-400 border-b border-white/10"><tr><th class="p-2">SITE</th><th class="p-2 text-center">DAYS</th><th class="p-2 text-right">GROSS</th><th class="p-2 text-right">WAGES</th><th class="p-2 text-right">NET</th></tr></thead>
+                    <tbody id="workHistoryTableBody" class="text-gray-300"></tbody>
+                    <tfoot id="workHistoryTableFoot" class="border-t border-blue-500 font-bold"></tfoot>
+                </table>
+            </div>
+            <button onclick="toggleWorkHistory()" class="w-full bg-slate-800 py-3 rounded-xl font-bold uppercase text-xs">Close</button>
+        </div>
+    </div>
+
+    <div class="max-w-md mx-auto">
         <div class="flex justify-between items-center mb-6">
             <h1 class="font-black text-2xl italic uppercase tracking-tighter">Ayyappan <span class="text-blue-500">Pro</span></h1>
-            <div id="targetPercent" class="text-[10px] font-bold bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded">Target: 0%</div>
+            <button onclick="startPdfExport('helper')" class="w-10 h-10 glass flex items-center justify-center text-red-400"><i class="fas fa-file-pdf"></i></button>
         </div>
 
         <div class="glass p-4 mb-6 border-l-4 border-yellow-500 shadow-xl">
-            <div class="w-full bg-white/10 h-2 rounded-full mb-2"><div id="targetBar" class="bg-yellow-500 h-full rounded-full transition-all" style="width:0%"></div></div>
-            <div class="flex justify-between text-[10px] font-bold text-gray-400"><span id="targetEarned">₹0</span><span id="targetGoal">Goal: ₹0</span></div>
+            <div class="flex justify-between items-end mb-2"><label class="m-0 text-yellow-500">Yearly Target</label><span id="targetRem" class="text-xs font-bold">₹0</span></div>
+            <div class="w-full bg-white/10 h-2 rounded-full mb-2"><div id="targetBar" class="bg-yellow-500 h-full rounded-full transition-all duration-700" style="width:0%"></div></div>
+            <div class="flex justify-between text-[10px] font-bold text-gray-400"><span id="targetEarned">₹0</span><span id="targetGoal">₹0</span></div>
         </div>
 
-        <div class="glass p-5 mb-8 space-y-4 border-t-4 border-blue-600 shadow-2xl">
+        <div class="glass p-5 mb-8 space-y-5 border-t-4 border-blue-600 shadow-2xl">
             <input type="hidden" id="editId">
             <div class="grid grid-cols-2 gap-4">
                 <div><label>Date</label><input type="date" id="date" class="input-box"></div>
-                <div><label>Project Type</label>
-                    <select id="projectType" class="input-box text-blue-400 font-bold">
-                        <option value="Solo">Solo (100%)</option>
-                        <option value="Partner">Partner (50%)</option>
-                    </select>
-                </div>
+                <div><label>QN No</label><input type="text" id="qn" class="input-box" placeholder="QN-XXX"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 bg-white/5 p-3 rounded-xl">
+                <div class="flex items-center gap-2"><input type="checkbox" id="isHoliday" onchange="checkHoliday()" class="w-5 h-5 accent-red-500"><label class="m-0 text-red-400">Holiday</label></div>
+                <select id="projectType" class="bg-transparent text-xs font-black text-blue-400 uppercase outline-none"><option value="Solo">Solo</option><option value="Partner">Partner</option></select>
             </div>
             
-            <div id="workFields" class="space-y-4">
-                <div><label>Customer Name</label><input type="text" id="customer" class="input-box" placeholder="e.g., John Doe"></div>
-                
-                <div class="bg-blue-600/5 p-4 rounded-xl border border-blue-500/20">
-                    <div class="flex justify-between items-center mb-3"><label class="text-blue-400 m-0">Helper Payroll</label><button onclick="addDayRow()" class="text-[10px] bg-blue-600 px-3 py-1 rounded">+ Add Row</button></div>
+            <div id="workFields" class="space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label>Customer *</label><input type="text" id="customer" class="input-box"></div>
+                    <div><label>Location</label><input type="text" id="location" class="input-box"></div>
+                </div>
+                <div class="bg-blue-600/10 p-4 rounded-xl border border-blue-500/30">
+                    <div class="flex justify-between items-center mb-3"><label class="text-blue-400 m-0">Helper Payroll</label><button onclick="addDayRow()" class="text-[10px] bg-blue-600 px-3 py-1 rounded">+ Add</button></div>
                     <div id="dayLogsContainer" class="space-y-3"></div>
                 </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
-                    <div><label>Rate (₹)</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div><label>Qty</label><input type="number" id="totalWindow" class="input-box"></div>
+                    <div><label>Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
+                    <div><label>Rate</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
                 </div>
-
                 <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/10">
-                    <div><label class="m-0 text-green-500 text-[10px]">Site Gross</label><div id="resTotal" class="text-xl font-black text-green-400">₹0</div></div>
-                    <div class="text-right"><label class="m-0 text-red-400 text-[10px]">Helper Wages</label><div id="resExpDisplay" class="text-lg font-bold text-red-400">₹0</div></div>
+                    <div><label class="m-0 text-green-500 text-[10px]">Site Gross</label><div id="resTotal" class="text-2xl font-black text-green-400">₹0</div></div>
+                    <div class="text-right"><label class="m-0 text-red-400 text-[10px]">Total Wages</label><div id="resExpDisplay" class="text-lg font-bold text-red-400">₹0</div></div>
                 </div>
+                <div><label>Site Notes</label><textarea id="workNotes" class="input-box h-20"></textarea></div>
             </div>
-
+            <div id="holidayReasonDiv" class="hidden"><label>Holiday Reason</label><textarea id="holidayReason" class="input-box h-20"></textarea></div>
             <button onclick="saveData()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase shadow-lg">Save Record</button>
         </div>
 
@@ -111,42 +147,55 @@
     </div>
 
     <div class="summary-footer max-w-md mx-auto rounded-t-3xl shadow-2xl">
-        <div class="grid grid-cols-2 gap-4 mb-4 text-center">
-            <div><div class="text-[10px] text-gray-400 uppercase">Personal Net</div><div id="tblGrandTotal" class="text-xl font-black text-yellow-400">₹0</div></div>
-            <div><div class="text-[10px] text-gray-400 uppercase">Month Total</div><div id="tblMonthNet" class="text-xl font-black text-blue-400">₹0</div></div>
+        <div class="px-2 mb-3">
+            <div class="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+                <table class="w-full text-xs">
+                    <tbody class="text-gray-200">
+                        <tr><td class="p-2 px-4">Solo Profit</td><td id="tblSolo" class="p-2 text-right px-4 text-green-400 font-bold">₹0</td></tr>
+                        <tr><td class="p-2 px-4">Partner Share (50%)</td><td id="tblPartnerMine" class="p-2 text-right px-4 text-blue-400 font-bold">₹0</td></tr>
+                        <tr class="bg-white/10 font-black"><td class="p-3 px-4">TOTAL EARNED</td><td id="tblGrandTotal" class="p-3 text-right px-4 text-yellow-400 text-lg">₹0</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-            <button onclick="exportPDF('helper')" class="bg-slate-700 py-3 rounded-xl text-[10px] font-black uppercase"><i class="fas fa-file-pdf mr-1"></i> Helper PDF</button>
-            <button onclick="exportPDF('partner')" class="bg-blue-700 py-3 rounded-xl text-[10px] font-black uppercase"><i class="fas fa-file-pdf mr-1"></i> Site PDF</button>
+        <div class="grid grid-cols-2 gap-3 px-2">
+            <button onclick="startPdfExport('partner')" class="bg-blue-700 py-3 rounded-xl text-[10px] font-black">Partner PDF</button>
+            <button onclick="startPdfExport('helper')" class="bg-orange-700 py-3 rounded-xl text-[10px] font-black">Helper PDF</button>
         </div>
     </div>
 
-    <div id="workHistoryModal" class="modal">
-        <div class="glass p-6 w-full max-w-2xl max-h-[85vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4"><h2 class="font-bold text-blue-400">SITE WISE REPORT</h2><button onclick="toggleWorkHistory()"><i class="fas fa-times"></i></button></div>
-            <table class="w-full text-[11px] text-left">
-                <thead class="text-gray-400 border-b border-white/10"><tr><th class="p-2">SITE</th><th class="p-2 text-right">GROSS</th><th class="p-2 text-right">NET</th></tr></thead>
-                <tbody id="workHistoryTableBody"></tbody>
-            </table>
+    <div id="smartReportModal" class="modal">
+        <div class="glass p-6 w-full max-w-md max-h-[85vh] overflow-y-auto space-y-6">
+            <div class="flex justify-between border-b border-white/10 pb-4"><h2 class="font-bold text-blue-400">INSIGHTS</h2><button onclick="toggleReport()"><i class="fas fa-times"></i></button></div>
+            <div id="companyStats" class="space-y-2"></div>
+            <button onclick="toggleReport()" class="w-full bg-slate-800 py-3 rounded-xl">Close</button>
+        </div>
+    </div>
+
+    <div id="pdfDateModal" class="modal">
+        <div class="glass p-6 w-full max-w-sm space-y-4">
+            <h2 class="font-bold text-blue-400 uppercase">Export Report</h2><input type="hidden" id="pdfType">
+            <div><label>From</label><input type="date" id="pdfFrom" class="input-box"></div>
+            <div><label>To</label><input type="date" id="pdfTo" class="input-box"></div>
+            <button onclick="generateFilteredPDF()" class="w-full bg-green-600 py-3 rounded-lg font-black">GENERATE PDF</button>
+            <button onclick="document.getElementById('pdfDateModal').style.display='none'" class="w-full text-gray-500">Cancel</button>
         </div>
     </div>
 
     <script>
-        // CONFIG
+        // FIREBASE
         const firebaseConfig = { apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58", authDomain: "ayyappan-work-management.firebaseapp.com", projectId: "ayyappan-work-management" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
         let allEntries = [];
+        let currentFilterMonth = new Date().getMonth();
         let globalSettings = { target: 500000, helpers: "Ravi, Kumar", year: new Date().getFullYear().toString() };
 
-        // INITIALIZE
-        window.onload = async () => {
-            document.getElementById('date').valueAsDate = new Date();
-            await syncSettings();
-            addDayRow();
-            document.getElementById('filterMonth').value = new Date().getMonth();
-        };
+        function switchMonth(m) {
+            currentFilterMonth = m;
+            applyFilters();
+        }
 
         async function syncSettings() {
             const doc = await db.collection("appSettings").doc("userConfig").get();
@@ -154,144 +203,105 @@
                 globalSettings = doc.data();
                 document.getElementById('setTarget').value = globalSettings.target;
                 document.getElementById('setHelpers').value = globalSettings.helpers;
-                document.getElementById('setYear').value = globalSettings.year || "2025";
+                // Default to current year if undefined
+                if(!globalSettings.year) globalSettings.year = new Date().getFullYear().toString();
+                document.getElementById('setYear').value = globalSettings.year;
+            } else {
+                // If no settings exist, init defaults
+                document.getElementById('setYear').value = new Date().getFullYear().toString();
             }
+            loadDropdowns();
             applyFilters();
+        }
+
+        function loadDropdowns() {
+            const helps = (globalSettings.helpers || "").split(',');
+            document.querySelectorAll('.d-helper').forEach(sel => {
+                const cur = sel.value;
+                sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
+                if(cur) sel.value = cur;
+            });
+        }
+
+        function autoCalcOT(salInput) {
+            const row = salInput.closest('.day-entry');
+            row.querySelector('.d-ot').value = Math.round((parseFloat(salInput.value) || 0) / 2);
         }
 
         function addDayRow(data = null) {
             const container = document.getElementById('dayLogsContainer');
-            const div = document.createElement('div');
-            div.className = "day-entry";
-            div.innerHTML = `
-                <div class="flex gap-2 mb-2">
-                    <select class="input-box h-9 py-0 d-helper flex-1 text-xs"></select>
-                    <input type="number" placeholder="Wages" class="input-box h-9 d-sal w-24 text-center" oninput="calculate()" value="${data?.sal || ''}">
+            const dayDiv = document.createElement('div'); dayDiv.className = "day-entry border-l-4 border-blue-500 bg-white/5";
+            dayDiv.innerHTML = `
+                <div class="grid grid-cols-2 gap-2 mb-2"><input type="date" class="input-box h-8 py-0 d-hdate" value="${data?.hDate || document.getElementById('date').value}"><select class="input-box h-8 py-0 d-helper"></select></div>
+                <div class="grid grid-cols-5 gap-1">
+                    <select class="input-box h-8 py-0 d-status text-[9px] px-1"><option>Started</option><option>Ongoing</option><option>Completed</option></select>
+                    <input type="number" placeholder="Sal" class="input-box h-8 d-sal px-1 text-center" oninput="autoCalcOT(this); calculate()" value="${data?.sal || ''}">
+                    <input type="number" placeholder="OT" class="input-box h-8 d-ot px-1 text-center bg-blue-900/20" oninput="calculate()" value="${data?.ot || ''}">
+                    <input type="number" placeholder="Pet" class="input-box h-8 d-pet px-1 text-center" oninput="calculate()" value="${data?.pet || ''}">
+                    <input type="number" placeholder="Fd" class="input-box h-8 d-food px-1 text-center" oninput="calculate()" value="${data?.food || ''}">
                 </div>
-                <button onclick="this.parentElement.remove(); calculate()" class="absolute -top-1 -right-1 bg-red-600 w-5 h-5 rounded-full text-[10px]">×</button>`;
-            container.appendChild(div);
-            
-            // Fill helper dropdown
-            const helperSelect = div.querySelector('.d-helper');
-            const list = globalSettings.helpers.split(',');
-            helperSelect.innerHTML = list.map(h => `<option value="${h.trim()}">${h.trim()}</option>`).join('');
-            if(data) helperSelect.value = data.helper;
+                <button onclick="this.parentElement.remove(); calculate()" class="absolute -top-2 -right-2 bg-red-600 text-white w-5 h-5 rounded-full text-xs">×</button>`;
+            container.appendChild(dayDiv); loadDropdowns();
+            if(data) { dayDiv.querySelector('.d-helper').value = data.helper; dayDiv.querySelector('.d-status').value = data.status; calculate(); }
         }
 
         function calculate() {
-            const sqft = parseFloat(document.getElementById('totalSqft').value) || 0;
-            const rate = parseFloat(document.getElementById('amtRate').value) || 0;
-            const gross = sqft * rate;
-            
-            let totalWages = 0;
-            document.querySelectorAll('.day-entry').forEach(row => {
-                totalWages += parseFloat(row.querySelector('.d-sal').value) || 0;
-            });
-
-            document.getElementById('resTotal').innerText = "₹" + Math.round(gross).toLocaleString();
-            document.getElementById('resExpDisplay').innerText = "₹" + Math.round(totalWages).toLocaleString();
-            return { gross, totalWages };
+            const val = (parseFloat(document.getElementById('totalSqft').value) || 0) * (parseFloat(document.getElementById('amtRate').value) || 0);
+            let siteExp = 0; 
+            document.querySelectorAll('.day-entry').forEach(row => { siteExp += (parseFloat(row.querySelector('.d-sal').value) || 0) + (parseFloat(row.querySelector('.d-ot').value) || 0) + (parseFloat(row.querySelector('.d-pet').value) || 0) + (parseFloat(row.querySelector('.d-food').value) || 0); });
+            document.getElementById('resTotal').innerText = "₹" + Math.round(val).toLocaleString();
+            document.getElementById('resExpDisplay').innerText = "₹" + Math.round(siteExp).toLocaleString();
+            return { val, siteExp };
         }
 
         async function saveData() {
             const customer = document.getElementById('customer').value.trim();
-            if(!customer) return alert("Customer name required");
-
-            const cal = calculate();
-            const logs = [];
-            document.querySelectorAll('.day-entry').forEach(row => {
-                logs.push({ helper: row.querySelector('.d-helper').value, sal: row.querySelector('.d-sal').value });
-            });
-
-            const data = {
-                date: document.getElementById('date').value,
-                customer,
-                projectType: document.getElementById('projectType').value,
-                totalSqft: document.getElementById('totalSqft').value,
-                amtRate: document.getElementById('amtRate').value,
-                gross: cal.gross,
-                wages: cal.totalWages,
-                logs
-            };
-
+            if(!document.getElementById('isHoliday').checked && !customer) { alert("Customer required"); return; }
+            const cal = calculate(), logs = [];
+            document.querySelectorAll('.day-entry').forEach(row => { logs.push({ hDate: row.querySelector('.d-hdate').value, helper: row.querySelector('.d-helper').value, status: row.querySelector('.d-status').value, sal: row.querySelector('.d-sal').value, ot: row.querySelector('.d-ot').value, pet: row.querySelector('.d-pet').value, food: row.querySelector('.d-food').value }); });
+            const data = { date: document.getElementById('date').value, qn: document.getElementById('qn').value, customer, location: document.getElementById('location').value, projectType: document.getElementById('projectType').value, totalWindow: document.getElementById('totalWindow').value, totalSqft: document.getElementById('totalSqft').value, amtRate: document.getElementById('amtRate').value, total: cal.val, logs, isHoliday: document.getElementById('isHoliday').checked, comment: document.getElementById('isHoliday').checked ? document.getElementById('holidayReason').value : document.getElementById('workNotes').value };
             const id = document.getElementById('editId').value;
-            if(id) await db.collection("workLogs").doc(id).update(data);
-            else await db.collection("workLogs").add(data);
-            
+            if(id) await db.collection("workLogs").doc(id).update(data); else await db.collection("workLogs").add(data);
             location.reload();
         }
 
-        db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => {
-            allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            applyFilters();
-        });
+        db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => { allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); applyFilters(); });
 
         function applyFilters() {
-            const selMonth = document.getElementById('filterMonth').value;
-            const selYear = globalSettings.year;
-            const container = document.getElementById('displayArea');
-            container.innerHTML = "";
-
-            let personalNetTotal = 0;
-            let monthNetTotal = 0;
+            let currentEarned = 0, soloEarn = 0, partnerEarn = 0;
+            const container = document.getElementById('displayArea'); container.innerHTML = "";
+            const activeYear = document.getElementById('setYear').value || "2025";
 
             allEntries.forEach(d => {
-                const entryDate = new Date(d.date);
-                const entryYear = entryDate.getFullYear().toString();
-                const entryMonth = entryDate.getMonth().toString();
+                // Year Filter
+                if(new Date(d.date).getFullYear().toString() !== activeYear) return;
 
-                const net = (d.gross || 0) - (d.wages || 0);
-                const share = d.projectType === 'Partner' ? net / 2 : net;
+                let siteExp = 0, helpers = [];
+                d.logs?.forEach(l => { siteExp += (parseFloat(l.sal)||0) + (parseFloat(l.ot)||0) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); if(!helpers.includes(l.helper)) helpers.push(l.helper); });
+                const net = (parseFloat(d.total)||0) - siteExp;
+                
+                // Add to totals regardless of month (for year progress)
+                if(!d.isHoliday) currentEarned += (d.projectType === 'Partner' ? net/2 : net);
 
-                // Overall personal total for the selected year
-                if(entryYear === selYear) personalNetTotal += share;
+                // Month Filter for Display
+                if(currentFilterMonth !== 'all' && new Date(d.date).getMonth() != currentFilterMonth) return;
 
-                // Month specific filter for display
-                if (selMonth !== 'all' && entryMonth !== selMonth) return;
-                if (entryYear !== selYear) return;
-
-                monthNetTotal += share;
-
-                container.innerHTML += `
-                    <div class="glass p-4 border-l-4 border-blue-500 mb-3" onclick="editDoc('${d.id}')">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <div class="text-[9px] text-gray-500 font-bold uppercase">${d.date} • ${d.projectType}</div>
-                                <h4 class="font-bold text-white uppercase">${d.customer}</h4>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-[10px] text-green-400 font-bold">Net: ₹${Math.round(share)}</div>
-                                <div class="text-[9px] text-gray-500">Gross: ₹${d.gross}</div>
-                            </div>
-                        </div>
-                    </div>`;
+                if(!d.isHoliday) { if(d.projectType === 'Partner') partnerEarn += (net/2); else soloEarn += net; }
+                
+                container.innerHTML += `<div class="glass p-5 border-l-4 ${d.isHoliday ? 'border-red-500':'border-blue-600'} mb-4"><div onclick="editDoc('${d.id}')" class="flex-1 cursor-pointer"><div class="text-[10px] text-gray-400 font-bold uppercase">${d.date} | ${d.projectType}</div><h4 class="font-black uppercase text-white">${d.isHoliday ? 'Holiday' : d.customer}</h4><div class="text-[11px] text-gray-400">${d.location || ''}</div>${!d.isHoliday ? `<div class="grid grid-cols-2 mt-2 pt-2 border-t border-white/10"><div class="text-[10px]">Team: <span class="text-blue-400 font-bold">${helpers.join(', ') || 'Self'}</span></div><div class="text-right text-[10px]">Wages: <span class="text-red-400 font-bold">₹${Math.round(siteExp)}</span></div></div>` : ''}</div></div>`;
             });
-
-            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(personalNetTotal).toLocaleString();
-            document.getElementById('tblMonthNet').innerText = "₹" + Math.round(monthNetTotal).toLocaleString();
-            
-            // Progress Bar
-            const target = parseFloat(globalSettings.target) || 1;
-            const percent = Math.min((personalNetTotal / target) * 100, 100);
-            document.getElementById('targetBar').style.width = percent + "%";
-            document.getElementById('targetPercent').innerText = "Target: " + Math.round(percent) + "%";
-            document.getElementById('targetEarned').innerText = "₹" + Math.round(personalNetTotal).toLocaleString();
-            document.getElementById('targetGoal').innerText = "Goal: ₹" + target.toLocaleString();
+            document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
+            document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
+            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(soloEarn + partnerEarn).toLocaleString();
+            updateTargetUI(currentEarned);
         }
 
-        function editDoc(id) {
-            const d = allEntries.find(e => e.id === id);
-            document.getElementById('editId').value = id;
-            document.getElementById('date').value = d.date;
-            document.getElementById('customer').value = d.customer;
-            document.getElementById('projectType').value = d.projectType;
-            document.getElementById('totalSqft').value = d.totalSqft;
-            document.getElementById('amtRate').value = d.amtRate;
-            
-            document.getElementById('dayLogsContainer').innerHTML = "";
-            d.logs?.forEach(l => addDayRow(l));
-            calculate();
-            window.scrollTo({top: 0, behavior: 'smooth'});
+        function updateTargetUI(earned) {
+            const target = parseFloat(globalSettings.target) || 500000;
+            document.getElementById('targetBar').style.width = Math.min((earned / target) * 100, 100) + "%";
+            document.getElementById('targetEarned').innerText = `₹${Math.round(earned).toLocaleString()}`;
+            document.getElementById('targetGoal').innerText = `Goal: ₹${target.toLocaleString()}`;
+            document.getElementById('targetRem').innerText = `₹${Math.max(0, Math.round(target - earned)).toLocaleString()} Left`;
         }
 
         async function saveSettings() {
@@ -301,60 +311,100 @@
                 year: document.getElementById('setYear').value
             };
             await db.collection("appSettings").doc("userConfig").set(globalSettings);
-            toggleSettings();
+            loadDropdowns(); 
             applyFilters();
+            toggleSettings();
         }
 
-        function toggleSettings() { 
-            const m = document.getElementById('settingsModal');
-            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; 
+        function toggleSettings() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
+        function toggleWorkHistory() { const m = document.getElementById('workHistoryModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; if(m.style.display==='flex') generateWorkHistoryReport(); }
+        function toggleReport() { const m = document.getElementById('smartReportModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
+        function checkHoliday() { document.getElementById('workFields').style.display = document.getElementById('isHoliday').checked ? 'none' : 'block'; document.getElementById('holidayReasonDiv').classList.toggle('hidden', !document.getElementById('isHoliday').checked); }
+        
+        function generateWorkHistoryReport() {
+            const tbody = document.getElementById('workHistoryTableBody');
+            tbody.innerHTML = ""; let gG = 0, gW = 0, gN = 0;
+            const activeYear = document.getElementById('setYear').value;
+            
+            allEntries.filter(d => !d.isHoliday && new Date(d.date).getFullYear().toString() === activeYear && (currentFilterMonth === 'all' || new Date(d.date).getMonth() == currentFilterMonth)).forEach(d => {
+                let sW = 0; d.logs?.forEach(l => sW += (parseFloat(l.sal)||0)+(parseFloat(l.ot)||0)+(parseFloat(l.pet)||0)+(parseFloat(l.food)||0));
+                const gross = parseFloat(d.total)||0, net = gross - sW;
+                gG += gross; gW += sW; gN += net;
+                tbody.innerHTML += `<tr class="border-b border-white/5"><td class="p-2">${d.customer}</td><td class="p-2 text-center">${d.logs?.length||1}</td><td class="p-2 text-right">₹${gross}</td><td class="p-2 text-right text-red-400">₹${sW}</td><td class="p-2 text-right text-green-400">₹${net}</td></tr>`;
+            });
+            document.getElementById('workHistoryTableFoot').innerHTML = `<tr><td class="p-2">TOTAL</td><td></td><td class="text-right">₹${gG}</td><td class="text-right">₹${gW}</td><td class="text-right text-yellow-400">₹${gN}</td></tr>`;
         }
 
-        function toggleWorkHistory() {
-            const m = document.getElementById('workHistoryModal');
-            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
-            if(m.style.display === 'flex') {
-                const tbody = document.getElementById('workHistoryTableBody');
-                tbody.innerHTML = allEntries.map(d => `
-                    <tr class="border-b border-white/5">
-                        <td class="p-2">${d.customer}</td>
-                        <td class="p-2 text-right">₹${d.gross}</td>
-                        <td class="p-2 text-right text-green-400">₹${d.gross - d.wages}</td>
-                    </tr>
-                `).join('');
-            }
+        function editDoc(id) {
+            const d = allEntries.find(e => e.id === id);
+            document.getElementById('editId').value = id; document.getElementById('date').value = d.date; document.getElementById('qn').value = d.qn || "";
+            document.getElementById('customer').value = d.customer; document.getElementById('location').value = d.location || "";
+            document.getElementById('totalSqft').value = d.totalSqft || ""; document.getElementById('amtRate').value = d.amtRate || "";
+            document.getElementById('isHoliday').checked = d.isHoliday; document.getElementById('dayLogsContainer').innerHTML = "";
+            d.logs?.forEach(l => addDayRow(l));
+            checkHoliday(); calculate(); window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
-        // FIXED PDF EXPORT
-        function exportPDF(type) {
+        function startPdfExport(type) { document.getElementById('pdfType').value = type; document.getElementById('pdfDateModal').style.display = 'flex'; }
+        
+        async function generateFilteredPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const selMonth = document.getElementById('filterMonth').options[document.getElementById('filterMonth').selectedIndex].text;
             
+            // Get date range
+            const fromDate = document.getElementById('pdfFrom').value;
+            const toDate = document.getElementById('pdfTo').value;
+            
+            if(!fromDate || !toDate) { alert("Please select dates"); return; }
+            
+            const filtered = allEntries.filter(d => d.date >= fromDate && d.date <= toDate && !d.isHoliday);
+            const type = document.getElementById('pdfType').value;
+
             doc.setFontSize(18);
-            doc.text(`Ayyappan Pro - ${type.toUpperCase()} REPORT`, 14, 20);
+            doc.text(type.toUpperCase() + " REPORT", 14, 20);
             doc.setFontSize(10);
-            doc.text(`Filtered by: ${selMonth} ${globalSettings.year}`, 14, 28);
+            doc.text(`From: ${fromDate} To: ${toDate}`, 14, 28);
 
             const rows = [];
-            let total = 0;
-
-            allEntries.filter(d => {
-                const entryDate = new Date(d.date);
-                const mMatch = document.getElementById('filterMonth').value === 'all' || entryDate.getMonth().toString() === document.getElementById('filterMonth').value;
-                const yMatch = entryDate.getFullYear().toString() === globalSettings.year;
-                return mMatch && yMatch;
-            }).forEach(d => {
-                if (type === 'helper') {
-                    d.logs?.forEach(l => {
-                        rows.push([d.date, d.customer, l.helper, `Rs. ${l.sal}`]);
-                        total += parseFloat(l.sal) || 0;
+            filtered.forEach(d => { 
+                if(type === 'helper') {
+                    d.logs?.forEach(l => { 
+                        const w = (parseFloat(l.sal)||0)+(parseFloat(l.ot)||0)+(parseFloat(l.pet)||0)+(parseFloat(l.food)||0); 
+                        rows.push([l.hDate, d.customer, l.helper, w]); 
                     });
                 } else {
-                    const net = d.gross - d.wages;
-                    rows.push([d.date, d.customer, d.projectType, `Rs. ${d.gross}`, `Rs. ${net}`]);
-                    total += net;
+                    let siteExp = 0;
+                    d.logs?.forEach(l => siteExp += (parseFloat(l.sal)||0));
+                    rows.push([d.date, d.customer, d.total, d.total - siteExp]);
                 }
             });
 
-            const headers = type === 'helper' ? [['Date', 'Site', 'Helper', 'Wage']] : [['Date', 'Site', 'Type', 'Gross', 'Net
+            const headers = type === 'helper' ? [['Date', 'Site', 'Helper', 'Total Wage']] : [['Date', 'Site', 'Gross', 'Net']];
+
+            doc.autoTable({
+                head: headers,
+                body: rows,
+                startY: 35,
+                theme: 'grid',
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [41, 128, 185] }
+            });
+
+            doc.save(`Ayyappan_${type}_Report.pdf`);
+            document.getElementById('pdfDateModal').style.display = 'none';
+        }
+
+        window.onload = async () => { 
+            document.getElementById('date').valueAsDate = new Date(); 
+            // Default select month to current month
+            document.getElementById('monthSelect').value = new Date().getMonth();
+            
+            await syncSettings(); 
+            addDayRow(); 
+            
+            // Trigger calculation
+            switchMonth(document.getElementById('monthSelect').value); 
+        };
+    </script>
+</body>
+</html>
