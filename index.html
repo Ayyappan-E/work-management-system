@@ -21,9 +21,8 @@
         .day-entry { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; margin-bottom: 10px; position: relative; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .summary-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #070b14; border-top: 3px solid #3b82f6; padding: 12px; z-index: 50; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
-        .delete-btn { color: #ef4444; padding: 8px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); transition: 0.3s; }
-        .holiday-btn { background: #ef4444; color: white; border-radius: 0.6rem; font-weight: 900; font-size: 10px; padding: 4px 8px; }
-        .work-btn { background: #3b82f6; color: white; border-radius: 0.6rem; font-weight: 900; font-size: 10px; padding: 4px 8px; }
+        .delete-btn { color: #ef4444; padding: 8px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); }
+        .holiday-active { border-color: #ef4444 !important; background: rgba(239, 68, 68, 0.05) !important; }
     </style>
 </head>
 <body class="p-4 pb-96">
@@ -65,11 +64,11 @@
             </div>
         </div>
 
-        <div class="glass p-5 mb-8 space-y-4 border-t-4 border-blue-600 shadow-2xl">
+        <div id="formContainer" class="glass p-5 mb-8 space-y-4 border-t-4 border-blue-600 shadow-2xl transition-all duration-300">
             <input type="hidden" id="editId">
-            <div class="flex justify-between items-center mb-2">
-                <label class="m-0 text-blue-400">Record Entry</label>
-                <button id="modeToggle" onclick="toggleHolidayMode()" class="holiday-btn">SET HOLIDAY</button>
+            <div class="flex justify-between items-center">
+                <label class="m-0 text-blue-400" id="formTitle">New Record</label>
+                <button id="holidayBtn" onclick="toggleHolidayMode()" class="bg-red-600 text-[10px] font-black px-3 py-1 rounded-full">SET HOLIDAY</button>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
@@ -81,14 +80,17 @@
                 </div>
             </div>
 
-            <div id="workFields" class="space-y-4">
+            <div id="workSpecificFields" class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div><label>QN Number</label><input type="text" id="qn" class="input-box" placeholder="QN-101"></div>
                     <div><label>Site/Customer *</label><input type="text" id="customer" class="input-box"></div>
                 </div>
 
                 <div class="bg-blue-600/10 p-4 rounded-xl border border-blue-500/30">
-                    <div class="flex justify-between items-center mb-3"><label class="text-blue-400 m-0">Helper Logs</label><button onclick="addDayRow()" class="text-[10px] bg-blue-600 px-3 py-1 rounded">+ Add Row</button></div>
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="text-blue-400 m-0">Helper Logs</label>
+                        <button onclick="addDayRow()" class="text-[10px] bg-blue-600 px-3 py-1 rounded">+ Helper</button>
+                    </div>
                     <div id="dayLogsContainer" class="space-y-2"></div>
                 </div>
 
@@ -101,13 +103,13 @@
 
             <div>
                 <label id="summaryLabel">Work Summary</label>
-                <textarea id="summary" class="input-box h-16" placeholder="Details about work or reason for holiday..."></textarea>
+                <textarea id="summary" class="input-box h-16" placeholder="Additional notes or holiday reason..."></textarea>
             </div>
 
             <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
                 <div class="text-green-400 text-xl font-black" id="resTotal">₹0</div>
                 <div class="flex gap-2">
-                    <button id="cancelBtn" onclick="resetForm()" class="hidden bg-gray-700 px-4 py-3 rounded-xl font-bold text-[10px]">CANCEL</button>
+                    <button onclick="resetForm()" id="cancelBtn" class="hidden bg-gray-600 px-4 py-3 rounded-xl font-bold text-[10px]">CANCEL</button>
                     <button onclick="saveData()" id="saveBtn" class="bg-blue-600 px-8 py-3 rounded-xl font-bold uppercase text-xs">Save</button>
                 </div>
             </div>
@@ -118,17 +120,17 @@
 
     <div id="settingsModal" class="modal">
         <div class="glass p-6 w-full max-w-sm space-y-4">
-            <h2 class="text-center font-bold text-blue-400 uppercase">Settings</h2>
-            <div><label>Monthly Target</label><input type="number" id="setTarget" class="input-box"></div>
-            <div><label>Companies (Comma Separated)</label><textarea id="setCompanies" class="input-box h-20"></textarea></div>
-            <div><label>Helpers (Comma Separated)</label><textarea id="setHelpers" class="input-box h-20"></textarea></div>
+            <h2 class="text-center font-bold text-blue-400 uppercase">Cloud Settings</h2>
+            <div><label>Monthly Target (₹)</label><input type="number" id="setTarget" class="input-box"></div>
+            <div><label>Company Database (Comma Separated)</label><textarea id="setCompanies" class="input-box h-20" placeholder="L&T, Reliance, etc"></textarea></div>
+            <div><label>Helper List (Comma Separated)</label><textarea id="setHelpers" class="input-box h-20" placeholder="Ravi, Kumar, etc"></textarea></div>
             <button onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-xl font-bold">SAVE & SYNC</button>
-            <button onclick="toggleSettings()" class="w-full text-gray-500 text-xs">CLOSE</button>
+            <button onclick="toggleSettings()" class="w-full text-gray-500 text-xs mt-2">CLOSE</button>
         </div>
     </div>
 
     <div class="summary-footer max-w-md mx-auto">
-        <div class="flex justify-between items-center px-6"><span class="text-xs font-bold text-gray-400 uppercase">Net Profit</span><span id="tblGrandTotal" class="text-2xl font-black text-yellow-400">₹0</span></div>
+        <div class="flex justify-between items-center px-6"><span class="text-xs font-bold text-gray-400 uppercase">Monthly Net Profit</span><span id="tblGrandTotal" class="text-2xl font-black text-yellow-400">₹0</span></div>
     </div>
 
     <script>
@@ -141,8 +143,8 @@
         let isHolidayMode = false;
 
         window.onload = async () => {
-            const yearSel = document.getElementById('filterYear');
             const currentYear = new Date().getFullYear();
+            const yearSel = document.getElementById('filterYear');
             for (let i = currentYear - 1; i <= currentYear + 1; i++) {
                 let opt = document.createElement('option'); opt.value = i; opt.innerText = i;
                 if(i === currentYear) opt.selected = true;
@@ -151,7 +153,7 @@
             document.getElementById('date').valueAsDate = new Date();
             document.getElementById('filterMonth').value = new Date().getMonth();
 
-            // Sync Settings & Datalists
+            // Real-time Settings Listener
             db.collection("appSettings").doc("userConfig").onSnapshot(doc => {
                 if(doc.exists) {
                     globalSettings = doc.data();
@@ -162,7 +164,7 @@
                 }
             });
 
-            // Sync Work Logs
+            // Real-time Data Listener
             db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => {
                 allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 applyFilters();
@@ -171,10 +173,12 @@
         };
 
         function refreshDatalists() {
+            // Update Company Dropdown
             const comps = (globalSettings.companies || "").split(',').map(c => c.trim()).filter(c => c);
             const dl = document.getElementById('companyListSuggestions');
             dl.innerHTML = comps.map(c => `<option value="${c}">`).join('');
             
+            // Update Helper select in current rows
             const helps = (globalSettings.helpers || "").split(',').map(h => h.trim()).filter(h => h);
             document.querySelectorAll('.d-helper').forEach(sel => {
                 const cur = sel.value;
@@ -185,19 +189,22 @@
 
         function toggleHolidayMode() {
             isHolidayMode = !isHolidayMode;
-            const btn = document.getElementById('modeToggle');
-            const workFields = document.getElementById('workFields');
-            const sumLabel = document.getElementById('summaryLabel');
+            const btn = document.getElementById('holidayBtn');
+            const formContainer = document.getElementById('formContainer');
+            const workFields = document.getElementById('workSpecificFields');
+            const summaryLabel = document.getElementById('summaryLabel');
 
             if(isHolidayMode) {
-                btn.innerText = "SWITCH TO WORK"; btn.className = "work-btn";
+                btn.innerText = "WORK MODE"; btn.className = "bg-blue-600 text-[10px] font-black px-3 py-1 rounded-full";
+                formContainer.classList.add('holiday-active');
                 workFields.classList.add('hidden');
-                sumLabel.innerText = "Reason for Holiday";
+                summaryLabel.innerText = "Holiday Reason";
                 document.getElementById('customer').value = "HOLIDAY";
             } else {
-                btn.innerText = "SET HOLIDAY"; btn.className = "holiday-btn";
+                btn.innerText = "SET HOLIDAY"; btn.className = "bg-red-600 text-[10px] font-black px-3 py-1 rounded-full";
+                formContainer.classList.remove('holiday-active');
                 workFields.classList.remove('hidden');
-                sumLabel.innerText = "Work Summary";
+                summaryLabel.innerText = "Work Summary";
                 document.getElementById('customer').value = "";
             }
         }
@@ -258,8 +265,8 @@
                 qn: document.getElementById('qn').value || "",
                 totalSqft: document.getElementById('totalSqft').value || 0,
                 amtRate: document.getElementById('amtRate').value || 0,
-                projectType: document.getElementById('projectType').value,
-                summary: document.getElementById('summary').value,
+                projectType: document.getElementById('projectType').value || "Solo",
+                summary: document.getElementById('summary').value || "",
                 total: isHolidayMode ? 0 : calculate(),
                 logs
             };
@@ -277,19 +284,14 @@
             document.getElementById('totalSqft').value = "";
             document.getElementById('amtRate').value = "";
             document.getElementById('summary').value = "";
+            document.getElementById('companyName').value = "";
             document.getElementById('dayLogsContainer').innerHTML = "";
             document.getElementById('saveBtn').innerText = "Save";
+            document.getElementById('formTitle').innerText = "New Record";
             document.getElementById('cancelBtn').classList.add('hidden');
             if(isHolidayMode) toggleHolidayMode();
             addDayRow();
             calculate();
-        }
-
-        async function deleteDoc(id, e) {
-            e.stopPropagation();
-            if(confirm("Delete this record permanently?")) {
-                await db.collection("workLogs").doc(id).delete();
-            }
         }
 
         function editDoc(id) {
@@ -310,10 +312,18 @@
             document.getElementById('dayLogsContainer').innerHTML = "";
             d.logs?.forEach(l => addDayRow(l));
             
-            document.getElementById('saveBtn').innerText = "Update";
+            document.getElementById('saveBtn').innerText = "Update Record";
+            document.getElementById('formTitle').innerText = "Editing Record";
             document.getElementById('cancelBtn').classList.remove('hidden');
             calculate();
             window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        async function deleteDoc(id, e) {
+            e.stopPropagation();
+            if(confirm("Delete this record forever?")) {
+                await db.collection("workLogs").doc(id).delete();
+            }
         }
 
         function applyFilters() {
@@ -335,23 +345,10 @@
                 }
 
                 cont.innerHTML += `
-                <div class="glass p-4 border-l-4 ${d.isHoliday ? 'border-red-500' : 'border-blue-500'} flex justify-between items-center" onclick="editDoc('${d.id}')">
+                <div class="glass p-4 border-l-4 ${d.isHoliday ? 'border-red-500' : 'border-blue-500'} flex justify-between items-center mb-4" onclick="editDoc('${d.id}')">
                     <div class="flex-1">
                         <div class="flex justify-between text-[10px] text-gray-400 mb-1">
-                            <span>${d.date} ${d.isHoliday ? '[HOLIDAY]' : '| ' + d.companyName}</span>
+                            <span>${d.date} ${d.isHoliday ? '— HOLIDAY' : '| ' + (d.companyName || 'No Company')}</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="font-bold uppercase ${d.isHoliday ? 'text-red-400' : 'text-white'}">${d.customer}</span>
-                            ${!d.isHoliday ? `<span class="text-green-400 font-black">₹${Math.round(profit).toLocaleString()}</span>` : ''}
-                        </div>
-                        ${d.summary ? `<p class="text-[10px] text-gray-500 mt-1 italic">${d.summary}</p>` : ''}
-                    </div>
-                    <button onclick="deleteDoc('${d.id}', event)" class="delete-btn ml-3"><i class="fas fa-trash"></i></button>
-                </div>`;
-            });
-            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(earned).toLocaleString();
-            updateTarget(earned);
-        }
-
-        function updateTarget(earned) {
-            const target = parseFloat(globalSettings.target) ||
+                            <span class="font-bold uppercase ${d.isHoliday ? 'text-red-400' : 'text-w
