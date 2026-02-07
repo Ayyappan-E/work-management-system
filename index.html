@@ -25,6 +25,7 @@
         .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: #3b82f6; }
         input:checked + .slider:before { transform: translateX(16px); }
+        .btn-share { font-size: 8px; font-weight: 900; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; display: flex; align-items: center; gap: 4px; }
     </style>
 </head>
 <body class="p-4 pb-80">
@@ -107,7 +108,6 @@
                 </table>
             </div>
         </div>
-
         <div id="helperPayrollSummary" class="text-[9px] grid grid-cols-2 gap-2 text-gray-300 mb-2 px-2"></div>
         <div class="grid grid-cols-3 gap-1 text-center mb-3">
             <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-[8px] text-gray-400 uppercase">My Profit</p><p id="sumProfit" class="text-green-400 font-bold text-xs">₹0</p></div>
@@ -295,14 +295,16 @@
                         </div>
                         <div class="flex flex-col gap-1">
                             <button onclick="editDoc('${d.id}')" class="bg-blue-600/20 text-blue-400 text-[8px] font-black px-2 py-1 rounded uppercase border border-blue-500/30">Update</button>
-                            <button onclick="copyDoc('${d.id}')" class="bg-yellow-600/20 text-yellow-400 text-[8px] font-black px-2 py-1 rounded uppercase border border-yellow-500/30">Copy</button>
                             <button onclick="deleteDoc('${d.id}')" class="bg-red-600/20 text-red-400 text-[8px] font-black px-2 py-1 rounded uppercase border border-red-500/30">Delete</button>
                         </div>
                     </div>
-                    <div class="hidden mt-2 pt-2 border-t border-white/5 space-y-1 text-[9px]">
+                    <div class="hidden mt-2 pt-2 border-t border-white/5 space-y-2 text-[9px]">
                         <p>Location: ${d.location || '-'}</p>
                         <p>Type: ${d.projectType} ${d.partnerName ? '('+d.partnerName+')' : ''}</p>
-                        <div class="text-orange-400">${d.logs ? d.logs.map(l => `${l.hDate}: ${l.helper}`).join(', ') : 'No Helpers'}</div>
+                        <div class="flex gap-2">
+                           <button onclick="sharePartner('${d.id}')" class="btn-share bg-blue-600 text-white"><i class="fab fa-whatsapp"></i> Partner Report</button>
+                           <button onclick="shareHelper('${d.id}')" class="btn-share bg-orange-600 text-white"><i class="fab fa-whatsapp"></i> Helper Report</button>
+                        </div>
                     </div>
                 </div>`;
             });
@@ -310,17 +312,32 @@
             document.getElementById('sumProfit').innerText = "₹" + Math.round(tProfit).toLocaleString();
             document.getElementById('sumExp').innerText = "₹" + Math.round(tExp).toLocaleString();
             document.getElementById('sumPartner').innerText = "₹" + Math.round(tPartner).toLocaleString();
-            
-            // Update Table
             document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarnings).toLocaleString();
             document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerWorkMine).toLocaleString();
             document.getElementById('tblPartnerShare').innerText = "₹" + Math.round(tPartner).toLocaleString();
-
             document.getElementById('helperPayrollSummary').innerHTML = Object.entries(helperSummary).map(([name, amt]) => `<div class="flex justify-between bg-white/5 p-1 px-2 rounded"><span>${name}</span><span class="text-orange-400 font-bold">₹${Math.round(amt)}</span></div>`).join('') || "";
         }
 
+        function sharePartner(id) {
+            const d = allEntries.find(e => e.id === id);
+            let siteExp = 0; if(d.logs) d.logs.forEach(l => { siteExp += (parseFloat(l.sal)||0) + (parseFloat(l.sal)*0.5*(parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); });
+            const net = (parseFloat(d.total)||0) - siteExp;
+            const text = `*PARTNER WORK REPORT*\n--------------------\nDate: ${d.date}\nCustomer: ${d.customer}\nLocation: ${d.location}\nTotal Sqft: ${d.totalSqft}\nProject Total: ₹${Math.round(d.total)}\nHelpers Expense: ₹${Math.round(siteExp)}\n--------------------\n*Profit Split (50/50)*\nPartner Share: ₹${Math.round(net/2)}\nMy Share: ₹${Math.round(net/2)}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+        }
+
+        function shareHelper(id) {
+            const d = allEntries.find(e => e.id === id);
+            if(!d.logs || d.logs.length === 0) return alert("No helper data found");
+            let text = `*HELPER PAYMENT REPORT*\n--------------------\nCustomer: ${d.customer}\n`;
+            d.logs.forEach(l => {
+                const rowPay = (parseFloat(l.sal)||0) + (parseFloat(l.sal)*0.5*(parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+                text += `\n📅 Date: ${l.hDate}\nHelper: ${l.helper}\nStatus: ${l.status}\nOT: ${l.ot}\nPay: ₹${Math.round(rowPay)}\n`;
+            });
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+        }
+
         async function deleteDoc(id) { if(confirm("Confirm Delete?")) await db.collection("workLogs").doc(id).delete(); }
-        function copyDoc(id) { editDoc(id); document.getElementById('editId').value = ""; document.getElementById('date').valueAsDate = new Date(); alert("Copied!"); }
         
         function editDoc(id) {
             const d = allEntries.find(e => e.id === id);
