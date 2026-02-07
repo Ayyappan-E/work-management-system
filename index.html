@@ -8,10 +8,7 @@
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3252/3252994.png">
     
-    <link rel="manifest" href='data:application/manifest+json,{"name":"Ayyappan Pro","short_name":"Ayyappan","start_url":".","display":"standalone","background_color":"#0f172a","theme_color":"#0f172a","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3252/3252994.png","sizes":"512x512","type":"image/png"}]}'>
-
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -27,67 +24,46 @@
         .day-entry { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 12px; margin-bottom: 10px; position: relative; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .summary-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #070b14; border-top: 3px solid #3b82f6; padding: 12px; z-index: 50; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .active-month { background: #3b82f6 !important; color: white !important; font-weight: bold; border: none; }
-        .work-note-box { background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; padding: 6px 10px; margin-top: 8px; border-radius: 4px; font-size: 11px; font-style: italic; }
     </style>
 </head>
 <body class="p-4 pb-96">
 
-    <div class="max-w-md mx-auto overflow-x-auto no-scrollbar flex gap-2 mb-6 pb-2 sticky top-0 z-40 bg-[#0f172a]/80 backdrop-blur-md pt-2">
-        <button onclick="switchMonth('all')" id="btn-all" class="px-4 py-2 glass text-[10px] uppercase font-bold text-gray-400 whitespace-nowrap active-month">All Records</button>
-        <button onclick="switchMonth(0)" id="btn-0" class="px-4 py-2 glass text-[10px] uppercase font-bold text-gray-400">Jan</button>
-        <button onclick="switchMonth(1)" id="btn-1" class="px-4 py-2 glass text-[10px] uppercase font-bold text-gray-400">Feb</button>
-        <button onclick="switchMonth(2)" id="btn-2" class="px-4 py-2 glass text-[10px] uppercase font-bold text-gray-400">Mar</button>
-        <button onclick="switchMonth(3)" id="btn-3" class="px-4 py-2 glass text-[10px] uppercase font-bold text-gray-400">Apr</button>
-        <button onclick="switchMonth(4)" id="btn-4" class="px-4 py-2 glass text-[10px] uppercase font-bold text-gray-400">May</button>
-        <button onclick="switchMonth(5)" id="btn-5" class="px-4 py-2 glass text-[10px] uppercase font-bold text-gray-400">Jun</button>
-        <button onclick="switchMonth(6)" id="btn-6" class="px-4 py-2 glass text-[10px] uppercase font-bold text-gray-400">Jul</button>
-        <button onclick="switchMonth(7)" id="btn-7" class="px-4 py-2 glass text-[10px] uppercase font-bold text-gray-400">Aug</button>
-        <button onclick="switchMonth(8)" id="btn-8" class="px-4 py-2 glass text-[10px] uppercase font-bold text-gray-400">Sep</button>
-        <button onclick="switchMonth(9)" id="btn-9" class="px-4 py-2 glass text-[10px] uppercase font-bold text-gray-400">Oct</button>
-        <button onclick="switchMonth(10)" id="btn-10" class="px-4 py-2 glass text-[10px] uppercase font-bold text-gray-400">Nov</button>
-        <button onclick="switchMonth(11)" id="btn-11" class="px-4 py-2 glass text-[10px] uppercase font-bold text-gray-400">Dec</button>
-    </div>
-
-    <div id="settingsModal" class="modal">
-        <div class="glass p-6 w-full max-w-sm space-y-4 text-center">
-            <h2 class="text-xl font-bold text-blue-400 uppercase">Control Panel</h2>
-            <button onclick="toggleWorkHistory()" class="w-full bg-blue-600 py-3 rounded-lg font-black uppercase text-xs"><i class="fas fa-list-check mr-2"></i> Site Summary Report</button>
-            <button onclick="toggleReport()" class="w-full bg-purple-600 py-3 rounded-lg font-black uppercase text-xs"><i class="fas fa-chart-line mr-2"></i> Performance Insights</button>
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="backupData()" class="bg-gray-700 py-2 rounded-lg font-bold uppercase text-[10px]">Export</button>
-                <button onclick="document.getElementById('importFile').click()" class="bg-gray-700 py-2 rounded-lg font-bold uppercase text-[10px]">Import</button>
-                <input type="file" id="importFile" class="hidden" onchange="restoreData(event)">
+    <div class="max-w-md mx-auto mb-6 sticky top-0 z-40 bg-[#0f172a]/95 backdrop-blur-md pt-2 pb-4 border-b border-white/5">
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label class="text-blue-400">View Year</label>
+                <select id="yearNav" onchange="refreshView()" class="input-box bg-slate-800 border-blue-500/50 font-bold">
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026" selected>2026</option>
+                    <option value="2027">2027</option>
+                </select>
             </div>
-            <div class="text-left"><label>Target (₹)</label><input type="number" id="setTarget" class="input-box"></div>
-            <div class="text-left"><label>Helper Database</label><textarea id="setHelpers" class="input-box h-16"></textarea></div>
-            <button id="saveSettingsBtn" onclick="saveSettings()" class="w-full bg-green-600 py-3 rounded-lg font-bold uppercase">Sync Cloud</button>
-            <button onclick="toggleSettings()" class="w-full text-sm text-gray-500">Close</button>
-        </div>
-    </div>
-
-    <div id="workHistoryModal" class="modal">
-        <div class="glass p-6 w-full max-w-2xl max-h-[85vh] overflow-y-auto space-y-6">
-            <div class="flex justify-between items-center border-b border-white/10 pb-4"><h2 class="text-xl font-bold text-blue-400">SITE WISE REPORT</h2><button onclick="toggleWorkHistory()"><i class="fas fa-times"></i></button></div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-[11px]">
-                    <thead class="text-blue-400 border-b border-white/10"><tr><th class="p-2">SITE</th><th class="p-2 text-center">DAYS</th><th class="p-2 text-right">GROSS</th><th class="p-2 text-right">WAGES</th><th class="p-2 text-right">NET</th></tr></thead>
-                    <tbody id="workHistoryTableBody" class="text-gray-300"></tbody>
-                    <tfoot id="workHistoryTableFoot" class="border-t border-blue-500 font-bold"></tfoot>
-                </table>
+            <div>
+                <label class="text-blue-400">View Month</label>
+                <select id="monthNav" onchange="refreshView()" class="input-box bg-slate-800 border-blue-500/50 font-bold">
+                    <option value="all">Full Year</option>
+                    <option value="0">January</option>
+                    <option value="1">February</option>
+                    <option value="2">March</option>
+                    <option value="3">April</option>
+                    <option value="4">May</option>
+                    <option value="5">June</option>
+                    <option value="6">July</option>
+                    <option value="7">August</option>
+                    <option value="8">September</option>
+                    <option value="9">October</option>
+                    <option value="10">November</option>
+                    <option value="11">December</option>
+                </select>
             </div>
-            <button onclick="toggleWorkHistory()" class="w-full bg-slate-800 py-3 rounded-xl font-bold uppercase text-xs">Close</button>
         </div>
     </div>
 
     <div class="max-w-md mx-auto">
         <div class="flex justify-between items-center mb-6">
             <h1 class="font-black text-2xl italic uppercase tracking-tighter">Ayyappan <span class="text-blue-500">Pro</span></h1>
-            <div class="flex gap-3">
-                <button onclick="startPdfExport('helper')" class="w-10 h-10 glass flex items-center justify-center text-red-400"><i class="fas fa-file-pdf"></i></button>
-                <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-cog"></i></button>
-            </div>
+            <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-cog"></i></button>
         </div>
 
         <div class="glass p-4 mb-6 border-l-4 border-yellow-500 shadow-xl">
@@ -97,6 +73,7 @@
         </div>
 
         <div class="glass p-5 mb-8 space-y-5 border-t-4 border-blue-600 shadow-2xl">
+            <h2 class="text-xs font-bold text-blue-400 uppercase tracking-widest">New Entry</h2>
             <input type="hidden" id="editId">
             <div class="grid grid-cols-2 gap-4">
                 <div><label>Date</label><input type="date" id="date" class="input-box"></div>
@@ -131,6 +108,7 @@
             <button onclick="saveData()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase shadow-lg">Save Record</button>
         </div>
 
+        <h2 id="listTitle" class="text-xs font-bold text-gray-500 mb-4 uppercase tracking-widest">Records</h2>
         <div id="displayArea" class="space-y-4 pb-32"></div>
     </div>
 
@@ -152,69 +130,97 @@
         </div>
     </div>
 
-    <div id="smartReportModal" class="modal">
-        <div class="glass p-6 w-full max-w-md max-h-[85vh] overflow-y-auto space-y-6">
-            <div class="flex justify-between border-b border-white/10 pb-4"><h2 class="font-bold text-blue-400">INSIGHTS</h2><button onclick="toggleReport()"><i class="fas fa-times"></i></button></div>
-            <div id="companyStats" class="space-y-2"></div>
-            <button onclick="toggleReport()" class="w-full bg-slate-800 py-3 rounded-xl">Close</button>
-        </div>
-    </div>
-    <div id="pdfDateModal" class="modal">
-        <div class="glass p-6 w-full max-w-sm space-y-4">
-            <h2 class="font-bold text-blue-400 uppercase">Export Report</h2><input type="hidden" id="pdfType">
-            <div><label>From</label><input type="date" id="pdfFrom" class="input-box"></div>
-            <div><label>To</label><input type="date" id="pdfTo" class="input-box"></div>
-            <button onclick="generateFilteredPDF()" class="w-full bg-green-600 py-3 rounded-lg font-black">GENERATE</button>
-            <button onclick="document.getElementById('pdfDateModal').style.display='none'" class="w-full text-gray-500">Cancel</button>
+    <div id="settingsModal" class="modal">
+        <div class="glass p-6 w-full max-w-sm space-y-4 text-center">
+            <h2 class="text-xl font-bold text-blue-400 uppercase">Control Panel</h2>
+            <button onclick="toggleWorkHistory()" class="w-full bg-blue-600 py-3 rounded-lg font-black uppercase text-xs"><i class="fas fa-list-check mr-2"></i> Site Summary Report</button>
+            <div class="text-left"><label>Target (₹)</label><input type="number" id="setTarget" class="input-box"></div>
+            <div class="text-left"><label>Helper Database</label><textarea id="setHelpers" class="input-box h-16"></textarea></div>
+            <button onclick="saveSettings()" class="w-full bg-green-600 py-3 rounded-lg font-bold uppercase">Save & Sync</button>
+            <button onclick="toggleSettings()" class="w-full text-sm text-gray-500">Close</button>
         </div>
     </div>
 
     <script>
-        // FIREBASE
         const firebaseConfig = { apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58", authDomain: "ayyappan-work-management.firebaseapp.com", projectId: "ayyappan-work-management" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // PWA SERVICE WORKER REGISTRATION (BLOB)
-        if ('serviceWorker' in navigator) {
-            const swCode = `self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request)); });`;
-            const blob = new Blob([swCode], {type: 'text/javascript'});
-            navigator.serviceWorker.register(URL.createObjectURL(blob));
-        }
-
         let allEntries = [];
-        let currentFilterMonth = new Date().getMonth();
         let globalSettings = { target: 500000, helpers: "Ravi, Kumar" };
 
-        function switchMonth(m) {
-            currentFilterMonth = m;
-            document.querySelectorAll('[id^="btn-"]').forEach(btn => btn.classList.remove('active-month'));
-            document.getElementById('btn-' + m).classList.add('active-month');
-            applyFilters();
-        }
+        function refreshView() { applyFilters(); }
 
-        async function syncSettings() {
-            const doc = await db.collection("appSettings").doc("userConfig").get();
-            if(doc.exists) {
-                globalSettings = doc.data();
-                document.getElementById('setTarget').value = globalSettings.target;
-                document.getElementById('setHelpers').value = globalSettings.helpers;
-            }
-            loadDropdowns();
-        }
+        function applyFilters() {
+            const selMonth = document.getElementById('monthNav').value;
+            const selYear = document.getElementById('yearNav').value;
+            
+            let currentEarned = 0, soloEarn = 0, partnerEarn = 0;
+            const container = document.getElementById('displayArea'); 
+            container.innerHTML = "";
 
-        function loadDropdowns() {
-            const helps = (globalSettings.helpers || "").split(',');
-            document.querySelectorAll('.d-helper').forEach(sel => {
-                const cur = sel.value;
-                sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
-                if(cur) sel.value = cur;
+            allEntries.forEach(d => {
+                const entryDate = new Date(d.date);
+                const entryMonth = entryDate.getMonth().toString();
+                const entryYear = entryDate.getFullYear().toString();
+
+                let siteExp = 0, helpers = [];
+                d.logs?.forEach(l => { 
+                    siteExp += (parseFloat(l.sal)||0) + (parseFloat(l.ot)||0) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
+                    if(!helpers.includes(l.helper)) helpers.push(l.helper); 
+                });
+                const net = (parseFloat(d.total)||0) - siteExp;
+                
+                // Always track Year-to-Date for the progress bar
+                if(!d.isHoliday && entryYear === selYear) currentEarned += (d.projectType === 'Partner' ? net/2 : net);
+
+                // Show only records matching Navigation
+                if (entryYear === selYear && (selMonth === 'all' || selMonth === entryMonth)) {
+                    if(!d.isHoliday) { 
+                        if(d.projectType === 'Partner') partnerEarn += (net/2); else soloEarn += net; 
+                    }
+                    container.innerHTML += `<div class="glass p-5 border-l-4 ${d.isHoliday ? 'border-red-500':'border-blue-600'} mb-4" onclick="editDoc('${d.id}')"><div class="text-[10px] text-gray-400 font-bold uppercase">${d.date} | ${d.projectType}</div><h4 class="font-black uppercase text-white">${d.isHoliday ? 'Holiday' : d.customer}</h4><div class="text-[11px] text-gray-400">${d.location || ''}</div>${!d.isHoliday ? `<div class="grid grid-cols-2 mt-2 pt-2 border-t border-white/10"><div class="text-[10px]">Team: <span class="text-blue-400 font-bold">${helpers.join(', ') || 'Self'}</span></div><div class="text-right text-[10px]">Wages: <span class="text-red-400 font-bold">₹${Math.round(siteExp)}</span></div></div>` : ''}</div>`;
+                }
             });
+
+            document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
+            document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
+            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(soloEarn + partnerEarn).toLocaleString();
+            updateTargetUI(currentEarned);
         }
 
-        function autoCalcOT(salInput) {
-            const row = salInput.closest('.day-entry');
-            row.querySelector('.d-ot').value = Math.round((parseFloat(salInput.value) || 0) / 2);
+        function updateTargetUI(earned) {
+            const target = parseFloat(globalSettings.target) || 500000;
+            document.getElementById('targetBar').style.width = Math.min((earned / target) * 100, 100) + "%";
+            document.getElementById('targetEarned').innerText = `₹${Math.round(earned).toLocaleString()}`;
+            document.getElementById('targetGoal').innerText = `Goal: ₹${target.toLocaleString()}`;
+            document.getElementById('targetRem').innerText = `₹${Math.max(0, Math.round(target - earned)).toLocaleString()} Left`;
+        }
+
+        async function saveData() {
+            const customer = document.getElementById('customer').value.trim();
+            if(!document.getElementById('isHoliday').checked && !customer) { alert("Customer required"); return; }
+            const cal = calculate(), logs = [];
+            document.querySelectorAll('.day-entry').forEach(row => { logs.push({ hDate: row.querySelector('.d-hdate').value, helper: row.querySelector('.d-helper').value, status: row.querySelector('.d-status').value, sal: row.querySelector('.d-sal').value, ot: row.querySelector('.d-ot').value, pet: row.querySelector('.d-pet').value, food: row.querySelector('.d-food').value }); });
+            const data = { date: document.getElementById('date').value, qn: document.getElementById('qn').value, customer, location: document.getElementById('location').value, projectType: document.getElementById('projectType').value, totalWindow: document.getElementById('totalWindow').value, totalSqft: document.getElementById('totalSqft').value, amtRate: document.getElementById('amtRate').value, total: cal.val, logs, isHoliday: document.getElementById('isHoliday').checked, comment: document.getElementById('isHoliday').checked ? document.getElementById('holidayReason').value : document.getElementById('workNotes').value };
+            const id = document.getElementById('editId').value;
+            if(id) await db.collection("workLogs").doc(id).update(data); else await db.collection("workLogs").add(data);
+            location.reload();
+        }
+
+        function editDoc(id) {
+            const d = allEntries.find(e => e.id === id);
+            document.getElementById('editId').value = id; 
+            document.getElementById('date').value = d.date; 
+            document.getElementById('qn').value = d.qn || "";
+            document.getElementById('customer').value = d.customer; 
+            document.getElementById('location').value = d.location || "";
+            document.getElementById('totalSqft').value = d.totalSqft || ""; 
+            document.getElementById('amtRate').value = d.amtRate || "";
+            document.getElementById('isHoliday').checked = d.isHoliday; 
+            document.getElementById('dayLogsContainer').innerHTML = "";
+            d.logs?.forEach(l => addDayRow(l));
+            checkHoliday(); calculate(); window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
         function addDayRow(data = null) {
@@ -230,8 +236,17 @@
                     <input type="number" placeholder="Fd" class="input-box h-8 d-food px-1 text-center" oninput="calculate()" value="${data?.food || ''}">
                 </div>
                 <button onclick="this.parentElement.remove(); calculate()" class="absolute -top-2 -right-2 bg-red-600 text-white w-5 h-5 rounded-full text-xs">×</button>`;
-            container.appendChild(dayDiv); loadDropdowns();
+            container.appendChild(dayDiv); loadHelperOptions();
             if(data) { dayDiv.querySelector('.d-helper').value = data.helper; dayDiv.querySelector('.d-status').value = data.status; calculate(); }
+        }
+
+        function loadHelperOptions() {
+            const helps = (globalSettings.helpers || "").split(',');
+            document.querySelectorAll('.d-helper').forEach(sel => {
+                const cur = sel.value;
+                sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
+                if(cur) sel.value = cur;
+            });
         }
 
         function calculate() {
@@ -243,9 +258,35 @@
             return { val, siteExp };
         }
 
-        async function saveData() {
-            const customer = document.getElementById('customer').value.trim();
-            if(!document.getElementById('isHoliday').checked && !customer) { alert("Customer required"); return; }
-            const cal = calculate(), logs = [];
-            document.querySelectorAll('.day-entry').forEach(row => { logs.push({ hDate: row.querySelector('.d-hdate').value, helper: row.querySelector('.d-helper').value, status: row.querySelector('.d-status').value, sal: row.querySelector('.d-sal').value, ot: row.querySelector('.d-ot').value, pet: row.querySelector('.d-pet').value, food: row.querySelector('.d-food').value }); });
-            const data = { date: document.getElementById('date').value, qn: document.getElementById('qn').value, customer, location: document.getElementById('location').value, projectType: document.get
+        function autoCalcOT(salInput) {
+            const row = salInput.closest('.day-entry');
+            row.querySelector('.d-ot').value = Math.round((parseFloat(salInput.value) || 0) / 2);
+        }
+
+        function toggleSettings() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
+        function checkHoliday() { document.getElementById('workFields').style.display = document.getElementById('isHoliday').checked ? 'none' : 'block'; document.getElementById('holidayReasonDiv').classList.toggle('hidden', !document.getElementById('isHoliday').checked); }
+
+        async function saveSettings() {
+            globalSettings = { target: document.getElementById('setTarget').value, helpers: document.getElementById('setHelpers').value };
+            await db.collection("appSettings").doc("userConfig").set(globalSettings);
+            loadHelperOptions(); toggleSettings();
+        }
+
+        db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => { allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); applyFilters(); });
+
+        window.onload = async () => { 
+            const today = new Date();
+            document.getElementById('date').valueAsDate = today; 
+            document.getElementById('monthNav').value = today.getMonth().toString();
+            document.getElementById('yearNav').value = today.getFullYear().toString();
+            const doc = await db.collection("appSettings").doc("userConfig").get();
+            if(doc.exists) {
+                globalSettings = doc.data();
+                document.getElementById('setTarget').value = globalSettings.target;
+                document.getElementById('setHelpers').value = globalSettings.helpers;
+            }
+            addDayRow(); 
+        };
+    </script>
+</body>
+</html>
