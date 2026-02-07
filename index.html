@@ -51,13 +51,13 @@
 
         <div class="glass p-4 mb-6 border-l-4 border-yellow-500">
             <div class="flex justify-between items-end mb-1">
-                <label class="m-0 text-yellow-500">Target Progress</label>
+                <label class="m-0 text-yellow-500">Savings Target</label>
                 <span id="targetRem" class="text-[10px] font-bold text-white">Remaining: ₹0</span>
             </div>
             <div class="w-full bg-white/10 h-3 rounded-full overflow-hidden mb-1">
                 <div id="targetBar" class="bg-yellow-500 h-full transition-all duration-500" style="width: 0%"></div>
             </div>
-            <div class="flex justify-between text-[9px] font-bold uppercase tracking-widest">
+            <div class="flex justify-between text-[9px] font-bold uppercase">
                 <span id="targetEarned">Earned: ₹0</span>
                 <span id="targetGoal">Goal: ₹0</span>
             </div>
@@ -73,32 +73,39 @@
                 <div class="flex items-center gap-2"><input type="checkbox" id="isHoliday" onchange="checkHoliday()" class="w-4 h-4 accent-red-500"><label class="m-0 text-red-400">Holiday</label></div>
                 <select id="projectType" onchange="handleTypeChange()" class="bg-transparent text-[10px] font-bold text-blue-400 outline-none uppercase"><option value="Solo">SOLO WORK</option><option value="Partner">PARTNER WORK</option></select>
             </div>
-            <div id="partnerNameDiv" class="hidden"><label>Partner Name</label><input type="text" id="partnerName" class="input-box border-blue-500/50"></div>
+            <div id="partnerNameDiv" class="hidden"><label>Partner Name</label><input type="text" id="partnerName" class="input-box border-blue-500/50" placeholder="Enter Partner Name"></div>
+            
             <div id="workFields" class="space-y-4">
                 <div><label>Company</label><select id="company" class="input-box"></select></div>
                 <div class="grid grid-cols-2 gap-3">
                     <div><label>Customer *</label><input type="text" id="customer" class="input-box"></div>
-                    <div><label>Location</label><input type="text" id="location" class="input-box"></div>
+                    <div><label>Location</label><input type="text" id="location" class="input-box" placeholder="Area/City"></div>
                 </div>
                 <div class="bg-blue-500/5 p-3 rounded-lg border border-blue-500/20">
                     <div class="flex justify-between items-center mb-2">
-                        <label class="text-blue-400 m-0 font-black">Attendance</label>
-                        <button id="addDayBtn" onclick="addDayRow()" class="text-[8px] bg-blue-600 px-3 py-1 rounded font-bold uppercase">+ Add Day</button>
+                        <div class="flex items-center gap-2"><label class="text-blue-400 m-0 font-black">Helpers</label><label class="toggle-switch"><input type="checkbox" id="helperToggle" checked onchange="toggleHelperSection()"><span class="slider"></span></label></div>
+                        <button id="addDayBtn" onclick="addDayRow()" class="text-[8px] bg-blue-600 px-3 py-1 rounded font-bold uppercase shadow">+ Add Attendance</button>
                     </div>
                     <div id="dayLogsContainer" class="space-y-2"></div>
                 </div>
                 <div class="grid grid-cols-3 gap-2">
-                    <div><label>Window</label><input type="number" id="totalWindow" class="input-box"></div>
-                    <div><label>Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
-                    <div><label>Rate</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
+                    <div><label>Total Window</label><input type="number" id="totalWindow" class="input-box" placeholder="Qty"></div>
+                    <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box" placeholder="Sqft"></div>
+                    <div><label>Rate/Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box" placeholder="Rate"></div>
                 </div>
-                <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl">
-                    <div><label class="m-0 text-green-500">Value</label><div id="resTotal" class="text-lg font-black text-green-400">₹0</div></div>
-                    <div class="text-right"><label class="m-0 text-red-400 text-[8px]">Expenses</label><div id="resExpDisplay" class="text-xs font-bold text-red-400">₹0</div></div>
+                <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/10">
+                    <div><label class="m-0 text-green-500">Project Value</label><div id="resTotal" class="text-lg font-black text-green-400">₹0</div></div>
+                    <div class="text-right"><label class="m-0 text-red-400 text-[8px]">Daily Expenses</label><div id="resExpDisplay" class="text-xs font-bold text-red-400">₹0</div></div>
                 </div>
+                <div><label>Work Notes</label><textarea id="workNotes" class="input-box h-12" placeholder="Ex: Handle repair..."></textarea></div>
             </div>
-            <div id="holidayReasonDiv" class="hidden"><label>Reason</label><textarea id="holidayReason" class="input-box h-12"></textarea></div>
-            <button onclick="saveData()" class="w-full bg-blue-600 py-3 rounded-xl font-black uppercase text-sm">Save Record</button>
+
+            <div id="holidayReasonDiv" class="hidden"><label>Holiday Reason</label><textarea id="holidayReason" class="input-box h-12" placeholder="Why holiday?"></textarea></div>
+            
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="saveData()" class="col-span-2 bg-blue-600 py-3 rounded-xl font-black uppercase text-sm">Save Record</button>
+                <button onclick="location.reload()" class="bg-slate-700 py-3 rounded-xl font-bold text-[9px] text-slate-400 uppercase">Reset</button>
+            </div>
         </div>
         <div id="displayArea" class="space-y-3"></div>
     </div>
@@ -106,26 +113,29 @@
     <div class="summary-footer max-w-md mx-auto">
         <div class="px-2 mb-2">
             <div class="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
-                <table class="w-full text-[9px]">
+                <table class="w-full text-[9px] text-left">
+                    <thead class="bg-white/10 text-gray-400 uppercase font-black">
+                        <tr><th class="p-1 px-2">Earning Source</th><th class="p-1 text-right px-2">Amount</th></tr>
+                    </thead>
                     <tbody class="text-gray-200">
-                        <tr class="border-b border-white/5"><td class="p-1 px-2">Solo (100%)</td><td id="tblSolo" class="p-1 text-right px-2 text-green-400">₹0</td></tr>
-                        <tr class="border-b border-white/5"><td class="p-1 px-2">Partner (50%)</td><td id="tblPartnerMine" class="p-1 text-right px-2 text-blue-400">₹0</td></tr>
-                        <tr><td class="p-1 px-2 text-gray-500">To Partner</td><td id="tblPartnerShare" class="p-1 text-right px-2 text-orange-400">₹0</td></tr>
+                        <tr class="border-b border-white/5"><td class="p-1 px-2">Solo Work (100% Mine)</td><td id="tblSolo" class="p-1 text-right px-2 font-bold text-green-400">₹0</td></tr>
+                        <tr class="border-b border-white/5"><td class="p-1 px-2">Partner Work (50% Mine)</td><td id="tblPartnerMine" class="p-1 text-right px-2 font-bold text-blue-400">₹0</td></tr>
+                        <tr><td class="p-1 px-2 text-gray-500">Partner Share (To Partner)</td><td id="tblPartnerShare" class="p-1 text-right px-2 font-bold text-orange-400">₹0</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2 px-2 mb-3">
-            <button onclick="exportPartnerPDF()" class="bg-blue-600 py-2 rounded text-[10px] font-black uppercase">Partner PDF</button>
-            <button onclick="exportHelperPDF()" class="bg-orange-600 py-2 rounded text-[10px] font-black uppercase">Helper PDF</button>
+            <button onclick="exportPartnerPDF()" class="bg-blue-600 py-2 rounded text-[10px] font-black uppercase">Partner PDF Report</button>
+            <button onclick="exportHelperPDF()" class="bg-orange-600 py-2 rounded text-[10px] font-black uppercase">Helper PDF Report</button>
         </div>
 
         <div class="grid grid-cols-3 gap-2 px-2 pb-1">
-            <select id="filterType" onchange="applyFilters()" class="input-box h-8 py-0 bg-slate-800 text-[10px] uppercase"><option value="all">ALL</option><option value="Solo">Solo</option><option value="Partner">Partner</option></select>
-            <select id="filterCompany" onchange="applyFilters()" class="input-box h-8 py-0 bg-slate-800 text-[10px] uppercase"><option value="all">COMP</option></select>
-            <select id="filterMonth" onchange="applyFilters()" class="input-box h-8 py-0 bg-slate-800 text-[10px] uppercase">
-                <option value="all">MONTH</option><option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option><option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
+            <select id="filterType" onchange="applyFilters()" class="input-box h-8 py-0 bg-slate-800 text-[10px] font-bold uppercase"><option value="all">TYPE: ALL</option><option value="Solo">Solo</option><option value="Partner">Partner</option></select>
+            <select id="filterCompany" onchange="applyFilters()" class="input-box h-8 py-0 bg-slate-800 text-[10px] font-bold uppercase"><option value="all">COMP: ALL</option></select>
+            <select id="filterMonth" onchange="applyFilters()" class="input-box h-8 py-0 bg-slate-800 text-[10px] font-bold uppercase">
+                <option value="all">MONTH: ALL</option><option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option><option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option><option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option><option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
             </select>
         </div>
     </div>
@@ -136,7 +146,7 @@
         const db = firebase.firestore();
         let allEntries = [];
 
-        // PDF EXPORTS WITH TOTALS
+        // PDF GENERATORS WITH TOTALS
         function exportPartnerPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -148,10 +158,10 @@
                 grandTotal += netShare;
                 return [e.date, e.customer, `Rs.${Math.round(e.total)}`, `Rs.${Math.round(siteExp)}`, `Rs.${Math.round(netShare)}` ];
             });
-            partnerRows.push([{content: 'GRAND TOTAL PARTNER SHARE', colSpan: 4, styles: {halign: 'right', fontStyle: 'bold'}}, `Rs.${Math.round(grandTotal)}`]);
-            doc.text(`Partner Settlement Report: ${fMonth}`, 14, 20);
-            doc.autoTable({ head: [['Date', 'Customer', 'Value', 'Exp', '50% Share']], body: partnerRows, startY: 30, theme: 'grid' });
-            doc.save(`Partner_Report.pdf`);
+            partnerRows.push([{content: 'TOTAL PARTNER SETTLEMENT', colSpan: 4, styles: {halign: 'right', fontStyle: 'bold', fillColor: [240, 240, 240]}}, {content: `Rs.${Math.round(grandTotal)}`, styles: {fontStyle: 'bold', fillColor: [240, 240, 240]}}]);
+            doc.text(`Partner Report: ${fMonth}`, 14, 20);
+            doc.autoTable({ head: [['Date', 'Customer', 'Project Val', 'Exp', '50% Share']], body: partnerRows, startY: 30, theme: 'grid' });
+            doc.save(`Partner_Report_${fMonth}.pdf`);
         }
 
         function exportHelperPDF() {
@@ -166,13 +176,23 @@
                     helperData.push([l.hDate, l.helper, e.customer, l.ot, `Rs.${Math.round(pay)}`]);
                 });
             });
-            helperData.push([{content: 'TOTAL PAYOUT', colSpan: 4, styles: {halign: 'right', fontStyle: 'bold'}}, `Rs.${Math.round(grandTotal)}`]);
+            helperData.push([{content: 'TOTAL WAGES TO BE PAID', colSpan: 4, styles: {halign: 'right', fontStyle: 'bold', fillColor: [240, 240, 240]}}, {content: `Rs.${Math.round(grandTotal)}`, styles: {fontStyle: 'bold', fillColor: [240, 240, 240]}}]);
             doc.text("Helper Payroll Report", 14, 20);
             doc.autoTable({ head: [['Date', 'Helper', 'Site', 'OT', 'Amount']], body: helperData, startY: 30 });
             doc.save(`Helper_Report.pdf`);
         }
 
-        // SETTINGS & TARGET LOGIC
+        function exportFullPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const fMonth = document.getElementById('filterMonth').options[document.getElementById('filterMonth').selectedIndex].text;
+            doc.text(`Full Work Report - ${fMonth}`, 14, 15);
+            const rows = allEntries.map(e => [e.date, e.customer, e.projectType, e.totalSqft, `Rs.${Math.round(e.total)}` ]);
+            doc.autoTable({ head: [['Date', 'Customer', 'Type', 'Sqft', 'Amount']], body: rows, startY: 25 });
+            doc.save(`Full_Report.pdf`);
+        }
+
+        // CORE LOGIC
         function toggleSettings() {
             const m = document.getElementById('settingsModal');
             m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
@@ -186,24 +206,13 @@
             localStorage.setItem('myTarget', document.getElementById('setTarget').value);
             localStorage.setItem('myCompanies', document.getElementById('setCompanies').value);
             localStorage.setItem('myHelpers', document.getElementById('setHelpers').value);
-            loadDropdowns(); updateTargetUI(0); toggleSettings(); applyFilters();
+            loadDropdowns(); toggleSettings(); applyFilters();
         }
 
-        function updateTargetUI(currentEarned) {
-            const target = parseFloat(localStorage.getItem('myTarget')) || 500000;
-            const remaining = target - currentEarned;
-            const percent = Math.min((currentEarned / target) * 100, 100);
-            document.getElementById('targetBar').style.width = percent + "%";
-            document.getElementById('targetEarned').innerText = `Earned: ₹${Math.round(currentEarned).toLocaleString()}`;
-            document.getElementById('targetGoal').innerText = `Goal: ₹${target.toLocaleString()}`;
-            document.getElementById('targetRem').innerText = `Remaining: ₹${Math.max(0, Math.round(remaining)).toLocaleString()}`;
-        }
-
-        // REST OF THE FUNCTIONS (SAME)
         function loadDropdowns() {
             const comps = (localStorage.getItem('myCompanies') || "Sharp,Buildcon").split(',');
             document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
-            document.getElementById('filterCompany').innerHTML = `<option value="all">COMP</option>` + comps.map(c => `<option value="${c.trim()}">${c.trim()}</option>`).join('');
+            document.getElementById('filterCompany').innerHTML = `<option value="all">COMP: ALL</option>` + comps.map(c => `<option value="${c.trim()}">${c.trim()}</option>`).join('');
             const helps = (localStorage.getItem('myHelpers') || "Ravi,Kumar").split(',');
             document.querySelectorAll('.d-helper').forEach(sel => {
                 const cur = sel.value;
@@ -230,7 +239,7 @@
                     <input type="number" placeholder="Food" class="input-box h-7 d-food" oninput="calculate()" value="${data?.food || ''}">
                     <div class="text-[9px] font-black text-white flex items-center justify-center bg-blue-500/20 rounded d-row-total">₹0</div>
                 </div>
-                <button onclick="this.parentElement.remove(); calculate()" class="absolute top-0 right-0 text-red-500 p-1">×</button>`;
+                <button onclick="this.parentElement.remove(); calculate()" class="absolute -top-1 -right-1 text-red-500 text-lg">×</button>`;
             container.appendChild(dayDiv);
             loadDropdowns();
             if(data) { 
@@ -266,10 +275,13 @@
                 logs.push({ hDate: row.querySelector('.d-hdate').value, helper: row.querySelector('.d-helper').value, ot: row.querySelector('.d-ot').value, sal: row.querySelector('.d-sal').value, pet: row.querySelector('.d-pet').value, food: row.querySelector('.d-food').value });
             });
             const data = {
-                date: document.getElementById('date').value, customer: document.getElementById('customer').value,
+                date: document.getElementById('date').value, qn: document.getElementById('qn').value,
+                customer: document.getElementById('customer').value, location: document.getElementById('location').value,
                 projectType: document.getElementById('projectType').value, company: document.getElementById('company').value,
-                totalSqft: document.getElementById('totalSqft').value, amtRate: document.getElementById('amtRate').value,
-                total: cal.val, logs: logs, isHoliday: document.getElementById('isHoliday').checked
+                totalWindow: document.getElementById('totalWindow').value, totalSqft: document.getElementById('totalSqft').value, 
+                amtRate: document.getElementById('amtRate').value, total: cal.val, logs: logs, 
+                isHoliday: document.getElementById('isHoliday').checked, 
+                comment: document.getElementById('isHoliday').checked ? document.getElementById('holidayReason').value : document.getElementById('workNotes').value
             };
             const id = document.getElementById('editId').value;
             if(id) await db.collection("workLogs").doc(id).update(data); else await db.collection("workLogs").add(data);
@@ -277,7 +289,7 @@
         }
 
         function applyFilters() {
-            const fMonth = document.getElementById('filterMonth').value;
+            const fMonth = document.getElementById('filterMonth').value, fComp = document.getElementById('filterCompany').value, fType = document.getElementById('filterType').value;
             let currentEarned = 0, soloEarn = 0, partnerEarn = 0, partnerShare = 0;
             const container = document.getElementById('displayArea');
             container.innerHTML = "";
@@ -286,14 +298,15 @@
                 let siteExp = 0; d.logs?.forEach(l => { siteExp += (parseFloat(l.sal)||0) + (parseFloat(l.sal)*0.5*(parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); });
                 const net = (parseFloat(d.total)||0) - siteExp;
                 
-                // Track Total Earned for Target (All Time)
+                // Track Target Earned (All records)
                 if(!d.isHoliday) {
-                    if(d.projectType === 'Partner') currentEarned += (net/2);
-                    else currentEarned += net;
+                    if(d.projectType === 'Partner') currentEarned += (net/2); else currentEarned += net;
                 }
 
-                // Apply View Filters
+                // Filter logic
                 if(fMonth !== 'all' && new Date(d.date).getMonth() != fMonth) return;
+                if(fComp !== 'all' && d.company !== fComp) return;
+                if(fType !== 'all' && d.projectType !== fType) return;
 
                 if(!d.isHoliday) {
                     if(d.projectType === 'Partner') { partnerEarn += (net/2); partnerShare += (net/2); }
@@ -302,8 +315,20 @@
 
                 container.innerHTML += `<div class="glass p-3 border-l-4 ${d.isHoliday ? 'border-red-500':'border-blue-500'}">
                     <div class="flex justify-between items-center">
-                        <div><p class="text-[8px] text-gray-500">${d.date}</p><h4 class="font-bold text-xs uppercase">${d.customer}</h4></div>
-                        <button onclick="editDoc('${d.id}')" class="text-blue-400 text-[10px]">Edit</button>
+                        <div onclick="this.parentElement.nextElementSibling.classList.toggle('hidden')">
+                            <p class="text-[8px] text-gray-500">${d.date} | ${d.qn || 'No QN'}</p>
+                            <h4 class="font-bold text-xs uppercase">${d.isHoliday ? 'Palm Holiday' : d.customer}</h4>
+                            <p class="text-green-400 font-bold text-xs">₹${Math.round(d.total)}</p>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <button onclick="editDoc('${d.id}')" class="bg-blue-600/20 text-blue-400 text-[8px] px-2 py-1 rounded">Edit</button>
+                            <button onclick="deleteDoc('${d.id}')" class="bg-red-600/20 text-red-400 text-[8px] px-2 py-1 rounded">Del</button>
+                        </div>
+                    </div>
+                    <div class="hidden mt-2 pt-2 border-t border-white/5 text-[9px]">
+                        <p>Loc: ${d.location || '-'}</p>
+                        <p>Type: ${d.projectType}</p>
+                        <p class="italic text-gray-400">${d.comment || ''}</p>
                     </div>
                 </div>`;
             });
@@ -314,18 +339,33 @@
             updateTargetUI(currentEarned);
         }
 
-        function editDoc(id) {
-            const d = allEntries.find(e => e.id === id);
-            document.getElementById('editId').value = id; document.getElementById('date').value = d.date;
-            document.getElementById('customer').value = d.customer; document.getElementById('totalSqft').value = d.totalSqft;
-            document.getElementById('amtRate').value = d.amtRate; document.getElementById('projectType').value = d.projectType;
-            document.getElementById('dayLogsContainer').innerHTML = "";
-            d.logs?.forEach(l => addDayRow(l)); calculate();
+        function updateTargetUI(earned) {
+            const target = parseFloat(localStorage.getItem('myTarget')) || 500000;
+            const percent = Math.min((earned / target) * 100, 100);
+            document.getElementById('targetBar').style.width = percent + "%";
+            document.getElementById('targetEarned').innerText = `Earned: ₹${Math.round(earned).toLocaleString()}`;
+            document.getElementById('targetGoal').innerText = `Goal: ₹${target.toLocaleString()}`;
+            document.getElementById('targetRem').innerText = `Remaining: ₹${Math.max(0, Math.round(target - earned)).toLocaleString()}`;
         }
 
+        function editDoc(id) {
+            const d = allEntries.find(e => e.id === id);
+            document.getElementById('editId').value = id; document.getElementById('date').value = d.date; document.getElementById('qn').value = d.qn || "";
+            document.getElementById('customer').value = d.customer; document.getElementById('location').value = d.location || "";
+            document.getElementById('totalWindow').value = d.totalWindow || ""; document.getElementById('totalSqft').value = d.totalSqft || "";
+            document.getElementById('amtRate').value = d.amtRate || ""; document.getElementById('projectType').value = d.projectType;
+            document.getElementById('isHoliday').checked = d.isHoliday;
+            if(d.isHoliday) document.getElementById('holidayReason').value = d.comment || ""; else document.getElementById('workNotes').value = d.comment || "";
+            document.getElementById('dayLogsContainer').innerHTML = "";
+            d.logs?.forEach(l => addDayRow(l)); checkHoliday(); handleTypeChange(); calculate(); window.scrollTo(0,0);
+        }
+
+        async function deleteDoc(id) { if(confirm("Delete record?")) await db.collection("workLogs").doc(id).delete(); }
         function handleTypeChange() { document.getElementById('partnerNameDiv').classList.toggle('hidden', document.getElementById('projectType').value !== 'Partner'); }
-        function checkHoliday() { document.getElementById('workFields').style.display = document.getElementById('isHoliday').checked ? 'none' : 'block'; }
-        window.onload = () => { document.getElementById('date').valueAsDate = new Date(); loadDropdowns(); addDayRow(); };
+        function checkHoliday() { document.getElementById('workFields').style.display = document.getElementById('isHoliday').checked ? 'none' : 'block'; document.getElementById('holidayReasonDiv').classList.toggle('hidden', !document.getElementById('isHoliday').checked); }
+        function toggleHelperSection() { document.getElementById('dayLogsContainer').style.display = document.getElementById('helperToggle').checked ? 'block' : 'none'; }
+
+        window.onload = () => { document.getElementById('date').valueAsDate = new Date(); loadDropdowns(); addDayRow(); toggleHelperSection(); };
     </script>
 </body>
 </html>
