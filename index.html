@@ -25,6 +25,7 @@
         .day-entry { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 10px; border-radius: 10px; margin-bottom: 8px; position: relative; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .summary-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #070b14; border-top: 2px solid #3b82f6; padding: 12px; z-index: 50; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+        .work-note-box { background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; padding: 6px 10px; margin-top: 8px; border-radius: 4px; font-size: 11px; font-style: italic; }
         select option { background: #1e293b; color: white; }
     </style>
 </head>
@@ -32,42 +33,43 @@
 
     <div id="settingsModal" class="modal">
         <div class="glass p-6 w-full max-w-sm space-y-4">
-            <h2 class="text-center font-black text-blue-400">APP SETTINGS</h2>
-            <button onclick="toggleWorkHistory()" class="w-full bg-blue-600 py-3 rounded-lg font-bold text-xs">SITE PAYMENT REPORT</button>
-            <div class="text-left"><label>Monthly Profit Target (₹)</label><input type="number" id="setTarget" class="input-box" placeholder="e.g. 50000"></div>
-            <div class="text-left"><label>Helper List (Comma Separated)</label><textarea id="setHelpers" class="input-box h-20"></textarea></div>
-            <button id="saveSettingsBtn" onclick="saveSettings()" class="w-full bg-green-600 py-3 rounded-lg font-bold">SAVE & SYNC</button>
-            <button onclick="toggleSettings()" class="w-full text-xs text-gray-500">Close</button>
+            <h2 class="text-center font-black text-blue-400">CONTROL PANEL</h2>
+            <button onclick="toggleWorkHistory()" class="w-full bg-blue-600 py-3 rounded-lg font-bold text-xs uppercase">All Site Work Report</button>
+            <div class="text-left"><label>Monthly Target (₹)</label><input type="number" id="setTarget" class="input-box"></div>
+            <div class="text-left"><label>Company Database (Comma Separated)</label><textarea id="setCompanies" class="input-box h-16"></textarea></div>
+            <div class="text-left"><label>Helper Database (Comma Separated)</label><textarea id="setHelpers" class="input-box h-16"></textarea></div>
+            <button id="saveSettingsBtn" onclick="saveSettings()" class="w-full bg-green-600 py-3 rounded-lg font-bold uppercase">Sync to Cloud</button>
+            <button onclick="toggleSettings()" class="w-full text-xs text-gray-500 uppercase">Close</button>
         </div>
     </div>
 
     <div id="workHistoryModal" class="modal">
         <div class="glass p-5 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
-            <h2 id="reportTitle" class="text-blue-400 font-bold mb-4">MONTHLY REPORT</h2>
+            <h2 id="reportTitle" class="text-blue-400 font-bold mb-4 uppercase">Monthly Report</h2>
             <table class="w-full text-[10px] text-left">
-                <thead class="text-gray-400 border-b border-white/10"><tr><th class="p-1">SITE</th><th class="p-1 text-right">GROSS</th><th class="p-1 text-right">WAGES</th><th class="p-1 text-right">PROFIT</th></tr></thead>
+                <thead class="text-gray-400 border-b border-white/10"><tr><th class="p-1">SITE</th><th class="p-1 text-center">DAYS</th><th class="p-1 text-right">GROSS</th><th class="p-1 text-right">WAGES</th><th class="p-1 text-right">PROFIT</th></tr></thead>
                 <tbody id="workHistoryTableBody"></tbody>
-                <tfoot id="workHistoryTableFoot" class="font-bold border-t border-blue-500"></tfoot>
+                <tfoot id="workHistoryTableFoot" class="font-bold border-t border-blue-500 text-white"></tfoot>
             </table>
-            <button onclick="toggleWorkHistory()" class="w-full bg-slate-800 py-3 rounded-xl mt-4 text-xs">CLOSE</button>
+            <button onclick="toggleWorkHistory()" class="w-full bg-slate-800 py-3 rounded-xl mt-4 text-xs font-bold uppercase">Close Report</button>
         </div>
     </div>
 
     <div class="max-w-md mx-auto">
-        <div class="flex justify-between items-center mb-6 bg-[#0f172a] sticky top-0 z-40 py-2">
+        <div class="flex justify-between items-center mb-6 sticky top-0 bg-[#0f172a] z-40 py-2">
             <div>
                 <h1 class="font-black text-xl italic leading-none">AYYAPPAN <span class="text-blue-500">PRO</span></h1>
-                <p class="text-[9px] text-gray-500 font-bold mt-1">BUSINESS MANAGER</p>
+                <p class="text-[9px] text-gray-500 font-bold mt-1">V2.6 FULL MANAGER</p>
             </div>
             <div class="flex items-center gap-2">
                 <select id="monthYearFilter" onchange="applyFilters()" class="bg-blue-600/20 border border-blue-500/30 text-blue-400 text-[11px] font-bold py-2 px-3 rounded-lg outline-none">
-                    </select>
+                </select>
                 <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-cog"></i></button>
             </div>
         </div>
 
         <div class="glass p-4 mb-6 border-l-4 border-yellow-500">
-            <div class="flex justify-between items-end mb-1"><label class="m-0 text-yellow-500" id="targetLabel">Monthly Progress</label><span id="targetRem" class="text-xs font-bold text-white">₹0 Left</span></div>
+            <div class="flex justify-between items-end mb-1"><label class="m-0 text-yellow-500" id="targetLabel">Monthly Goal</label><span id="targetRem" class="text-xs font-bold">₹0 Left</span></div>
             <div class="w-full bg-white/10 h-2 rounded-full mb-2"><div id="targetBar" class="bg-yellow-500 h-full rounded-full" style="width:0%"></div></div>
             <div class="flex justify-between text-[10px] font-bold text-gray-400"><span id="targetEarned">Earned: ₹0</span><span id="targetGoal">Goal: ₹0</span></div>
         </div>
@@ -75,40 +77,54 @@
         <div class="glass p-5 mb-8 border-t-2 border-blue-500 shadow-xl space-y-4">
             <input type="hidden" id="editId">
             <div class="grid grid-cols-2 gap-3">
-                <div><label>Date</label><input type="date" id="date" class="input-box"></div>
-                <div><label>QN No</label><input type="text" id="qn" class="input-box" placeholder="Optional"></div>
+                <div><label>Work Date</label><input type="date" id="date" class="input-box"></div>
+                <div><label>Quotation No</label><input type="text" id="qn" class="input-box" placeholder="QN-XXX"></div>
             </div>
             <div class="grid grid-cols-2 gap-3 bg-white/5 p-2 rounded-lg">
-                <div class="flex items-center gap-2 px-2"><input type="checkbox" id="isHoliday" onchange="checkHoliday()" class="w-4 h-4 accent-red-500"><label class="m-0 text-red-400">Holiday</label></div>
-                <select id="projectType" class="bg-transparent text-[11px] font-bold text-blue-400 uppercase outline-none px-2"><option value="Solo">Solo Work</option><option value="Partner">Partner (50%)</option></select>
+                <div class="flex items-center gap-2 px-2"><input type="checkbox" id="isHoliday" onchange="checkHoliday()" class="w-4 h-4 accent-red-500"><label class="m-0 text-red-400 uppercase">Holiday</label></div>
+                <select id="projectType" class="bg-transparent text-[11px] font-bold text-blue-400 uppercase outline-none"><option value="Solo">Solo Work</option><option value="Partner">Partner (50%)</option></select>
             </div>
             
             <div id="workFields" class="space-y-4">
-                <div><label>Customer Name *</label><input type="text" id="customer" class="input-box"></div>
+                <div><label>Company Name</label><select id="company" class="input-box"></select></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label>Customer *</label><input type="text" id="customer" class="input-box"></div>
+                    <div><label>Location</label><input type="text" id="location" class="input-box"></div>
+                </div>
+
                 <div class="bg-blue-600/5 p-3 rounded-lg border border-blue-500/20">
-                    <div class="flex justify-between items-center mb-2"><label class="m-0 text-blue-400">Helper Logs</label><button onclick="addDayRow()" class="text-[9px] bg-blue-600 px-2 py-1 rounded">+ ADD DAY</button></div>
+                    <div class="flex justify-between items-center mb-2"><label class="m-0 text-blue-400">Helper Attendance (OT 50%)</label><button onclick="addDayRow()" class="text-[9px] bg-blue-600 px-2 py-1 rounded">+ ADD</button></div>
                     <div id="dayLogsContainer" class="space-y-2"></div>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div><label>Qty (Win)</label><input type="number" id="totalWindow" class="input-box"></div>
                     <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
                     <div><label>Rate / Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
                 </div>
-                <div class="flex justify-between p-3 bg-black/20 rounded-lg">
+
+                <div class="flex justify-between p-3 bg-black/20 rounded-lg border border-white/5">
                     <div><label class="m-0 text-green-500">Gross Bill</label><div id="resTotal" class="text-xl font-black text-green-400">₹0</div></div>
-                    <div class="text-right"><label class="m-0 text-red-400">Wages Paid</label><div id="resExpDisplay" class="text-lg font-bold text-red-400">₹0</div></div>
+                    <div class="text-right"><label class="m-0 text-red-400">Total Wages</label><div id="resExpDisplay" class="text-lg font-bold text-red-400">₹0</div></div>
                 </div>
+                <div><label>Site Notes</label><textarea id="workNotes" class="input-box h-16" placeholder="Notes..."></textarea></div>
             </div>
-            <div id="holidayReasonDiv" class="hidden"><label>Reason</label><textarea id="holidayReason" class="input-box h-16"></textarea></div>
-            <button onclick="saveData()" class="w-full bg-blue-600 py-3 rounded-xl font-black uppercase">Save Record</button>
+
+            <div id="holidayReasonDiv" class="hidden"><label>Reason / Comment</label><textarea id="holidayReason" class="input-box h-16"></textarea></div>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="saveData()" class="bg-blue-600 py-3 rounded-xl font-black uppercase">Save Site</button>
+                <button onclick="location.reload()" class="bg-slate-800 py-3 rounded-xl font-bold text-xs uppercase text-slate-400">Clear</button>
+            </div>
         </div>
 
-        <div id="displayArea" class="space-y-4 pb-40"></div>
+        <div id="displayArea" class="space-y-4 pb-48"></div>
     </div>
 
-    <div class="summary-footer max-w-md mx-auto rounded-t-2xl">
-        <div class="flex justify-between px-4 py-1 mb-2 bg-white/5 rounded-lg border border-white/5">
+    <div class="summary-footer max-w-md mx-auto rounded-t-2xl shadow-2xl">
+        <div class="flex justify-between px-4 py-2 mb-2 bg-white/5 rounded-lg">
             <div class="text-center"><p class="text-[9px] text-gray-400 uppercase">Solo Net</p><p id="tblSolo" class="text-xs font-bold text-green-400">₹0</p></div>
-            <div class="text-center border-x border-white/10 px-6"><p class="text-[9px] text-gray-400 uppercase">Partner Share</p><p id="tblPartnerMine" class="text-xs font-bold text-blue-400">₹0</p></div>
+            <div class="text-center border-x border-white/10 px-6"><p class="text-[9px] text-gray-400 uppercase">Partner</p><p id="tblPartnerMine" class="text-xs font-bold text-blue-400">₹0</p></div>
             <div class="text-center"><p class="text-[9px] text-gray-400 uppercase">Total Profit</p><p id="tblGrandTotal" class="text-xs font-bold text-yellow-400">₹0</p></div>
         </div>
         <div class="grid grid-cols-2 gap-2">
@@ -123,21 +139,17 @@
         const db = firebase.firestore();
 
         let allEntries = [];
-        let globalSettings = { target: 50000, helpers: "Kumar, Ravi" };
+        let globalSettings = { target: 50000, companies: "Sharp, Buildcon", helpers: "Kumar, Ravi" };
 
-        // 1. GENERATE DROPDOWN FOR MONTH/YEAR
         function initMonthYearDropdown() {
             const select = document.getElementById('monthYearFilter');
             const now = new Date();
             const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            
             let html = `<option value="all">ALL TIME</option>`;
-            // Generate last 2 years + current year
             for (let year = now.getFullYear(); year >= now.getFullYear() - 1; year--) {
                 for (let m = 11; m >= 0; m--) {
                     const val = `${year}-${String(m).padStart(2, '0')}`;
-                    const label = `${months[m]} ${year}`;
-                    html += `<option value="${val}" ${now.getMonth() === m && now.getFullYear() === year ? 'selected' : ''}>${label}</option>`;
+                    html += `<option value="${val}" ${now.getMonth() === m && now.getFullYear() === year ? 'selected' : ''}>${months[m]} ${year}</option>`;
                 }
             }
             select.innerHTML = html;
@@ -148,12 +160,15 @@
             if(doc.exists) {
                 globalSettings = doc.data();
                 document.getElementById('setTarget').value = globalSettings.target;
+                document.getElementById('setCompanies').value = globalSettings.companies;
                 document.getElementById('setHelpers').value = globalSettings.helpers;
             }
             loadDropdowns();
         }
 
         function loadDropdowns() {
+            const comps = (globalSettings.companies || "").split(',');
+            document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
             const helps = (globalSettings.helpers || "").split(',');
             document.querySelectorAll('.d-helper').forEach(sel => {
                 const cur = sel.value;
@@ -164,18 +179,26 @@
 
         function addDayRow(data = null) {
             const container = document.getElementById('dayLogsContainer');
-            const div = document.createElement('div'); div.className = "day-entry";
+            const div = document.createElement('div'); div.className = "day-entry border-l-2 border-blue-500";
             div.innerHTML = `
-                <div class="grid grid-cols-2 gap-2 mb-1"><input type="date" class="input-box h-7 py-0 d-hdate" value="${data?.hDate || document.getElementById('date').value}"><select class="input-box h-7 py-0 d-helper"></select></div>
-                <div class="grid grid-cols-4 gap-1">
+                <div class="grid grid-cols-2 gap-2 mb-1">
+                    <input type="date" class="input-box h-7 py-0 d-hdate" value="${data?.hDate || document.getElementById('date').value}">
+                    <select class="input-box h-7 py-0 d-helper"></select>
+                </div>
+                <div class="grid grid-cols-5 gap-1">
+                    <select class="input-box h-7 py-0 d-status text-[8px] px-1"><option>Started</option><option>Ongoing</option><option>Done</option></select>
                     <input type="number" placeholder="Sal" class="input-box h-7 d-sal px-1 text-center" oninput="autoOT(this); calculate()" value="${data?.sal || ''}">
                     <input type="number" placeholder="OT" class="input-box h-7 d-ot px-1 text-center bg-blue-900/20" oninput="calculate()" value="${data?.ot || ''}">
                     <input type="number" placeholder="Pet" class="input-box h-7 d-pet px-1 text-center" oninput="calculate()" value="${data?.pet || ''}">
-                    <input type="number" placeholder="Food" class="input-box h-7 d-food px-1 text-center" oninput="calculate()" value="${data?.food || ''}">
+                    <input type="number" placeholder="Fd" class="input-box h-7 d-food px-1 text-center" oninput="calculate()" value="${data?.food || ''}">
                 </div>
                 <button onclick="this.parentElement.remove(); calculate()" class="absolute -top-1 -right-1 bg-red-600 text-white w-4 h-4 rounded-full text-[8px]">X</button>`;
             container.appendChild(div); loadDropdowns();
-            if(data) { div.querySelector('.d-helper').value = data.helper; calculate(); }
+            if(data) { 
+                div.querySelector('.d-helper').value = data.helper; 
+                div.querySelector('.d-status').value = data.status || "Started";
+                calculate(); 
+            }
         }
 
         function autoOT(input) { input.closest('.day-entry').querySelector('.d-ot').value = Math.round((parseFloat(input.value) || 0) / 2); }
@@ -196,9 +219,31 @@
             if(!document.getElementById('isHoliday').checked && !customer) return alert("Customer required");
             const cal = calculate(), logs = [];
             document.querySelectorAll('.day-entry').forEach(row => {
-                logs.push({ hDate: row.querySelector('.d-hdate').value, helper: row.querySelector('.d-helper').value, sal: row.querySelector('.d-sal').value, ot: row.querySelector('.d-ot').value, pet: row.querySelector('.d-pet').value, food: row.querySelector('.d-food').value });
+                logs.push({ 
+                    hDate: row.querySelector('.d-hdate').value, 
+                    helper: row.querySelector('.d-helper').value, 
+                    status: row.querySelector('.d-status').value,
+                    sal: row.querySelector('.d-sal').value, 
+                    ot: row.querySelector('.d-ot').value, 
+                    pet: row.querySelector('.d-pet').value, 
+                    food: row.querySelector('.d-food').value 
+                });
             });
-            const data = { date: document.getElementById('date').value, qn: document.getElementById('qn').value, customer, projectType: document.getElementById('projectType').value, totalSqft: document.getElementById('totalSqft').value, amtRate: document.getElementById('amtRate').value, total: cal.total, logs, isHoliday: document.getElementById('isHoliday').checked, comment: document.getElementById('isHoliday').checked ? document.getElementById('holidayReason').value : "" };
+            const data = { 
+                date: document.getElementById('date').value, 
+                qn: document.getElementById('qn').value, 
+                customer, 
+                company: document.getElementById('company').value,
+                location: document.getElementById('location').value,
+                totalWindow: document.getElementById('totalWindow').value,
+                projectType: document.getElementById('projectType').value, 
+                totalSqft: document.getElementById('totalSqft').value, 
+                amtRate: document.getElementById('amtRate').value, 
+                total: cal.total, 
+                logs, 
+                isHoliday: document.getElementById('isHoliday').checked, 
+                comment: document.getElementById('isHoliday').checked ? document.getElementById('holidayReason').value : document.getElementById('workNotes').value 
+            };
             const id = document.getElementById('editId').value;
             if(id) await db.collection("workLogs").doc(id).update(data); else await db.collection("workLogs").add(data);
             location.reload();
@@ -218,13 +263,10 @@
             allEntries.forEach(d => {
                 const dObj = new Date(d.date);
                 const dKey = `${dObj.getFullYear()}-${String(dObj.getMonth()).padStart(2, '0')}`;
-                
-                // wages calc
                 let siteWages = 0;
                 d.logs?.forEach(l => siteWages += (parseFloat(l.sal)||0)+(parseFloat(l.ot)||0)+(parseFloat(l.pet)||0)+(parseFloat(l.food)||0));
                 const profit = (parseFloat(d.total)||0) - siteWages;
 
-                // Month filter logic
                 if (filterVal !== 'all' && dKey !== filterVal) return;
 
                 if (!d.isHoliday) {
@@ -233,78 +275,14 @@
 
                 container.innerHTML += `
                 <div class="glass p-4 border-l-4 ${d.isHoliday ? 'border-red-500':'border-blue-500'} mb-3">
-                    <div onclick="editDoc('${d.id}')" class="cursor-pointer">
-                        <div class="flex justify-between text-[9px] text-gray-500 font-bold mb-1"><span>${d.date}</span><span>${d.projectType}</span></div>
-                        <h4 class="font-black text-sm uppercase">${d.isHoliday ? 'Holiday' : d.customer}</h4>
-                        ${!d.isHoliday ? `<div class="flex justify-between mt-2 pt-2 border-t border-white/5 text-[10px]"><span>Wages: <b class="text-red-400">₹${siteWages}</b></span><span>Profit: <b class="text-green-400">₹${Math.round(profit)}</b></span></div>` : `<p class="text-[10px] italic text-red-300">${d.comment}</p>`}
-                    </div>
-                </div>`;
-            });
-
-            const grand = soloNet + partnerNet;
-            document.getElementById('tblSolo').innerText = "₹" + Math.round(soloNet).toLocaleString();
-            document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerNet).toLocaleString();
-            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(grand).toLocaleString();
-            
-            updateMonthlyTarget(grand);
-        }
-
-        function updateMonthlyTarget(earned) {
-            const target = parseFloat(globalSettings.target) || 50000;
-            const pct = Math.min((earned / target) * 100, 100);
-            document.getElementById('targetBar').style.width = pct + "%";
-            document.getElementById('targetEarned').innerText = `Earned: ₹${Math.round(earned).toLocaleString()}`;
-            document.getElementById('targetGoal').innerText = `Target: ₹${target.toLocaleString()}`;
-            document.getElementById('targetRem').innerText = `₹${Math.max(0, Math.round(target - earned)).toLocaleString()} Left`;
-            document.getElementById('targetLabel').innerText = document.getElementById('monthYearFilter').selectedOptions[0].text + " Goal";
-        }
-
-        async function saveSettings() {
-            globalSettings = { target: document.getElementById('setTarget').value, helpers: document.getElementById('setHelpers').value };
-            await db.collection("appSettings").doc("userConfig").set(globalSettings);
-            loadDropdowns(); toggleSettings(); applyFilters();
-        }
-
-        function toggleSettings() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
-        function toggleWorkHistory() { const m = document.getElementById('workHistoryModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; if(m.style.display==='flex') generateReport(); }
-        function checkHoliday() { document.getElementById('workFields').style.display = document.getElementById('isHoliday').checked ? 'none' : 'block'; document.getElementById('holidayReasonDiv').classList.toggle('hidden', !document.getElementById('isHoliday').checked); }
-
-        function generateReport() {
-            const filterVal = document.getElementById('monthYearFilter').value;
-            const tbody = document.getElementById('workHistoryTableBody');
-            tbody.innerHTML = ""; let tG = 0, tW = 0, tP = 0;
-            
-            allEntries.filter(d => {
-                const dk = `${new Date(d.date).getFullYear()}-${String(new Date(d.date).getMonth()).padStart(2, '0')}`;
-                return !d.isHoliday && (filterVal === 'all' || dk === filterVal);
-            }).forEach(d => {
-                let w = 0; d.logs?.forEach(l => w += (parseFloat(l.sal)||0)+(parseFloat(l.ot)||0)+(parseFloat(l.pet)||0)+(parseFloat(l.food)||0));
-                const g = parseFloat(d.total)||0, p = g - w;
-                tG += g; tW += w; tP += p;
-                tbody.innerHTML += `<tr class="border-b border-white/5"><td class="p-1">${d.customer}</td><td class="p-1 text-right">₹${g}</td><td class="p-1 text-right text-red-400">₹${w}</td><td class="p-1 text-right text-green-400">₹${Math.round(p)}</td></tr>`;
-            });
-            document.getElementById('workHistoryTableFoot').innerHTML = `<tr><td class="p-1">TOTAL</td><td class="text-right">₹${tG}</td><td class="text-right">₹${tW}</td><td class="text-right text-yellow-400">₹${tP}</td></tr>`;
-            document.getElementById('reportTitle').innerText = document.getElementById('monthYearFilter').selectedOptions[0].text + " REPORT";
-        }
-
-        function editDoc(id) {
-            const d = allEntries.find(e => e.id === id);
-            document.getElementById('editId').value = id; document.getElementById('date').value = d.date; document.getElementById('customer').value = d.customer;
-            document.getElementById('totalSqft').value = d.totalSqft; document.getElementById('amtRate').value = d.amtRate;
-            document.getElementById('projectType').value = d.projectType; document.getElementById('isHoliday').checked = d.isHoliday;
-            document.getElementById('dayLogsContainer').innerHTML = "";
-            d.logs?.forEach(l => addDayRow(l));
-            checkHoliday(); calculate(); window.scrollTo({top: 0, behavior: 'smooth'});
-        }
-
-        function startPdfExport(type) { document.getElementById('pdfDateModal').style.display = 'flex'; }
-
-        window.onload = async () => {
-            initMonthYearDropdown();
-            document.getElementById('date').valueAsDate = new Date();
-            await syncSettings();
-            addDayRow();
-        };
-    </script>
-</body>
-</html>
+                    <div class="flex justify-between items-start">
+                        <div onclick="editDoc('${d.id}')" class="cursor-pointer flex-1">
+                            <div class="flex justify-between text-[9px] text-gray-500 font-bold mb-1 uppercase">
+                                <span>${d.date} | ${d.qn || 'No QN'}</span>
+                                <span>${d.projectType}</span>
+                            </div>
+                            <h4 class="font-black text-sm uppercase">${d.isHoliday ? 'Holiday' : d.customer}</h4>
+                            <div class="text-[10px] text-gray-400">${d.location || ''} | ${d.company || ''}</div>
+                            ${!d.isHoliday ? `
+                                <div class="flex justify-between mt-2 pt-2 border-t border-white/5 text-[10px]">
+                                    <span>Wages: <b class="text-red-400">₹${siteWages}</b></sp
