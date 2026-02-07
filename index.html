@@ -27,7 +27,7 @@
         input:checked + .slider:before { transform: translateX(16px); }
     </style>
 </head>
-<body class="p-4 pb-72">
+<body class="p-4 pb-80">
 
     <div id="settingsModal" class="modal">
         <div class="glass p-6 w-full max-w-sm space-y-4">
@@ -68,7 +68,7 @@
                 <div class="bg-blue-500/5 p-3 rounded-lg border border-blue-500/20">
                     <div class="flex justify-between items-center mb-2">
                         <div class="flex items-center gap-2"><label class="text-blue-400 m-0 font-black">Helpers</label><label class="toggle-switch"><input type="checkbox" id="helperToggle" checked onchange="toggleHelperSection()"><span class="slider"></span></label></div>
-                        <button id="addDayBtn" onclick="addDayRow()" class="text-[8px] bg-blue-600 px-3 py-1 rounded font-bold uppercase">+ Add Attendance</button>
+                        <button id="addDayBtn" onclick="addDayRow()" class="text-[8px] bg-blue-600 px-3 py-1 rounded font-bold uppercase shadow">+ Add Attendance</button>
                     </div>
                     <div id="dayLogsContainer" class="space-y-2"></div>
                 </div>
@@ -93,6 +93,21 @@
     </div>
 
     <div class="summary-footer max-w-md mx-auto">
+        <div class="px-2 mb-2">
+            <div class="bg-white/5 rounded-lg border border-white/10 overflow-hidden">
+                <table class="w-full text-[9px] text-left">
+                    <thead class="bg-white/10 text-gray-400 uppercase font-black">
+                        <tr><th class="p-1 px-2">Earning Source</th><th class="p-1 text-right px-2">Amount</th></tr>
+                    </thead>
+                    <tbody class="text-gray-200">
+                        <tr class="border-b border-white/5"><td class="p-1 px-2">Solo Work (100% Mine)</td><td id="tblSolo" class="p-1 text-right px-2 font-bold text-green-400">₹0</td></tr>
+                        <tr class="border-b border-white/5"><td class="p-1 px-2">Partner Work (50% Mine)</td><td id="tblPartnerMine" class="p-1 text-right px-2 font-bold text-blue-400">₹0</td></tr>
+                        <tr><td class="p-1 px-2 text-gray-500">Partner Share (To Partner)</td><td id="tblPartnerShare" class="p-1 text-right px-2 font-bold text-orange-400">₹0</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <div id="helperPayrollSummary" class="text-[9px] grid grid-cols-2 gap-2 text-gray-300 mb-2 px-2"></div>
         <div class="grid grid-cols-3 gap-1 text-center mb-3">
             <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-[8px] text-gray-400 uppercase">My Profit</p><p id="sumProfit" class="text-green-400 font-bold text-xs">₹0</p></div>
@@ -247,9 +262,10 @@
             if(fType !== 'all') currentFilteredEntries = currentFilteredEntries.filter(d => d.projectType === fType);
             if(fComp !== 'all') currentFilteredEntries = currentFilteredEntries.filter(d => d.company === fComp);
 
-            let tProfit = 0, tExp = 0, tPartner = 0, helperSummary = {};
+            let tProfit = 0, tExp = 0, tPartner = 0, soloEarnings = 0, partnerWorkMine = 0, helperSummary = {};
             const container = document.getElementById('displayArea');
             container.innerHTML = "";
+
             currentFilteredEntries.forEach(d => {
                 let siteExp = 0;
                 if(d.logs) d.logs.forEach(l => {
@@ -258,7 +274,17 @@
                 });
                 tExp += siteExp;
                 const net = (parseFloat(d.total)||0) - siteExp;
-                if(!d.isHoliday) { if(d.projectType === 'Partner') { tPartner += (net/2); tProfit += (net/2); } else { tProfit += net; } }
+                if(!d.isHoliday) { 
+                    if(d.projectType === 'Partner') { 
+                        let half = (net/2);
+                        tPartner += half; 
+                        partnerWorkMine += half;
+                        tProfit += half; 
+                    } else { 
+                        soloEarnings += net;
+                        tProfit += net; 
+                    } 
+                }
                 container.innerHTML += `
                 <div class="glass p-3 border-l-4 ${d.isHoliday ? 'border-red-500':'border-blue-500'}">
                     <div class="flex justify-between items-start">
@@ -275,19 +301,26 @@
                     </div>
                     <div class="hidden mt-2 pt-2 border-t border-white/5 space-y-1 text-[9px]">
                         <p>Location: ${d.location || '-'}</p>
-                        <p>Sqft: ${d.totalSqft} | Wins: ${d.totalWindow}</p>
+                        <p>Type: ${d.projectType} ${d.partnerName ? '('+d.partnerName+')' : ''}</p>
                         <div class="text-orange-400">${d.logs ? d.logs.map(l => `${l.hDate}: ${l.helper}`).join(', ') : 'No Helpers'}</div>
                     </div>
                 </div>`;
             });
+
             document.getElementById('sumProfit').innerText = "₹" + Math.round(tProfit).toLocaleString();
             document.getElementById('sumExp').innerText = "₹" + Math.round(tExp).toLocaleString();
             document.getElementById('sumPartner').innerText = "₹" + Math.round(tPartner).toLocaleString();
+            
+            // Update Table
+            document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarnings).toLocaleString();
+            document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerWorkMine).toLocaleString();
+            document.getElementById('tblPartnerShare').innerText = "₹" + Math.round(tPartner).toLocaleString();
+
             document.getElementById('helperPayrollSummary').innerHTML = Object.entries(helperSummary).map(([name, amt]) => `<div class="flex justify-between bg-white/5 p-1 px-2 rounded"><span>${name}</span><span class="text-orange-400 font-bold">₹${Math.round(amt)}</span></div>`).join('') || "";
         }
 
         async function deleteDoc(id) { if(confirm("Confirm Delete?")) await db.collection("workLogs").doc(id).delete(); }
-        function copyDoc(id) { editDoc(id); document.getElementById('editId').value = ""; document.getElementById('date').valueAsDate = new Date(); alert("Copied! Save as new."); }
+        function copyDoc(id) { editDoc(id); document.getElementById('editId').value = ""; document.getElementById('date').valueAsDate = new Date(); alert("Copied!"); }
         
         function editDoc(id) {
             const d = allEntries.find(e => e.id === id);
@@ -308,21 +341,10 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             const fMonth = document.getElementById('filterMonth').options[document.getElementById('filterMonth').selectedIndex].text;
-            doc.text(`Ayyappan Manager Report - ${fMonth}`, 14, 15);
-            
-            const rows = currentFilteredEntries.map(e => {
-                const helperInfo = e.logs ? e.logs.map(l => `${l.hDate}: ${l.helper}`).join('\n') : '-';
-                return [e.date, e.customer, e.totalSqft, helperInfo, `Rs.${Math.round(e.total)}` ];
-            });
-
-            doc.autoTable({ 
-                head: [['Date', 'Customer', 'Sqft', 'Helpers & Dates', 'Amount']], 
-                body: rows, 
-                startY: 25,
-                styles: { fontSize: 8 },
-                columnStyles: { 3: { cellWidth: 50 } }
-            });
-            doc.save(`Ayyappan_Report_${fMonth}.pdf`);
+            doc.text(`Work Report - ${fMonth}`, 14, 15);
+            const rows = currentFilteredEntries.map(e => [e.date, e.customer, e.projectType, e.totalSqft, `Rs.${Math.round(e.total)}` ]);
+            doc.autoTable({ head: [['Date', 'Customer', 'Type', 'Sqft', 'Amount']], body: rows, startY: 25 });
+            doc.save(`Ayyappan_Report.pdf`);
         }
 
         window.onload = () => { document.getElementById('date').valueAsDate = new Date(); loadDropdowns(); addDayRow(); toggleHelperSection(); };
