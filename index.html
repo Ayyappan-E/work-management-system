@@ -28,21 +28,21 @@
 
     <div id="settingsModal" class="modal">
         <div class="glass p-6 w-full max-w-sm space-y-4 text-center">
-            <h2 class="text-xl font-bold border-b border-white/10 pb-2 text-blue-400">Settings & Tools</h2>
+            <h2 class="text-xl font-bold border-b border-white/10 pb-2 text-blue-400">Cloud Settings</h2>
             
             <button onclick="toggleReport()" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 py-3 rounded-lg font-black uppercase text-xs shadow-lg"><i class="fas fa-chart-pie mr-2"></i> Smart Report</button>
             
             <div class="grid grid-cols-2 gap-2">
-                <button onclick="backupData()" class="bg-green-700 py-2 rounded-lg font-bold uppercase text-[10px]"><i class="fas fa-download mr-1"></i> Backup</button>
-                <button onclick="document.getElementById('importFile').click()" class="bg-orange-700 py-2 rounded-lg font-bold uppercase text-[10px]"><i class="fas fa-upload mr-1"></i> Restore</button>
+                <button onclick="backupData()" class="bg-green-700 py-2 rounded-lg font-bold uppercase text-[10px]"><i class="fas fa-download mr-1"></i> Local Backup</button>
+                <button onclick="document.getElementById('importFile').click()" class="bg-orange-700 py-2 rounded-lg font-bold uppercase text-[10px]"><i class="fas fa-upload mr-1"></i> Local Restore</button>
                 <input type="file" id="importFile" class="hidden" onchange="restoreData(event)">
             </div>
 
             <div class="text-left"><label>Earning Target (₹)</label><input type="number" id="setTarget" class="input-box"></div>
-            <div class="text-left"><label>Companies</label><textarea id="setCompanies" class="input-box h-16"></textarea></div>
-            <div class="text-left"><label>Helpers</label><textarea id="setHelpers" class="input-box h-16"></textarea></div>
+            <div class="text-left"><label>Companies (Comma separate)</label><textarea id="setCompanies" class="input-box h-16" placeholder="Example: Sharp, Buildcon"></textarea></div>
+            <div class="text-left"><label>Helpers (Comma separate)</label><textarea id="setHelpers" class="input-box h-16" placeholder="Example: Ravi, Kumar"></textarea></div>
             
-            <button onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-lg font-bold uppercase">Save Config</button>
+            <button id="saveSettingsBtn" onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-lg font-bold uppercase">Sync to Cloud</button>
             <button onclick="toggleSettings()" class="w-full text-sm text-gray-500">Close</button>
         </div>
     </div>
@@ -162,6 +162,40 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         let allEntries = [];
+        let globalSettings = { target: 500000, companies: "Sharp, Buildcon", helpers: "Ravi, Kumar" };
+
+        // SYNC SETTINGS TO/FROM FIREBASE
+        async function syncSettings() {
+            const doc = await db.collection("appSettings").doc("userConfig").get();
+            if(doc.exists) {
+                globalSettings = doc.data();
+                document.getElementById('setTarget').value = globalSettings.target;
+                document.getElementById('setCompanies').value = globalSettings.companies;
+                document.getElementById('setHelpers').value = globalSettings.helpers;
+                // Also save to local for speed
+                localStorage.setItem('myTarget', globalSettings.target);
+                localStorage.setItem('myCompanies', globalSettings.companies);
+                localStorage.setItem('myHelpers', globalSettings.helpers);
+            }
+            loadDropdowns();
+        }
+
+        async function saveSettings() {
+            const btn = document.getElementById('saveSettingsBtn');
+            btn.innerText = "Syncing...";
+            globalSettings = {
+                target: document.getElementById('setTarget').value,
+                companies: document.getElementById('setCompanies').value,
+                helpers: document.getElementById('setHelpers').value
+            };
+            await db.collection("appSettings").doc("userConfig").set(globalSettings);
+            localStorage.setItem('myTarget', globalSettings.target);
+            localStorage.setItem('myCompanies', globalSettings.companies);
+            localStorage.setItem('myHelpers', globalSettings.helpers);
+            loadDropdowns();
+            btn.innerText = "Sync to Cloud";
+            toggleSettings();
+        }
 
         // BACKUP & RESTORE
         async function backupData() {
@@ -179,26 +213,25 @@
             const reader = new FileReader();
             reader.onload = async (e) => {
                 const data = JSON.parse(e.target.result);
-                if(confirm(`Restore ${data.length} records? This will add to existing data.`)) {
-                    for(const item of data) {
-                        delete item.id;
-                        await db.collection("workLogs").add(item);
-                    }
+                if(confirm(`Restore ${data.length} records?`)) {
+                    for(const item of data) { delete item.id; await db.collection("workLogs").add(item); }
                     alert("Restore Complete!"); location.reload();
                 }
             };
             reader.readAsText(file);
         }
 
-        function toggleSettings() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; if(m.style.display === 'flex') { document.getElementById('setTarget').value = localStorage.getItem('myTarget') || 500000; document.getElementById('setCompanies').value = localStorage.getItem('myCompanies') || "Sharp, Buildcon"; document.getElementById('setHelpers').value = localStorage.getItem('myHelpers') || "Ravi, Kumar"; } }
+        function toggleSettings() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
         function toggleReport() { const m = document.getElementById('smartReportModal'); const isOpen = m.style.display === 'flex'; m.style.display = isOpen ? 'none' : 'flex'; if (!isOpen) generateSmartReport(); }
         function checkHoliday() { document.getElementById('workFields').style.display = document.getElementById('isHoliday').checked ? 'none' : 'block'; document.getElementById('holidayReasonDiv').classList.toggle('hidden', !document.getElementById('isHoliday').checked); }
+        
         function loadDropdowns() {
-            const comps = (localStorage.getItem('myCompanies') || "Sharp, Buildcon").split(',');
+            const comps = (globalSettings.companies || "Sharp, Buildcon").split(',');
             document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
-            const helps = (localStorage.getItem('myHelpers') || "Ravi, Kumar").split(',');
+            const helps = (globalSettings.helpers || "Ravi, Kumar").split(',');
             document.querySelectorAll('.d-helper').forEach(sel => { const cur = sel.value; sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join(''); if(cur) sel.value = cur; });
         }
+
         function addDayRow(data = null) {
             const container = document.getElementById('dayLogsContainer');
             const dayDiv = document.createElement('div'); dayDiv.className = "day-entry border-l-4 border-blue-500";
@@ -206,6 +239,7 @@
             container.appendChild(dayDiv); loadDropdowns();
             if(data) { dayDiv.querySelector('.d-helper').value = data.helper; dayDiv.querySelector('.d-status').value = data.status; calculate(); }
         }
+
         function calculate() {
             const val = (parseFloat(document.getElementById('totalSqft').value) || 0) * (parseFloat(document.getElementById('amtRate').value) || 0);
             let siteExp = 0; document.querySelectorAll('.day-entry').forEach(row => { siteExp += (parseFloat(row.querySelector('.d-sal').value) || 0) + (parseFloat(row.querySelector('.d-pet').value) || 0) + (parseFloat(row.querySelector('.d-food').value) || 0); });
@@ -213,6 +247,7 @@
             document.getElementById('resExpDisplay').innerText = "₹" + Math.round(siteExp);
             return { val, siteExp };
         }
+
         async function saveData() {
             const customer = document.getElementById('customer').value.trim();
             if(!document.getElementById('isHoliday').checked && !customer) { alert("Enter Customer Name"); return; }
@@ -223,7 +258,9 @@
             if(id) await db.collection("workLogs").doc(id).update(data); else await db.collection("workLogs").add(data);
             location.reload();
         }
+
         db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => { allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); applyFilters(); });
+
         function applyFilters() {
             const fMonth = document.getElementById('filterMonth').value;
             let currentEarned = 0, soloEarn = 0, partnerEarn = 0;
@@ -235,21 +272,23 @@
                 if(!d.isHoliday) { if(d.projectType === 'Partner') currentEarned += (net/2); else currentEarned += net; }
                 if(fMonth !== 'all' && new Date(d.date).getMonth() != fMonth) return;
                 if(!d.isHoliday) { if(d.projectType === 'Partner') partnerEarn += (net/2); else soloEarn += net; }
-                container.innerHTML += `<div class="glass p-5 border-l-4 ${d.isHoliday ? 'border-red-500':'border-blue-600'} shadow-lg mb-4"><div class="flex justify-between items-start"><div onclick="editDoc('${d.id}')" class="flex-1 cursor-pointer"><div class="text-[10px] text-gray-400 font-bold mb-1 uppercase">${d.date} | ${d.projectType}</div><h4 class="font-black text-base uppercase text-white mb-1">${d.isHoliday ? 'Holiday' : d.customer}</h4><div class="text-[11px] text-gray-400 mb-2">${d.location || 'N/A'}</div>${!d.isHoliday ? `<div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-white/10"><div class="card-detail">Helpers: <span class="card-highlight">${helpers.join(', ') || 'Self'}</span></div><div class="card-detail text-right">Wages: <span class="text-red-400 font-bold">₹${Math.round(siteExp)}</span></div><div class="card-detail">Bill: <span class="text-white font-bold">₹${Math.round(d.total)}</span></div></div>${d.comment ? `<div class="work-note-box">${d.comment}</div>` : ''}` : `<p class="text-xs italic text-red-300 mt-2">${d.comment}</p>`}</div><div class="flex flex-col gap-4 ml-3"><button onclick="editDoc('${d.id}')" class="text-blue-400"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteDoc('${d.id}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></div></div></div>`;
+                container.innerHTML += `<div class="glass p-5 border-l-4 ${d.isHoliday ? 'border-red-500':'border-blue-600'} shadow-lg mb-4"><div class="flex justify-between items-start"><div onclick="editDoc('${d.id}')" class="flex-1 cursor-pointer"><div class="text-[10px] text-gray-400 font-bold mb-1 uppercase">${d.date} | ${d.projectType}</div><h4 class="font-black text-base uppercase text-white mb-1">${d.isHoliday ? 'Holiday' : d.customer}</h4><div class="text-[11px] text-gray-400 mb-2">${d.location || 'N/A'}</div>${!d.isHoliday ? `<div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-white/10"><div class="card-detail">Helpers: <span class="card-highlight">${helpers.join(', ') || 'Self'}</span></div><div class="card-detail text-right">Wages: <span class="text-red-400 font-bold">₹${Math.round(siteExp)}</span></div></div>${d.comment ? `<div class="work-note-box">${d.comment}</div>` : ''}` : `<p class="text-xs italic text-red-300 mt-2">${d.comment}</p>`}</div><div class="flex flex-col gap-4 ml-3"><button onclick="editDoc('${d.id}')" class="text-blue-400"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteDoc('${d.id}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></div></div></div>`;
             });
             document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
             document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
             document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(soloEarn + partnerEarn).toLocaleString();
             updateTargetUI(currentEarned);
         }
+
         function updateTargetUI(earned) {
-            const target = parseFloat(localStorage.getItem('myTarget')) || 500000;
+            const target = parseFloat(globalSettings.target) || 500000;
             const percent = Math.min((earned / target) * 100, 100);
             document.getElementById('targetBar').style.width = percent + "%";
             document.getElementById('targetEarned').innerText = `Earned: ₹${Math.round(earned).toLocaleString()}`;
             document.getElementById('targetGoal').innerText = `Goal: ₹${target.toLocaleString()}`;
-            document.getElementById('targetRem').innerText = `Rem: ₹${Math.max(0, Math.round(target - earned)).toLocaleString()}`;
+            document.getElementById('targetRem').innerText = `₹${Math.max(0, Math.round(target - earned)).toLocaleString()}`;
         }
+
         function generateSmartReport() {
             const stats = {}; let sT = 0, sD = 0, pT = 0, pD = 0;
             allEntries.forEach(d => {
@@ -264,6 +303,7 @@
             document.getElementById('soloEffort').innerText = `₹${sD ? Math.round(sT/sD) : 0}`;
             document.getElementById('partnerEffort').innerText = `₹${pD ? Math.round(pT/pD) : 0}`;
         }
+
         function startPdfExport(type) { document.getElementById('pdfType').value = type; document.getElementById('pdfDateModal').style.display = 'flex'; }
         async function generateFilteredPDF() {
             const type = document.getElementById('pdfType').value, fromDate = document.getElementById('pdfFrom').value, toDate = document.getElementById('pdfTo').value;
@@ -285,6 +325,7 @@
             }
             doc.save(`Report_${type}.pdf`); document.getElementById('pdfDateModal').style.display = 'none';
         }
+
         function editDoc(id) {
             const d = allEntries.find(e => e.id === id);
             document.getElementById('editId').value = id; document.getElementById('date').value = d.date; document.getElementById('qn').value = d.qn || "";
@@ -296,9 +337,14 @@
             if(d.isHoliday) document.getElementById('holidayReason').value = d.comment || ""; else document.getElementById('workNotes').value = d.comment || "";
             checkHoliday(); calculate(); window.scrollTo({top: 0, behavior: 'smooth'});
         }
+
         async function deleteDoc(id) { if(confirm("Confirm Delete?")) await db.collection("workLogs").doc(id).delete(); }
-        function saveSettings() { localStorage.setItem('myTarget', document.getElementById('setTarget').value); localStorage.setItem('myCompanies', document.getElementById('setCompanies').value); localStorage.setItem('myHelpers', document.getElementById('setHelpers').value); loadDropdowns(); toggleSettings(); }
-        window.onload = () => { document.getElementById('date').valueAsDate = new Date(); loadDropdowns(); addDayRow(); };
+
+        window.onload = async () => { 
+            document.getElementById('date').valueAsDate = new Date(); 
+            await syncSettings(); 
+            addDayRow(); 
+        };
     </script>
 </body>
 </html>
