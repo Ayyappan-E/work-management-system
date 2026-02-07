@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayyappan Manager | Helper Payroll</title>
+    <title>Ayyappan Manager | Pro Payroll</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,7 +19,6 @@
         .day-entry { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 10px; margin-bottom: 8px; position: relative; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
         .summary-footer { position: fixed; bottom: 0; left: 0; right: 0; background: #070b14; border-top: 2px solid #3b82f6; padding: 10px; z-index: 50; }
-        .status-badge { font-size: 8px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
     </style>
 </head>
 <body class="p-4 pb-64">
@@ -29,7 +28,7 @@
             <h2 class="text-lg font-bold border-b border-white/10 pb-2">Settings</h2>
             <div><label>Companies</label><textarea id="setCompanies" class="input-box h-20"></textarea></div>
             <div><label>Helpers</label><textarea id="setHelpers" class="input-box h-20"></textarea></div>
-            <button onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-lg font-bold">SAVE</button>
+            <button onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-lg font-bold uppercase">Save Config</button>
             <button onclick="toggleSettings()" class="w-full text-xs text-gray-500">Close</button>
         </div>
     </div>
@@ -62,7 +61,7 @@
                 </select>
             </div>
 
-            <div id="partnerNameDiv" class="hidden"><label>Partner Name</label><input type="text" id="partnerName" class="input-box border-blue-500/50" placeholder="Partner's Name"></div>
+            <div id="partnerNameDiv" class="hidden"><label>Partner Name</label><input type="text" id="partnerName" class="input-box border-blue-500/50"></div>
 
             <div id="workFields" class="space-y-4">
                 <div class="grid grid-cols-2 gap-3">
@@ -73,46 +72,47 @@
                 <div class="bg-blue-500/5 p-3 rounded-lg border border-blue-500/20">
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-blue-400 m-0 font-black">Daily Helper Payroll</label>
-                        <button onclick="addDayRow()" class="text-[8px] bg-blue-600 px-3 py-1 rounded font-bold uppercase shadow">+ Day Entry</button>
+                        <button onclick="addDayRow()" class="text-[8px] bg-blue-600 px-3 py-1 rounded font-bold uppercase">+ Add Day</button>
                     </div>
                     <div id="dayLogsContainer" class="space-y-2"></div>
                 </div>
 
                 <div class="grid grid-cols-3 gap-2">
+                    <div><label>Total Window</label><input type="number" id="totalWindow" class="input-box" placeholder="Qty"></div>
                     <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
                     <div><label>Rate/Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
-                    <div class="flex flex-col justify-end">
-                        <label class="text-green-500">Project Value</label>
-                        <div id="resTotal" class="text-sm font-black text-green-400">₹0</div>
-                    </div>
+                </div>
+
+                <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/10">
+                    <div><label class="m-0 text-green-500">Project Value</label><div id="resTotal" class="text-lg font-black text-green-400">₹0</div></div>
+                    <div class="text-right"><label class="m-0 text-red-400 text-[8px]">Deducted Exp</label><div id="resExpDisplay" class="text-xs font-bold text-red-400">₹0</div></div>
                 </div>
             </div>
 
-            <div id="holidayReasonDiv" class="hidden"><label>Reason</label><textarea id="comment" class="input-box h-12"></textarea></div>
+            <div id="holidayReasonDiv" class="hidden"><label>Comment</label><textarea id="comment" class="input-box h-12"></textarea></div>
 
             <div class="grid grid-cols-3 gap-2">
-                <button onclick="saveData()" class="col-span-2 bg-blue-600 py-3 rounded-xl font-black uppercase text-sm">Save Entry</button>
+                <button onclick="saveData()" class="col-span-2 bg-blue-600 py-3 rounded-xl font-black uppercase text-sm">Save Record</button>
                 <button onclick="location.reload()" class="bg-slate-700 py-3 rounded-xl font-bold text-[9px] text-slate-400">RESET</button>
             </div>
         </div>
 
-        <div id="displayArea" class="space-y-4"></div>
+        <div id="displayArea" class="space-y-3"></div>
     </div>
 
     <div class="summary-footer max-w-md mx-auto">
+        <div id="helperPayrollSummary" class="text-[9px] grid grid-cols-2 gap-2 text-gray-300 mb-2 px-2"></div>
         <div class="grid grid-cols-3 gap-1 text-center mb-3">
-            <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-[8px] text-gray-400 uppercase">My Net</p><p id="sumProfit" class="text-green-400 font-bold text-xs">₹0</p></div>
-            <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-[8px] text-gray-400 uppercase">Total Exp</p><p id="sumExp" class="text-red-400 font-bold text-xs">₹0</p></div>
+            <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-[8px] text-gray-400 uppercase">My Profit</p><p id="sumProfit" class="text-green-400 font-bold text-xs">₹0</p></div>
+            <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-[8px] text-gray-400 uppercase">Helper Pay</p><p id="sumExp" class="text-red-400 font-bold text-xs">₹0</p></div>
             <div class="bg-slate-900 p-2 rounded border border-white/5"><p class="text-[8px] text-blue-400 uppercase">Partner</p><p id="sumPartner" class="text-blue-300 font-bold text-xs">₹0</p></div>
         </div>
-        <div id="helperPayrollSummary" class="text-[9px] grid grid-cols-2 gap-2 text-gray-300 mb-2 border-t border-white/10 pt-2">
-            </div>
-        <select id="filterMonth" onchange="applyFilters()" class="input-box h-9 bg-slate-800 text-center font-bold text-xs">
-            <option value="all">VIEW ALL RECORDS</option>
-            <option value="0">JANUARY</option><option value="1">FEBRUARY</option><option value="2">MARCH</option>
-            <option value="3">APRIL</option><option value="4">MAY</option><option value="5">JUNE</option>
-            <option value="6">JULY</option><option value="7">AUGUST</option><option value="8">SEPTEMBER</option>
-            <option value="9">OCTOBER</option><option value="10">NOVEMBER</option><option value="11">DECEMBER</option>
+        <select id="filterMonth" onchange="applyFilters()" class="input-box h-9 bg-slate-800 text-center font-bold text-xs uppercase">
+            <option value="all">Full History</option>
+            <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+            <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+            <option value="6">July</option><option value="7">August</option><option value="8">September</option>
+            <option value="9">October</option><option value="10">November</option><option value="11">December</option>
         </select>
     </div>
 
@@ -160,14 +160,14 @@
         function addDayRow(data = null) {
             const container = document.getElementById('dayLogsContainer');
             const dayDiv = document.createElement('div');
-            dayDiv.className = "day-entry border-l-2 border-yellow-500";
+            dayDiv.className = "day-entry border-l-2 border-blue-500";
             dayDiv.innerHTML = `
                 <div class="grid grid-cols-3 gap-2 mb-2">
                     <select class="input-box h-7 py-0 d-helper"></select>
                     <select class="input-box h-7 py-0 d-status font-bold text-blue-400">
                         <option>Started</option><option>Ongoing</option><option>Completed</option>
                     </select>
-                    <select class="input-box h-7 py-0 d-ot font-bold text-orange-400" onchange="calculate()">
+                    <select class="input-box h-7 py-0 d-ot text-orange-400 font-bold" onchange="calculate()">
                         <option value="0">No OT</option><option value="0.5">0.5 OT (1/2)</option><option value="1">1 OT (Extra)</option>
                     </select>
                 </div>
@@ -175,9 +175,9 @@
                     <input type="number" placeholder="Sal" class="input-box h-7 d-sal" oninput="calculate()" value="${data?.sal || ''}">
                     <input type="number" placeholder="Pet" class="input-box h-7 d-pet" oninput="calculate()" value="${data?.pet || ''}">
                     <input type="number" placeholder="Food" class="input-box h-7 d-food" oninput="calculate()" value="${data?.food || ''}">
-                    <div class="text-[10px] font-bold text-white flex items-center justify-center bg-white/5 rounded d-row-total">₹0</div>
+                    <div class="text-[9px] font-black text-white flex items-center justify-center bg-blue-500/20 rounded d-row-total">₹0</div>
                 </div>
-                <button onclick="this.parentElement.remove(); calculate()" class="absolute top-1 right-1 text-[12px] text-red-500 px-1"><i class="fas fa-times-circle"></i></button>`;
+                <button onclick="this.parentElement.remove(); calculate()" class="absolute -top-1 -right-1 text-red-500 text-sm"><i class="fas fa-times-circle"></i></button>`;
             container.appendChild(dayDiv);
             loadDropdowns();
             if(data) { 
@@ -191,22 +191,15 @@
         function calculate() {
             const val = (parseFloat(document.getElementById('totalSqft').value) || 0) * (parseFloat(document.getElementById('amtRate').value) || 0);
             let totalHExp = 0;
-            
             document.querySelectorAll('.day-entry').forEach(row => {
                 const s = parseFloat(row.querySelector('.d-sal').value) || 0;
                 const ot = parseFloat(row.querySelector('.d-ot').value) || 0;
-                const pet = parseFloat(row.querySelector('.d-pet').value) || 0;
-                const food = parseFloat(row.querySelector('.d-food').value) || 0;
-                
-                // MATH: OT as half payment of salary
-                const otAmt = s * 0.5 * ot; 
-                const rowTotal = s + otAmt + pet + food;
-                
+                const rowTotal = s + (s * 0.5 * ot) + (parseFloat(row.querySelector('.d-pet').value) || 0) + (parseFloat(row.querySelector('.d-food').value) || 0);
                 row.querySelector('.d-row-total').innerText = "₹" + Math.round(rowTotal);
                 totalHExp += rowTotal;
             });
-
             document.getElementById('resTotal').innerText = "₹" + Math.round(val);
+            document.getElementById('resExpDisplay').innerText = "₹" + Math.round(totalHExp);
             return { val, totalHExp };
         }
 
@@ -237,7 +230,7 @@
                 partnerName: document.getElementById('partnerName').value,
                 company: document.getElementById('company').value,
                 customer: document.getElementById('customer').value,
-                location: document.getElementById('location').value,
+                totalWindow: document.getElementById('totalWindow').value,
                 totalSqft: document.getElementById('totalSqft').value,
                 amtRate: document.getElementById('amtRate').value,
                 total: cal.val,
@@ -279,19 +272,22 @@
 
                 container.innerHTML += `
                 <div class="glass p-3 border-l-4 ${d.isHoliday ? 'border-red-500':'border-blue-500'}">
-                    <div onclick="this.nextElementSibling.classList.toggle('hidden')" class="flex justify-between items-center">
+                    <div onclick="this.nextElementSibling.classList.toggle('hidden')" class="flex justify-between items-center cursor-pointer">
                         <div>
                             <p class="text-[8px] text-gray-500">${d.date} | ${d.company}</p>
                             <h4 class="font-bold text-xs uppercase">${d.isHoliday ? '🌴 Holiday' : d.customer}</h4>
                         </div>
                         <div class="text-right">
                             <p class="text-green-400 font-bold text-xs">₹${Math.round(d.total)}</p>
-                            <button onclick="editDoc('${d.id}')" class="text-blue-400 text-[9px] font-bold">EDIT</button>
+                            <button onclick="editDoc('${d.id}')" class="text-blue-400 text-[9px] font-bold">VIEW/EDIT</button>
                         </div>
                     </div>
-                    <div class="hidden mt-2 pt-2 border-t border-white/5">
-                        <p class="text-[9px] text-gray-400">Exp: ₹${Math.round(siteExp)} | Loc: ${d.location || 'N/A'}</p>
-                        <p class="text-[9px] italic">"${d.comment || ''}"</p>
+                    <div class="hidden mt-2 pt-2 border-t border-white/5 space-y-1">
+                        <div class="flex justify-between text-[9px]">
+                            <span>Windows: ${d.totalWindow || 0} | Sqft: ${d.totalSqft}</span>
+                            <span class="text-red-400">Exp: ₹${Math.round(siteExp)}</span>
+                        </div>
+                        <p class="text-[9px] italic text-gray-400">"${d.comment || ''}"</p>
                     </div>
                 </div>`;
             });
@@ -300,21 +296,18 @@
             document.getElementById('sumExp').innerText = "₹" + Math.round(tExp).toLocaleString();
             document.getElementById('sumPartner').innerText = "₹" + Math.round(tPartner).toLocaleString();
             
-            const hSummaryBox = document.getElementById('helperPayrollSummary');
-            hSummaryBox.innerHTML = Object.entries(helperSummary).map(([name, amt]) => 
+            document.getElementById('helperPayrollSummary').innerHTML = Object.entries(helperSummary).map(([name, amt]) => 
                 `<div class="flex justify-between bg-white/5 p-1 px-2 rounded"><span>${name}</span><span class="text-orange-400 font-bold">₹${Math.round(amt)}</span></div>`
-            ).join('') || "No helper data for this period";
+            ).join('') || "";
         }
 
-        async function deleteDoc(id) { if(confirm("Delete?")) await db.collection("workLogs").doc(id).delete(); }
-        
         function editDoc(id) {
             const d = allEntries.find(e => e.id === id);
             document.getElementById('editId').value = id;
             document.getElementById('date').value = d.date;
             document.getElementById('qn').value = d.qn;
             document.getElementById('customer').value = d.customer;
-            document.getElementById('location').value = d.location;
+            document.getElementById('totalWindow').value = d.totalWindow || "";
             document.getElementById('totalSqft').value = d.totalSqft;
             document.getElementById('amtRate').value = d.amtRate;
             document.getElementById('projectType').value = d.projectType;
@@ -330,9 +323,9 @@
         function exportToPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.text("Ayyappan Work Report", 14, 15);
-            const rows = allEntries.map(e => [e.date, e.customer, e.company, e.totalSqft, e.total]);
-            doc.autoTable({ head: [['Date', 'Customer', 'Company', 'Sqft', 'Amount']], body: rows, startY: 20 });
+            doc.text("Work Report", 14, 15);
+            const rows = allEntries.map(e => [e.date, e.customer, e.totalWindow, e.totalSqft, e.total]);
+            doc.autoTable({ head: [['Date', 'Customer', 'Win', 'Sqft', 'Amt']], body: rows, startY: 25 });
             doc.save("Report.pdf");
         }
 
