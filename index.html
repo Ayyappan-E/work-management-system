@@ -105,6 +105,7 @@
 
     <div id="msgBox" class="bg-red-600 text-white shadow-2xl"></div>
 
+    <!-- Settings Modal -->
     <div id="settingsModal" class="modal">
         <div class="glass p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto space-y-4">
             <h2 class="text-xl font-bold border-b border-white/10 pb-2 text-blue-400 uppercase text-center">Cloud configuration</h2>
@@ -129,9 +130,32 @@
         </div>
     </div>
 
+    <!-- Smart Report Modal -->
     <div id="smartReportModal" class="modal">
         <div class="glass p-6 w-full max-w-md max-h-[85vh] overflow-y-auto space-y-6">
-            <div class="flex justify-between items-center border-b border-white/10 pb-4"><h2 class="text-xl font-bold text-blue-400">Business Insights</h2><button onclick="toggleReport()"><i class="fas fa-times"></i></button></div>
+            <div class="flex justify-between items-center border-b border-white/10 pb-4">
+                <h2 class="text-xl font-bold text-blue-400">Business Insights</h2>
+                <button onclick="toggleReport()"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <!-- Report Filters -->
+            <div class="grid grid-cols-2 gap-3 bg-black/20 p-3 rounded-xl border border-white/10">
+                <div>
+                    <label>Report Month</label>
+                    <select id="reportMonthFilter" onchange="generateSmartReport()" class="input-box h-10 py-0 text-xs">
+                        <option value="all">All Months</option>
+                        <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+                        <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+                        <option value="6">July</option><option value="7">August</option><option value="8">September</option>
+                        <option value="9">October</option><option value="10">November</option><option value="11">December</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Report Year</label>
+                    <select id="reportYearFilter" onchange="generateSmartReport()" class="input-box h-10 py-0 text-xs"></select>
+                </div>
+            </div>
+
             <div id="monthlyReportStats" class="space-y-3"></div>
             <div id="targetAnalysis" class="p-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5">
                 <label class="text-yellow-500 mb-2">Target Analysis</label>
@@ -149,6 +173,7 @@
         </div>
     </div>
 
+    <!-- PDF Date Range Modal -->
     <div id="pdfDateModal" class="modal">
         <div class="glass p-6 w-full max-w-sm space-y-4">
             <h2 class="text-lg font-bold text-blue-400 uppercase">Select Date Range</h2>
@@ -178,6 +203,7 @@
             <div class="flex justify-between text-[10px] font-bold opacity-70"><span id="targetEarned">Earned: ₹0</span><span id="targetGoal">Target: ₹0</span></div>
         </div>
 
+        <!-- Form Area -->
         <div class="glass p-5 mb-8 space-y-5 border-t-4 border-blue-600 shadow-2xl">
             <input type="hidden" id="editId">
             <div class="grid grid-cols-2 gap-4">
@@ -226,6 +252,7 @@
         <div id="displayArea" class="space-y-4 pb-32"></div>
     </div>
 
+    <!-- Main Screen Footer Filters -->
     <div class="summary-footer max-w-md mx-auto rounded-t-3xl shadow-2xl">
         <div class="px-2 mb-3">
             <div class="bg-black/20 rounded-2xl border border-white/10 overflow-hidden">
@@ -319,19 +346,19 @@
                 if(cur) sel.value = cur; 
             });
             
-            const yearSel = document.getElementById('filterYear');
-            const reportYearSel = document.getElementById('reportYearSelect');
-            if(yearSel.options.length === 0) {
-                const currentYear = new Date().getFullYear();
-                for(let y = currentYear; y >= 2024; y--) {
-                    let opt = document.createElement('option');
-                    opt.value = y; opt.innerText = y;
-                    yearSel.appendChild(opt);
-                    reportYearSel.appendChild(opt.cloneNode(true));
+            const currentYear = new Date().getFullYear();
+            const yearSelects = ['filterYear', 'reportYearSelect', 'reportYearFilter'];
+            yearSelects.forEach(id => {
+                const el = document.getElementById(id);
+                if(el.options.length === 0) {
+                    for(let y = currentYear; y >= 2024; y--) {
+                        let opt = document.createElement('option');
+                        opt.value = y; opt.innerText = y;
+                        el.appendChild(opt);
+                    }
+                    el.value = currentYear;
                 }
-                yearSel.value = currentYear;
-                reportYearSel.value = currentYear;
-            }
+            });
         }
 
         function generateTargetStatusReport() {
@@ -348,7 +375,7 @@
                         d.logs?.forEach(l => {
                             const salVal = parseFloat(l.sal) || 0;
                             const otCount = parseFloat(l.ot) || 0;
-                            const otVal = (salVal / 2) * otCount; // OT Logic: 1 OT = 0.5 Salary
+                            const otVal = (salVal / 2) * otCount;
                             siteExp += salVal + otVal + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
                         });
                         const net = (parseFloat(d.total)||0) - siteExp;
@@ -404,8 +431,7 @@
                 const petVal = parseFloat(row.querySelector('.d-pet').value) || 0;
                 const foodVal = parseFloat(row.querySelector('.d-food').value) || 0;
                 
-                // OT Logic: 1 OT = Half of Salary
-                const otVal = (salVal / 2) * otCount;
+                const otVal = (salVal / 2) * otCount; // OT Logic: 1 OT = Half of Salary
                 const helperTotal = salVal + otVal + petVal + foodVal;
                 
                 row.querySelector('.d-calc-row').innerText = `Helper Total: ₹${Math.round(helperTotal)}`;
@@ -438,6 +464,7 @@
             allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
             applyFilters();
             generateTargetStatusReport();
+            if(document.getElementById('smartReportModal').style.display === 'flex') generateSmartReport();
         });
 
         function applyFilters() {
@@ -481,31 +508,43 @@
 
         function generateSmartReport() {
             const stats = {}; let sT = 0, sD = 0, pT = 0, pD = 0, mSites = 0, mGross = 0, mHelperExp = 0, mPartnerPay = 0;
-            const fMonth = document.getElementById('filterMonth').value, fYear = document.getElementById('filterYear').value;
+            const fMonth = document.getElementById('reportMonthFilter').value;
+            const fYear = document.getElementById('reportYearFilter').value;
+            
             allEntries.forEach(d => {
                 const entryDate = new Date(d.date);
                 if (d.isHoliday) return;
-                let siteExp = 0; d.logs?.forEach(l => {
+                
+                let siteExp = 0; 
+                d.logs?.forEach(l => {
                     const salVal = parseFloat(l.sal) || 0;
                     const otCount = parseFloat(l.ot) || 0;
                     siteExp += salVal + ((salVal / 2) * otCount) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
                 });
+                
                 const gross = parseFloat(d.total) || 0, net = gross - siteExp;
                 const myShare = d.projectType === 'Partner' ? net / 2 : net, partnerShare = d.projectType === 'Partner' ? net / 2 : 0;
-                if (!stats[d.company]) stats[d.company] = { j: 0, p: 0 };
-                stats[d.company].j++; stats[d.company].p += myShare;
+                
                 if ((fMonth === 'all' || entryDate.getMonth() == fMonth) && (entryDate.getFullYear() == fYear)) {
+                    if (!stats[d.company]) stats[d.company] = { j: 0, p: 0 };
+                    stats[d.company].j++; stats[d.company].p += myShare;
                     mSites++; mGross += gross; mHelperExp += siteExp; mPartnerPay += partnerShare;
                     if (d.projectType === 'Solo') { sT += myShare; sD += (d.logs?.length || 1); } else { pT += myShare; pD += (d.logs?.length || 1); }
                 }
             });
-            const mProfit = mGross - mHelperExp - mPartnerPay, targetVal = fMonth === 'all' ? (globalSettings.target * 12) : globalSettings.target;
+
+            const mProfit = mGross - mHelperExp - mPartnerPay;
+            const targetVal = fMonth === 'all' ? (globalSettings.target * 12) : globalSettings.target;
+            
             document.getElementById('monthlyReportStats').innerHTML = `<div class="bg-blue-600/10 p-4 rounded-2xl border border-blue-500/30"><div class="text-[10px] uppercase font-black text-blue-500 mb-2">Financial Breakdown</div><div class="grid grid-cols-2 gap-y-3"><div><label class="m-0 opacity-60">Total Sites</label><div class="font-bold">${mSites}</div></div><div><label class="m-0 opacity-60">Gross Bill</label><div class="font-bold">₹${Math.round(mGross).toLocaleString()}</div></div><div><label class="m-0 text-red-500">Helper Wages</label><div class="text-red-500 font-bold">₹${Math.round(mHelperExp).toLocaleString()}</div></div><div><label class="m-0 text-orange-500">Partner Share</label><div class="text-orange-500 font-bold">₹${Math.round(mPartnerPay).toLocaleString()}</div></div><div class="col-span-2 pt-2 border-t border-black/10 mt-1"><label class="m-0 text-green-600">Final Net Profit</label><div class="text-2xl font-black text-green-600">₹${Math.round(mProfit).toLocaleString()}</div></div></div></div>`;
+            
             const diff = mProfit - targetVal;
             document.getElementById('targetStatsContent').innerHTML = `<div class="flex justify-between"><span>Current Target:</span> <span class="font-bold">₹${targetVal.toLocaleString()}</span></div><div class="flex justify-between"><span>Performance:</span> <span class="font-bold ${diff >= 0 ? 'text-green-500' : 'text-red-500'}"><i class="fas ${diff >= 0 ? 'fa-caret-up' : 'fa-caret-down'} mr-1"></i> ₹${Math.abs(Math.round(diff)).toLocaleString()} ${diff >= 0 ? 'Above' : 'Below'}</span></div><div class="mt-2 h-1.5 w-full bg-black/10 rounded-full overflow-hidden"><div class="h-full bg-yellow-500" style="width: ${Math.min((mProfit/targetVal)*100, 100)}%"></div></div>`;
-            document.getElementById('companyStats').innerHTML = Object.entries(stats).sort((a,b)=>b[1].p - a[1].p).map(([n,v])=>`<div class="flex justify-between p-3 bg-black/5 rounded border border-black/5 mb-2"><div><b>${n}</b><br><span class="opacity-50 text-[10px]">${v.j} sites</span></div><div class="text-green-500 font-bold">₹${Math.round(v.p)}</div></div>`).join('');
-            document.getElementById('soloEffort').innerText = `₹${sD ? Math.round(sT/sD) : 0}`;
-            document.getElementById('partnerEffort').innerText = `₹${pD ? Math.round(pT/pD) : 0}`;
+            
+            document.getElementById('companyStats').innerHTML = Object.entries(stats).length ? Object.entries(stats).sort((a,b)=>b[1].p - a[1].p).map(([n,v])=>`<div class="flex justify-between p-3 bg-black/5 rounded border border-black/5 mb-2"><div><b>${n}</b><br><span class="opacity-50 text-[10px]">${v.j} sites</span></div><div class="text-green-500 font-bold">₹${Math.round(v.p).toLocaleString()}</div></div>`).join('') : '<div class="text-center text-xs opacity-50 py-4">No data for selected period</div>';
+            
+            document.getElementById('soloEffort').innerText = `₹${sD ? Math.round(sT/sD).toLocaleString() : 0}`;
+            document.getElementById('partnerEffort').innerText = `₹${pD ? Math.round(pT/pD).toLocaleString() : 0}`;
         }
 
         function startPdfExport(type) { document.getElementById('pdfType').value = type; document.getElementById('pdfDateModal').style.display = 'flex'; }
@@ -568,7 +607,19 @@
 
         async function deleteDoc(id) { if(confirm("Permanently delete this record?")) await db.collection("workLogs").doc(id).delete(); }
         function toggleSettings() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
-        function toggleReport() { const m = document.getElementById('smartReportModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; if (m.style.display === 'flex') generateSmartReport(); }
+        
+        function toggleReport() { 
+            const m = document.getElementById('smartReportModal'); 
+            const isVisible = m.style.display === 'flex';
+            m.style.display = isVisible ? 'none' : 'flex'; 
+            if (!isVisible) {
+                // Pre-fill with current main filters when opening
+                document.getElementById('reportMonthFilter').value = document.getElementById('filterMonth').value;
+                document.getElementById('reportYearFilter').value = document.getElementById('filterYear').value;
+                generateSmartReport(); 
+            }
+        }
+        
         function checkHoliday() { document.getElementById('workFields').style.display = document.getElementById('isHoliday').checked ? 'none' : 'block'; document.getElementById('holidayReasonDiv').classList.toggle('hidden', !document.getElementById('isHoliday').checked); }
         
         window.onload = async () => { 
