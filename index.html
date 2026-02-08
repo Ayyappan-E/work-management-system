@@ -82,15 +82,88 @@
             box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.3);
         }
 
-        .card-detail { font-size: 11px; color: var(--text-dim); }
-        .card-highlight { color: #3b82f6; font-weight: 700; }
-        .work-note-box { background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; padding: 6px 10px; margin-top: 8px; border-radius: 4px; font-size: 11px; font-style: italic; color: inherit; }
-        
-        ::-webkit-scrollbar { width: 4px; }
+        .excel-table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            max-height: 500px;
+            margin-bottom: 1.5rem;
+        }
+        .excel-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10.5px;
+            white-space: nowrap;
+        }
+        .excel-table th {
+            position: sticky;
+            top: 0;
+            background: #1e1b4b;
+            padding: 12px 10px;
+            text-align: left;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            border-bottom: 2px solid var(--glass-border);
+            font-weight: 800;
+            z-index: 10;
+        }
+        .light-mode .excel-table th { background: #e2e8f0; }
+        .excel-table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .excel-table tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .excel-table tr.holiday-row {
+            background: rgba(239, 68, 68, 0.05);
+            color: #ef4444;
+        }
+
+        #displayArea {
+            transition: max-height 0.4s ease-in-out, opacity 0.3s ease;
+            overflow: auto;
+        }
+        #displayArea.collapsed {
+            max-height: 0 !important;
+            opacity: 0;
+            margin-bottom: 0;
+        }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
         ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
 
         #msgBox { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 200; min-width: 250px; text-align: center; border-radius: 12px; padding: 12px 24px; font-weight: bold; animation: slideDown 0.3s ease-out; }
         @keyframes slideDown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
+
+        /* Helper Toggle Switch Style */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255,255,255,0.1);
+            transition: .4s;
+            border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px; width: 14px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider:before { transform: translateX(14px); }
     </style>
 </head>
 <body class="p-4">
@@ -156,27 +229,11 @@
                 <label class="text-blue-400 mb-2">Company Performance</label>
                 <div id="companyStats" class="space-y-2"></div>
             </div>
-            <div class="grid grid-cols-2 gap-3">
-                <div class="bg-white/5 p-3 rounded-xl border border-white/10"><label>Solo Profit/Day</label><div id="soloEffort" class="text-lg font-bold text-green-400">₹0</div></div>
-                <div class="bg-white/5 p-3 rounded-xl border border-white/10"><label>Partner Profit/Day</label><div id="partnerEffort" class="text-lg font-bold text-blue-400">₹0</div></div>
-            </div>
             <button onclick="toggleReport()" class="w-full bg-slate-800 py-3 rounded-xl font-bold text-white uppercase text-xs">Close</button>
         </div>
     </div>
 
-    <!-- PDF Date Range Modal -->
-    <div id="pdfDateModal" class="modal">
-        <div class="glass p-6 w-full max-w-sm space-y-4">
-            <h2 class="text-lg font-bold text-blue-400 uppercase">Select Date Range</h2>
-            <input type="hidden" id="pdfType">
-            <div><label>Start Date</label><input type="date" id="pdfFrom" class="input-box"></div>
-            <div><label>End Date</label><input type="date" id="pdfTo" class="input-box"></div>
-            <button onclick="generateFilteredPDF()" class="w-full bg-green-600 py-3 rounded-lg font-bold text-white uppercase">Generate Report</button>
-            <button onclick="document.getElementById('pdfDateModal').style.display='none'" class="w-full text-xs text-gray-500">Cancel</button>
-        </div>
-    </div>
-
-    <div class="max-w-md mx-auto">
+    <div class="max-w-4xl mx-auto">
         <div class="flex justify-between items-center mb-6">
             <h1 class="font-black text-2xl italic uppercase tracking-tighter">Ayyappan <span class="text-blue-500">Pro</span></h1>
             <div class="flex gap-3">
@@ -186,7 +243,7 @@
         </div>
 
         <!-- Target UI -->
-        <div class="glass p-4 mb-6 border-l-4 border-yellow-500 shadow-lg">
+        <div class="glass p-4 mb-6 border-l-4 border-yellow-500 shadow-lg max-w-md mx-auto">
             <div class="flex justify-between items-end mb-2">
                 <label id="targetLabel" class="m-0 text-yellow-500 font-black">Target Progress</label>
                 <span id="targetRem" class="text-xs font-bold">₹0</span>
@@ -196,43 +253,52 @@
         </div>
 
         <!-- Entry Form -->
-        <div class="glass p-5 mb-8 space-y-5 border-t-4 border-blue-600 shadow-2xl">
+        <div class="glass p-5 mb-8 space-y-5 border-t-4 border-blue-600 shadow-2xl max-w-md mx-auto">
             <input type="hidden" id="editId">
             <div class="grid grid-cols-2 gap-4">
                 <div><label>Work Date</label><input type="date" id="date" class="input-box"></div>
                 <div><label>Quotation No</label><input type="text" id="qn" class="input-box" placeholder="QN-XXXX"></div>
             </div>
             <div class="grid grid-cols-2 gap-3 bg-black/10 p-3 rounded-xl border border-white/10">
-                <div class="flex items-center gap-2"><input type="checkbox" id="isHoliday" onchange="checkHoliday()" class="w-5 h-5 accent-red-500"><label class="m-0 text-red-500">Mark as Holiday</label></div>
+                <div class="flex items-center gap-2"><input type="checkbox" id="isHoliday" onchange="checkHoliday()" class="w-5 h-5 accent-red-500"><label class="m-0 text-red-500">Holiday</label></div>
                 <select id="projectType" class="bg-transparent text-xs font-black text-blue-500 uppercase outline-none"><option value="Solo">Solo Work</option><option value="Partner">Partner Work</option></select>
             </div>
             
             <div id="workFields" class="space-y-5">
-                <div><label>Company / Main Contractor</label><select id="company" class="input-box"></select></div>
+                <div><label>Company</label><select id="company" class="input-box"></select></div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label>Customer Name *</label><input type="text" id="customer" class="input-box"></div>
                     <div><label>Site Location</label><input type="text" id="location" class="input-box"></div>
                 </div>
 
-                <div class="bg-blue-600/10 p-4 rounded-xl border border-blue-500/30">
-                    <div class="flex justify-between items-center mb-3"><label class="text-blue-500 m-0">Helper Attendance & Wages</label><button onclick="addDayRow()" class="text-[10px] bg-blue-600 text-white px-3 py-1 rounded uppercase font-bold">+ Helper</button></div>
-                    <div id="dayLogsContainer" class="space-y-3"></div>
+                <div class="bg-blue-600/5 p-4 rounded-xl border border-white/10">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2">
+                            <label class="text-blue-500 m-0">Helper Logs</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="helperSectionToggle" onchange="toggleHelperVisibility()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <button id="addHelperBtn" onclick="addDayRow()" class="hidden text-[10px] bg-blue-600 text-white px-3 py-1 rounded uppercase font-bold">+ Helper</button>
+                    </div>
+                    <div id="dayLogsContainer" class="hidden space-y-3"></div>
                 </div>
 
                 <div class="grid grid-cols-3 gap-3">
-                    <div><label>Window Qty</label><input type="number" id="totalWindow" class="input-box"></div>
-                    <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
-                    <div><label>Rate / Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
+                    <div><label>Windows Qty</label><input type="number" id="windowQty" class="input-box" placeholder="Qty"></div>
+                    <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box" placeholder="Sqft"></div>
+                    <div><label>Rate / Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box" placeholder="Rate"></div>
                 </div>
 
                 <div class="flex justify-between items-center p-4 bg-black/5 rounded-2xl border border-white/10">
-                    <div><label class="m-0 text-green-500">Gross Bill</label><div id="resTotal" class="text-2xl font-black text-green-500">₹0</div></div>
+                    <div><label class="m-0 text-green-500">Gross Bill</label><div id="resTotal" class="text-xl font-black text-green-500">₹0</div></div>
                     <div class="text-right"><label class="m-0 text-red-500">Total Wages</label><div id="resExpDisplay" class="text-lg font-bold text-red-500">₹0</div></div>
                 </div>
-                <div><label>Work Description / Site Notes</label><textarea id="workNotes" class="input-box h-20"></textarea></div>
+                <div><label>Work Description</label><textarea id="workNotes" class="input-box h-16"></textarea></div>
             </div>
 
-            <div id="holidayReasonDiv" class="hidden"><label>Holiday Remark *</label><textarea id="holidayReason" class="input-box h-20"></textarea></div>
+            <div id="holidayReasonDiv" class="hidden"><label>Holiday Remark *</label><textarea id="holidayReason" class="input-box h-16"></textarea></div>
             
             <div class="grid grid-cols-3 gap-3">
                 <button onclick="saveData()" class="col-span-2 bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-lg active:scale-95 transition-transform">Save Record</button>
@@ -240,34 +306,77 @@
             </div>
         </div>
 
-        <h3 class="text-sm font-black uppercase opacity-50 mb-4 px-1">Recent Site History</h3>
-        <div id="displayArea" class="space-y-4"></div>
+        <!-- Site History (Excel Style) -->
+        <div class="flex justify-between items-center mb-4 px-1">
+            <div>
+                <h3 id="historyTitle" class="text-sm font-black uppercase text-blue-500 tracking-wide">SITE HISTORY</h3>
+                <span id="recordCount" class="text-[9px] font-bold opacity-40 uppercase">Loading records...</span>
+            </div>
+            <button onclick="toggleHistory()" class="text-[10px] font-black uppercase text-blue-500 flex items-center gap-2">
+                <span id="historyToggleText">Minimize</span>
+                <i id="historyToggleIcon" class="fas fa-chevron-up"></i>
+            </button>
+        </div>
+        
+        <div id="displayArea" class="excel-table-container">
+            <table class="excel-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>QN</th>
+                        <th>Company</th>
+                        <th>Customer</th>
+                        <th>Location</th>
+                        <th>Helpers</th>
+                        <th>Win Qty</th>
+                        <th>Type</th>
+                        <th>Gross Bill</th>
+                        <th>Net Profit</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody"></tbody>
+            </table>
+        </div>
 
-        <div class="summary-section mt-8">
+        <div class="summary-section mt-8 max-w-md mx-auto">
             <div class="mb-4">
                 <div class="bg-black/20 rounded-2xl border border-white/10 overflow-hidden">
                     <table class="w-full text-xs">
                         <tbody>
                             <tr class="border-b border-white/5"><td class="p-2 px-4 opacity-70">Solo Net Profit</td><td id="tblSolo" class="p-2 text-right px-4 text-green-500 font-bold">₹0</td></tr>
-                            <tr class="border-b border-white/5"><td class="p-2 px-4 opacity-70">Partner 50% Share</td><td id="tblPartnerMine" class="p-2 text-right px-4 text-blue-500 font-bold">₹0</td></tr>
+                            <tr class="border-b border-white/5"><td class="p-2 px-4 opacity-70">Partner Share (50%)</td><td id="tblPartnerMine" class="p-2 text-right px-4 text-blue-500 font-bold">₹0</td></tr>
                             <tr class="bg-blue-600/10"><td class="p-3 px-4 font-black">TOTAL NET EARNED</td><td id="tblGrandTotal" class="p-3 text-right px-4 text-yellow-500 text-lg font-black">₹0</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-            <div class="grid grid-cols-4 gap-2">
-                <button onclick="startPdfExport('partner')" class="bg-blue-600 text-white py-3 rounded-xl text-[9px] font-black uppercase shadow-md">Partner</button>
-                <button onclick="startPdfExport('helper')" class="bg-orange-600 text-white py-3 rounded-xl text-[9px] font-black uppercase shadow-md">Helper</button>
-                <select id="filterMonth" onchange="applyFilters()" class="input-box h-full py-0 text-[10px] font-bold uppercase">
-                    <option value="all">Months</option>
+            <div class="grid grid-cols-2 gap-2 mb-2">
+                <button onclick="startPdfExport('partner')" class="bg-blue-600 text-white py-3 rounded-xl text-[10px] font-black uppercase shadow-md">Export Partner PDF</button>
+                <button onclick="startPdfExport('helper')" class="bg-orange-600 text-white py-3 rounded-xl text-[10px] font-black uppercase shadow-md">Export Helper PDF</button>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <select id="filterMonth" onchange="applyFilters()" class="input-box h-full py-2 text-[10px] font-bold uppercase">
+                    <option value="all">All Months</option>
                     <option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option>
                     <option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option>
                     <option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option>
                     <option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
                 </select>
-                <select id="filterYear" onchange="applyFilters()" class="input-box h-full py-0 text-[10px] font-bold uppercase"></select>
+                <select id="filterYear" onchange="applyFilters()" class="input-box h-full py-2 text-[10px] font-bold uppercase"></select>
             </div>
-            <p class="text-[9px] text-center mt-4 opacity-30 uppercase font-bold tracking-widest">End of Report</p>
+        </div>
+    </div>
+
+    <!-- PDF Date Modal -->
+    <div id="pdfDateModal" class="modal">
+        <div class="glass p-6 w-full max-w-sm space-y-4">
+            <h2 class="text-lg font-bold text-blue-400 uppercase">Select Date Range</h2>
+            <input type="hidden" id="pdfType">
+            <div><label>Start Date</label><input type="date" id="pdfFrom" class="input-box"></div>
+            <div><label>End Date</label><input type="date" id="pdfTo" class="input-box"></div>
+            <button onclick="generateFilteredPDF()" class="w-full bg-green-600 py-3 rounded-lg font-bold text-white uppercase">Generate Report</button>
+            <button onclick="document.getElementById('pdfDateModal').style.display='none'" class="w-full text-xs text-gray-500">Cancel</button>
         </div>
     </div>
 
@@ -280,24 +389,45 @@
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
         function showMessage(msg) {
-            const box = document.getElementById('msgBox');
-            box.innerText = msg;
-            box.style.display = 'block';
+            const box = document.getElementById('msgBox'); box.innerText = msg; box.style.display = 'block';
             setTimeout(() => { box.style.display = 'none'; }, 3000);
         }
 
         function toggleTheme() {
-            const body = document.body;
-            const icon = document.querySelector('#themeToggle i');
-            const isLight = body.classList.toggle('light-mode');
+            const isLight = document.body.classList.toggle('light-mode');
             localStorage.setItem('theme', isLight ? 'light' : 'dark');
-            icon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+            document.querySelector('#themeToggle i').className = isLight ? 'fas fa-sun' : 'fas fa-moon';
         }
 
         function initTheme() {
             if (localStorage.getItem('theme') === 'light') {
                 document.body.classList.add('light-mode');
                 document.querySelector('#themeToggle i').className = 'fas fa-sun';
+            }
+        }
+
+        function toggleHistory() {
+            const area = document.getElementById('displayArea');
+            const isCollapsed = area.classList.toggle('collapsed');
+            document.getElementById('historyToggleText').innerText = isCollapsed ? 'Maximize' : 'Minimize';
+            document.getElementById('historyToggleIcon').className = isCollapsed ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+            localStorage.setItem('history_collapsed', isCollapsed);
+        }
+
+        function toggleHelperVisibility() {
+            const isChecked = document.getElementById('helperSectionToggle').checked;
+            const container = document.getElementById('dayLogsContainer');
+            const btn = document.getElementById('addHelperBtn');
+            
+            if (isChecked) {
+                container.classList.remove('hidden');
+                btn.classList.remove('hidden');
+                // Auto add first row if empty
+                if(container.children.length === 0) addDayRow();
+            } else {
+                container.classList.add('hidden');
+                btn.classList.add('hidden');
+                // Optional: Clear rows when hidden? No, better keep them in case of accidental click
             }
         }
 
@@ -314,70 +444,22 @@
         }
 
         async function saveSettings() {
-            const btn = document.getElementById('saveSettingsBtn');
-            btn.innerText = "Syncing...";
-            globalSettings = { 
-                target: parseFloat(document.getElementById('setTarget').value) || 0, 
-                companies: document.getElementById('setCompanies').value, 
-                helpers: document.getElementById('setHelpers').value 
-            };
+            const btn = document.getElementById('saveSettingsBtn'); btn.innerText = "Syncing...";
+            globalSettings = { target: parseFloat(document.getElementById('setTarget').value) || 0, companies: document.getElementById('setCompanies').value, helpers: document.getElementById('setHelpers').value };
             await db.collection("appSettings").doc("userConfig").set(globalSettings);
-            loadDropdowns(); 
-            btn.innerText = "Sync to Cloud"; 
-            toggleSettings();
-            applyFilters();
+            loadDropdowns(); btn.innerText = "Sync to Cloud"; toggleSettings(); applyFilters();
         }
 
         function loadDropdowns() {
             const comps = (globalSettings.companies || "").split(',');
             document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
-            const helps = (globalSettings.helpers || "").split(',');
-            document.querySelectorAll('.d-helper').forEach(sel => { 
-                const cur = sel.value; 
-                sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join(''); 
-                if(cur) sel.value = cur; 
-            });
-            
             const currentYear = new Date().getFullYear();
-            const yearSelects = ['filterYear', 'reportYearSelect', 'reportYearFilter'];
-            yearSelects.forEach(id => {
+            ['filterYear', 'reportYearSelect', 'reportYearFilter'].forEach(id => {
                 const el = document.getElementById(id);
-                if(el.options.length === 0) {
-                    for(let y = currentYear; y >= 2024; y--) {
-                        let opt = document.createElement('option');
-                        opt.value = y; opt.innerText = y;
-                        el.appendChild(opt);
-                    }
+                if(el && el.options.length === 0) {
+                    for(let y = currentYear; y >= 2024; y--) { el.add(new Option(y, y)); }
                     el.value = currentYear;
                 }
-            });
-        }
-
-        function generateTargetStatusReport() {
-            const container = document.getElementById('annualTargetReportList');
-            const year = document.getElementById('reportYearSelect').value;
-            const target = globalSettings.target || 50000;
-            container.innerHTML = "";
-            monthNames.forEach((name, idx) => {
-                let monthlyProfit = 0;
-                allEntries.forEach(d => {
-                    const dDate = new Date(d.date);
-                    if(dDate.getFullYear() == year && dDate.getMonth() == idx && !d.isHoliday) {
-                        let siteExp = 0;
-                        d.logs?.forEach(l => {
-                            const salVal = parseFloat(l.sal) || 0;
-                            const otCount = parseFloat(l.ot) || 0;
-                            const otVal = (salVal / 2) * otCount;
-                            siteExp += salVal + otVal + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
-                        });
-                        const net = (parseFloat(d.total)||0) - siteExp;
-                        monthlyProfit += (d.projectType === 'Partner' ? net/2 : net);
-                    }
-                });
-                const diff = monthlyProfit - target;
-                let statusText = monthlyProfit === 0 ? "No Activity" : (diff >= 0 ? (diff === 0 ? "Achieved" : `+₹${Math.round(diff).toLocaleString()}`) : `Missed (₹${Math.round(Math.abs(diff)).toLocaleString()})`);
-                let statusClass = monthlyProfit === 0 ? "text-gray-500" : (diff >= 0 ? "text-green-500 font-bold" : "text-red-500");
-                container.innerHTML += `<div class="flex justify-between items-center text-[10px] py-1 border-b border-white/5"><span class="opacity-70 w-8">${name.substring(0,3)}</span><span class="font-medium">₹${Math.round(monthlyProfit).toLocaleString()}</span><span class="${statusClass}">${statusText}</span></div>`;
             });
         }
 
@@ -389,29 +471,18 @@
                     <input type="date" class="input-box h-8 py-0 d-hdate" value="${data?.hDate || document.getElementById('date').value}">
                     <select class="input-box h-8 py-0 d-helper"></select>
                 </div>
-                <div class="grid grid-cols-5 gap-1">
-                    <select class="input-box h-8 py-0 d-status text-[9px] px-1"><option>Started</option><option>Ongoing</option><option>Completed</option></select>
-                    <div class="flex flex-col">
-                        <label class="text-[8px] mb-0 opacity-50 text-center">Sal</label>
-                        <input type="number" placeholder="Sal" class="input-box h-8 d-sal px-1 text-center" oninput="calculate()" value="${data?.sal || ''}">
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="text-[8px] mb-0 opacity-50 text-center">OT Qty</label>
-                        <input type="number" step="0.5" placeholder="OT" class="input-box h-8 d-ot px-1 text-center" oninput="calculate()" value="${data?.ot || ''}">
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="text-[8px] mb-0 opacity-50 text-center">Pet</label>
-                        <input type="number" placeholder="Pet" class="input-box h-8 d-pet px-1 text-center" oninput="calculate()" value="${data?.pet || ''}">
-                    </div>
-                    <div class="flex flex-col">
-                        <label class="text-[8px] mb-0 opacity-50 text-center">Food</label>
-                        <input type="number" placeholder="Fd" class="input-box h-8 d-food px-1 text-center" oninput="calculate()" value="${data?.food || ''}">
-                    </div>
+                <div class="grid grid-cols-4 gap-1">
+                    <div class="flex flex-col"><label class="text-[8px] mb-0 opacity-50 text-center">Sal</label><input type="number" class="input-box h-8 d-sal px-1 text-center" oninput="calculate()" value="${data?.sal || ''}"></div>
+                    <div class="flex flex-col"><label class="text-[8px] mb-0 opacity-50 text-center">OT</label><input type="number" step="0.5" class="input-box h-8 d-ot px-1 text-center" oninput="calculate()" value="${data?.ot || ''}"></div>
+                    <div class="flex flex-col"><label class="text-[8px] mb-0 opacity-50 text-center">Pet</label><input type="number" class="input-box h-8 d-pet px-1 text-center" oninput="calculate()" value="${data?.pet || ''}"></div>
+                    <div class="flex flex-col"><label class="text-[8px] mb-0 opacity-50 text-center">Food</label><input type="number" class="input-box h-8 d-food px-1 text-center" oninput="calculate()" value="${data?.food || ''}"></div>
                 </div>
-                <div class="mt-2 text-[10px] font-bold text-right opacity-60 d-calc-row">Helper Total: ₹0</div>
                 <button onclick="this.parentElement.remove(); calculate()" class="absolute -top-2 -right-2 bg-red-600 text-white w-5 h-5 rounded-full text-xs">×</button>`;
-            container.appendChild(dayDiv); loadDropdowns();
-            if(data) { dayDiv.querySelector('.d-helper').value = data.helper; dayDiv.querySelector('.d-status').value = data.status; calculate(); }
+            container.appendChild(dayDiv);
+            const helps = (globalSettings.helpers || "").split(',');
+            const sel = dayDiv.querySelector('.d-helper');
+            sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
+            if(data) { sel.value = data.helper; calculate(); }
         }
 
         function calculate() {
@@ -420,12 +491,7 @@
             document.querySelectorAll('.day-entry').forEach(row => { 
                 const salVal = parseFloat(row.querySelector('.d-sal').value) || 0;
                 const otCount = parseFloat(row.querySelector('.d-ot').value) || 0;
-                const petVal = parseFloat(row.querySelector('.d-pet').value) || 0;
-                const foodVal = parseFloat(row.querySelector('.d-food').value) || 0;
-                const otVal = (salVal / 2) * otCount;
-                const helperTotal = salVal + otVal + petVal + foodVal;
-                row.querySelector('.d-calc-row').innerText = `Helper Total: ₹${Math.round(helperTotal)}`;
-                totalWages += helperTotal;
+                totalWages += salVal + (salVal/2 * otCount) + (parseFloat(row.querySelector('.d-pet').value) || 0) + (parseFloat(row.querySelector('.d-food').value) || 0);
             });
             document.getElementById('resTotal').innerText = "₹" + Math.round(val);
             document.getElementById('resExpDisplay').innerText = "₹" + Math.round(totalWages);
@@ -433,16 +499,33 @@
         }
 
         async function saveData() {
-            const isHoliday = document.getElementById('isHoliday').checked;
-            const customer = document.getElementById('customer').value.trim();
-            const holidayReason = document.getElementById('holidayReason').value.trim();
-            if (!isHoliday && !customer) { showMessage("PLEASE FILL CUSTOMER NAME"); return; }
-            if (isHoliday && !holidayReason) { showMessage("PLEASE FILL HOLIDAY REMARK"); return; }
+            const isH = document.getElementById('isHoliday').checked;
+            const cust = document.getElementById('customer').value.trim();
+            if (!isH && !cust) { showMessage("CUSTOMER REQUIRED"); return; }
             const cal = calculate(), logs = [];
-            document.querySelectorAll('.day-entry').forEach(row => { 
-                logs.push({ hDate: row.querySelector('.d-hdate').value, helper: row.querySelector('.d-helper').value, status: row.querySelector('.d-status').value, sal: row.querySelector('.d-sal').value, ot: row.querySelector('.d-ot').value, pet: row.querySelector('.d-pet').value, food: row.querySelector('.d-food').value }); 
-            });
-            const data = { date: document.getElementById('date').value, qn: document.getElementById('qn').value, customer: customer, location: document.getElementById('location').value, projectType: document.getElementById('projectType').value, company: document.getElementById('company').value, totalWindow: document.getElementById('totalWindow').value, totalSqft: document.getElementById('totalSqft').value, amtRate: document.getElementById('amtRate').value, total: cal.val, logs: logs, isHoliday: isHoliday, comment: isHoliday ? holidayReason : document.getElementById('workNotes').value };
+            
+            // Only save logs if toggle is ON
+            if (document.getElementById('helperSectionToggle').checked) {
+                document.querySelectorAll('.day-entry').forEach(row => { 
+                    logs.push({ hDate: row.querySelector('.d-hdate').value, helper: row.querySelector('.d-helper').value, sal: row.querySelector('.d-sal').value, ot: row.querySelector('.d-ot').value, pet: row.querySelector('.d-pet').value, food: row.querySelector('.d-food').value }); 
+                });
+            }
+
+            const data = { 
+                date: document.getElementById('date').value, 
+                qn: document.getElementById('qn').value, 
+                customer: cust, 
+                location: document.getElementById('location').value, 
+                projectType: document.getElementById('projectType').value, 
+                company: document.getElementById('company').value, 
+                windowQty: document.getElementById('windowQty').value,
+                totalSqft: document.getElementById('totalSqft').value, 
+                amtRate: document.getElementById('amtRate').value, 
+                total: cal.val, 
+                logs: logs, 
+                isHoliday: isH, 
+                comment: isH ? document.getElementById('holidayReason').value : document.getElementById('workNotes').value 
+            };
             const id = document.getElementById('editId').value;
             if(id) await db.collection("workLogs").doc(id).update(data); else await db.collection("workLogs").add(data);
             location.reload();
@@ -452,40 +535,62 @@
             allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
             applyFilters();
             generateTargetStatusReport();
-            if(document.getElementById('smartReportModal').style.display === 'flex') generateSmartReport();
         });
 
         function applyFilters() {
-            const fMonth = document.getElementById('filterMonth').value;
-            const fYear = document.getElementById('filterYear').value;
-            let currentEarned = 0, soloEarn = 0, partnerEarn = 0;
-            const container = document.getElementById('displayArea'); container.innerHTML = "";
+            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+            let currentEarned = 0, soloEarn = 0, partnerEarn = 0, recordCount = 0;
+            const tbody = document.getElementById('historyTableBody'); tbody.innerHTML = "";
+            
+            const monthLabel = fM === 'all' ? 'ANNUAL' : monthNames[parseInt(fM)].toUpperCase();
+            document.getElementById('historyTitle').innerText = `${monthLabel} ${fY} SITE HISTORY`;
+
             allEntries.forEach(d => {
-                const entryDate = new Date(d.date);
-                if((fMonth === 'all' || entryDate.getMonth() == fMonth) && (entryDate.getFullYear() == fYear)) {
+                const eD = new Date(d.date);
+                if((fM === 'all' || eD.getMonth() == fM) && (eD.getFullYear() == fY)) {
+                    recordCount++;
                     let siteExp = 0, helpers = [];
                     d.logs?.forEach(l => { 
-                        const salVal = parseFloat(l.sal) || 0;
-                        const otCount = parseFloat(l.ot) || 0;
-                        siteExp += salVal + ((salVal / 2) * otCount) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+                        const sVal = parseFloat(l.sal) || 0;
+                        siteExp += sVal + (sVal/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
                         if(!helpers.includes(l.helper)) helpers.push(l.helper); 
                     });
                     const net = (parseFloat(d.total)||0) - siteExp;
                     const myShare = d.projectType === 'Partner' ? (net/2) : net;
                     if(!d.isHoliday) { currentEarned += myShare; if(d.projectType === 'Partner') partnerEarn += (net/2); else soloEarn += net; }
-                    container.innerHTML += `<div class="glass p-5 border-l-4 ${d.isHoliday ? 'border-red-500':'border-blue-600'} shadow-lg mb-4"><div class="flex justify-between items-start"><div onclick="editDoc('${d.id}')" class="flex-1 cursor-pointer"><div class="text-[10px] opacity-50 font-bold mb-1 uppercase">${d.date} | ${d.projectType}</div><h4 class="font-black text-base uppercase mb-1">${d.isHoliday ? 'Holiday' : d.customer}</h4><div class="text-[11px] opacity-60 mb-2">${d.location || 'N/A'}</div>${!d.isHoliday ? `<div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-black/10"><div class="card-detail">Helpers: <span class="card-highlight">${helpers.join(', ') || 'Self'}</span></div><div class="card-detail text-right">Wages: <span class="text-red-500 font-bold">₹${Math.round(siteExp)}</span></div></div>${d.comment ? `<div class="work-note-box">${d.comment}</div>` : ''}` : `<p class="text-xs italic text-red-500 mt-2">${d.comment}</p>`}</div><div class="flex flex-col gap-4 ml-3"><button onclick="editDoc('${d.id}')" class="text-blue-500"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteDoc('${d.id}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></div></div></div>`;
+                    
+                    const row = document.createElement('tr');
+                    if(d.isHoliday) row.className = 'holiday-row';
+                    row.innerHTML = `
+                        <td>${d.date}</td>
+                        <td class="opacity-70">${d.qn || '-'}</td>
+                        <td class="font-bold opacity-80">${d.company || '-'}</td>
+                        <td class="font-bold">${d.isHoliday ? 'HOLIDAY' : d.customer}</td>
+                        <td>${d.location || '-'}</td>
+                        <td class="italic">${helpers.join(', ') || '-'}</td>
+                        <td class="text-center font-bold">${d.windowQty || '-'}</td>
+                        <td class="text-[9px] uppercase font-black">${d.projectType}</td>
+                        <td>₹${Math.round(d.total || 0).toLocaleString()}</td>
+                        <td class="font-bold ${net >= 0 ? 'text-green-500':'text-red-500'}">₹${Math.round(myShare).toLocaleString()}</td>
+                        <td class="text-center">
+                            <button onclick="editDoc('${d.id}')" class="p-1 px-2 text-blue-500"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteDoc('${d.id}')" class="p-1 px-2 text-red-500"><i class="fas fa-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
                 }
             });
+            document.getElementById('recordCount').innerText = `${recordCount} Total Records Found`;
             document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
             document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
             document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(soloEarn + partnerEarn).toLocaleString();
-            updateTargetUI(currentEarned, fMonth);
+            updateTargetUI(currentEarned, fM);
         }
 
         function updateTargetUI(earned, monthFilter) {
             let target = parseFloat(globalSettings.target) || 50000;
             const label = document.getElementById('targetLabel');
-            if (monthFilter === 'all') { target = target * 12; label.innerText = "Yearly Target Progress"; } else { label.innerText = `${monthNames[parseInt(monthFilter)]} Target Progress`; }
+            if (monthFilter === 'all') { target *= 12; label.innerText = "Yearly Target"; } else { label.innerText = `${monthNames[parseInt(monthFilter)]} Target`; }
             const percent = Math.min((earned / target) * 100, 100);
             document.getElementById('targetBar').style.width = percent + "%";
             document.getElementById('targetEarned').innerText = `Earned: ₹${Math.round(earned).toLocaleString()}`;
@@ -493,110 +598,56 @@
             document.getElementById('targetRem').innerText = `₹${Math.max(0, Math.round(target - earned)).toLocaleString()}`;
         }
 
-        function generateSmartReport() {
-            const stats = {}; let sT = 0, sD = 0, pT = 0, pD = 0, mSites = 0, mGross = 0, mHelperExp = 0, mPartnerPay = 0;
-            const fMonth = document.getElementById('reportMonthFilter').value;
-            const fYear = document.getElementById('reportYearFilter').value;
-            allEntries.forEach(d => {
-                const entryDate = new Date(d.date);
-                if (d.isHoliday) return;
-                let siteExp = 0; d.logs?.forEach(l => {
-                    const salVal = parseFloat(l.sal) || 0;
-                    siteExp += salVal + ((salVal / 2) * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+        function generateTargetStatusReport() {
+            const container = document.getElementById('annualTargetReportList');
+            const year = document.getElementById('reportYearSelect').value;
+            container.innerHTML = "";
+            monthNames.forEach((name, idx) => {
+                let monthlyProfit = 0;
+                allEntries.forEach(d => {
+                    const dD = new Date(d.date);
+                    if(dD.getFullYear() == year && dD.getMonth() == idx && !d.isHoliday) {
+                        let exp = 0; d.logs?.forEach(l => { const s = parseFloat(l.sal)||0; exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); });
+                        const net = (parseFloat(d.total)||0) - exp;
+                        monthlyProfit += (d.projectType === 'Partner' ? net/2 : net);
+                    }
                 });
-                const gross = parseFloat(d.total) || 0, net = gross - siteExp;
-                const myShare = d.projectType === 'Partner' ? net / 2 : net, partnerShare = d.projectType === 'Partner' ? net / 2 : 0;
-                if ((fMonth === 'all' || entryDate.getMonth() == fMonth) && (entryDate.getFullYear() == fYear)) {
-                    if (!stats[d.company]) stats[d.company] = { j: 0, p: 0 };
-                    stats[d.company].j++; stats[d.company].p += myShare;
-                    mSites++; mGross += gross; mHelperExp += siteExp; mPartnerPay += partnerShare;
-                    if (d.projectType === 'Solo') { sT += myShare; sD += (d.logs?.length || 1); } else { pT += myShare; pD += (d.logs?.length || 1); }
-                }
+                const diff = monthlyProfit - globalSettings.target;
+                container.innerHTML += `<div class="flex justify-between items-center text-[10px] py-1 border-b border-white/5"><span class="opacity-70 w-8">${name.substring(0,3)}</span><span>₹${Math.round(monthlyProfit).toLocaleString()}</span><span class="${monthlyProfit >= globalSettings.target ? 'text-green-500' : 'text-red-500'}">${monthlyProfit === 0 ? '-' : (diff >= 0 ? '✓' : '×')}</span></div>`;
             });
-            const mProfit = mGross - mHelperExp - mPartnerPay;
-            const targetVal = fMonth === 'all' ? (globalSettings.target * 12) : globalSettings.target;
-            document.getElementById('monthlyReportStats').innerHTML = `<div class="bg-blue-600/10 p-4 rounded-2xl border border-blue-500/30"><div class="text-[10px] uppercase font-black text-blue-500 mb-2">Financial Breakdown</div><div class="grid grid-cols-2 gap-y-3"><div><label class="m-0 opacity-60">Total Sites</label><div class="font-bold">${mSites}</div></div><div><label class="m-0 opacity-60">Gross Bill</label><div class="font-bold">₹${Math.round(mGross).toLocaleString()}</div></div><div><label class="m-0 text-red-500">Helper Wages</label><div class="text-red-500 font-bold">₹${Math.round(mHelperExp).toLocaleString()}</div></div><div><label class="m-0 text-orange-500">Partner Share</label><div class="text-orange-500 font-bold">₹${Math.round(mPartnerPay).toLocaleString()}</div></div><div class="col-span-2 pt-2 border-t border-black/10 mt-1"><label class="m-0 text-green-600">Final Net Profit</label><div class="text-2xl font-black text-green-600">₹${Math.round(mProfit).toLocaleString()}</div></div></div></div>`;
-            const diff = mProfit - targetVal;
-            document.getElementById('targetStatsContent').innerHTML = `<div class="flex justify-between"><span>Current Target:</span> <span class="font-bold">₹${targetVal.toLocaleString()}</span></div><div class="flex justify-between"><span>Performance:</span> <span class="font-bold ${diff >= 0 ? 'text-green-500' : 'text-red-500'}"><i class="fas ${diff >= 0 ? 'fa-caret-up' : 'fa-caret-down'} mr-1"></i> ₹${Math.abs(Math.round(diff)).toLocaleString()} ${diff >= 0 ? 'Above' : 'Below'}</span></div><div class="mt-2 h-1.5 w-full bg-black/10 rounded-full overflow-hidden"><div class="h-full bg-yellow-500" style="width: ${Math.min((mProfit/targetVal)*100, 100)}%"></div></div>`;
-            document.getElementById('companyStats').innerHTML = Object.entries(stats).length ? Object.entries(stats).sort((a,b)=>b[1].p - a[1].p).map(([n,v])=>`<div class="flex justify-between p-3 bg-black/5 rounded border border-black/5 mb-2"><div><b>${n}</b><br><span class="opacity-50 text-[10px]">${v.j} sites</span></div><div class="text-green-500 font-bold">₹${Math.round(v.p).toLocaleString()}</div></div>`).join('') : '<div class="text-center text-xs opacity-50 py-4">No data for selected period</div>';
-            document.getElementById('soloEffort').innerText = `₹${sD ? Math.round(sT/sD).toLocaleString() : 0}`;
-            document.getElementById('partnerEffort').innerText = `₹${pD ? Math.round(pT/pD).toLocaleString() : 0}`;
-        }
-
-        function startPdfExport(type) { document.getElementById('pdfType').value = type; document.getElementById('pdfDateModal').style.display = 'flex'; }
-        
-        async function generateFilteredPDF() {
-            const type = document.getElementById('pdfType').value, fromDate = document.getElementById('pdfFrom').value, toDate = document.getElementById('pdfTo').value;
-            if (!fromDate || !toDate) return;
-            const filtered = allEntries.filter(d => d.date >= fromDate && d.date <= toDate && !d.isHoliday);
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            doc.setFontSize(14); doc.text(type === 'partner' ? "PARTNER SETTLEMENT REPORT" : "HELPER WAGE REPORT", 14, 20);
-            let total = 0; const rows = [];
-            
-            if (type === 'partner') {
-                filtered.filter(d => d.projectType === 'Partner').forEach(d => {
-                    let se = 0, helpers = [];
-                    d.logs?.forEach(l => {
-                        const sVal = parseFloat(l.sal) || 0;
-                        se += sVal + ((sVal/2)*(parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
-                        if(l.helper && !helpers.includes(l.helper)) helpers.push(l.helper);
-                    });
-                    const share = ((parseFloat(d.total)||0)-se)/2; total += share; 
-                    rows.push([d.date, d.customer, d.location || '-', helpers.join(', ') || 'Self', `₹${d.total}`, `₹${Math.round(se)}`, `₹${Math.round(share)}`]);
-                });
-                doc.autoTable({ startY: 30, head: [['Date', 'Customer', 'Location', 'Helper Name', 'Bill', 'Exp', 'Share']], body: rows, foot: [['','','','','','Total:', `₹${Math.round(total)}`]] });
-                
-                // Bottom Footer Signature
-                const finalY = doc.lastAutoTable.finalY + 30;
-                doc.setFontSize(10);
-                doc.line(14, finalY, 70, finalY);
-                doc.text("Partner Signature", 14, finalY + 5);
-
-            } else {
-                filtered.forEach(d => { 
-                    d.logs?.forEach(l => {
-                        const sVal = parseFloat(l.sal) || 0;
-                        const otQty = parseFloat(l.ot) || 0;
-                        const dailyWage = sVal + ((sVal/2)*otQty) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
-                        total += dailyWage; 
-                        rows.push([l.hDate, d.customer, d.location || '-', l.helper, otQty > 0 ? `${otQty} OT` : '-', `₹${Math.round(dailyWage)}`, d.projectType.substring(0,1)]); 
-                    }); 
-                });
-                doc.autoTable({ startY: 30, head: [['Date', 'Site', 'Location', 'Helper', 'OT', 'Wage', 'Type']], body: rows, foot: [['','','','','Total Wages:', `₹${Math.round(total)}`, '']] });
-            }
-            doc.save(`Ayyappan_${type}_Report.pdf`); document.getElementById('pdfDateModal').style.display = 'none';
         }
 
         function editDoc(id) {
             const d = allEntries.find(e => e.id === id);
-            document.getElementById('editId').value = id; document.getElementById('date').value = d.date; document.getElementById('qn').value = d.qn || "";
-            document.getElementById('customer').value = d.customer; document.getElementById('location').value = d.location || "";
-            document.getElementById('totalWindow').value = d.totalWindow || ""; document.getElementById('totalSqft').value = d.totalSqft || "";
-            document.getElementById('amtRate').value = d.amtRate || ""; document.getElementById('projectType').value = d.projectType;
-            document.getElementById('isHoliday').checked = d.isHoliday; document.getElementById('dayLogsContainer').innerHTML = "";
-            d.logs?.forEach(l => addDayRow(l));
+            document.getElementById('editId').value = id; 
+            document.getElementById('date').value = d.date; 
+            document.getElementById('qn').value = d.qn || "";
+            document.getElementById('customer').value = d.customer; 
+            document.getElementById('location').value = d.location || "";
+            document.getElementById('windowQty').value = d.windowQty || "";
+            document.getElementById('totalSqft').value = d.totalSqft || ""; 
+            document.getElementById('amtRate').value = d.amtRate || "";
+            document.getElementById('projectType').value = d.projectType; 
+            document.getElementById('isHoliday').checked = d.isHoliday;
+            
+            const logs = d.logs || [];
+            document.getElementById('dayLogsContainer').innerHTML = ""; 
+            if(logs.length > 0) {
+                document.getElementById('helperSectionToggle').checked = true;
+                toggleHelperVisibility();
+                logs.forEach(l => addDayRow(l));
+            } else {
+                document.getElementById('helperSectionToggle').checked = false;
+                toggleHelperVisibility();
+            }
+            
             if(d.isHoliday) document.getElementById('holidayReason').value = d.comment || ""; else document.getElementById('workNotes').value = d.comment || "";
             checkHoliday(); calculate(); window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
-        async function backupData() {
-            const dataStr = JSON.stringify(allEntries); const blob = new Blob([dataStr], {type: "application/json"});
-            const url = URL.createObjectURL(blob); const link = document.createElement("a");
-            link.href = url; link.download = `Ayyappan_Local_Backup.json`; link.click();
-        }
-
-        async function restoreData(event) {
-            const file = event.target.files[0]; if(!file) return;
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const data = JSON.parse(e.target.result);
-                if(confirm(`Import ${data.length} records?`)) { for(const item of data) { delete item.id; await db.collection("workLogs").add(item); } location.reload(); }
-            };
-            reader.readAsText(file);
-        }
-
-        async function deleteDoc(id) { if(confirm("Permanently delete this record?")) await db.collection("workLogs").doc(id).delete(); }
+        async function deleteDoc(id) { if(confirm("Delete record?")) await db.collection("workLogs").doc(id).delete(); }
         function toggleSettings() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
+        
         function toggleReport() { 
             const m = document.getElementById('smartReportModal'); 
             const isVisible = m.style.display === 'flex';
@@ -607,8 +658,60 @@
                 generateSmartReport(); 
             }
         }
+        
         function checkHoliday() { document.getElementById('workFields').style.display = document.getElementById('isHoliday').checked ? 'none' : 'block'; document.getElementById('holidayReasonDiv').classList.toggle('hidden', !document.getElementById('isHoliday').checked); }
         
+        function startPdfExport(type) { document.getElementById('pdfType').value = type; document.getElementById('pdfDateModal').style.display = 'flex'; }
+
+        async function generateFilteredPDF() {
+            const type = document.getElementById('pdfType').value, from = document.getElementById('pdfFrom').value, to = document.getElementById('pdfTo').value;
+            const filtered = allEntries.filter(d => d.date >= from && d.date <= to && !d.isHoliday);
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            let total = 0, rows = [];
+            if(type === 'partner') {
+                filtered.filter(d => d.projectType === 'Partner').forEach(d => {
+                    let exp = 0; d.logs?.forEach(l => { const s = parseFloat(l.sal)||0; exp += s + (s/2*(parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); });
+                    const share = ((parseFloat(d.total)||0)-exp)/2; total += share; rows.push([d.date, d.customer, `₹${d.total}`, `₹${Math.round(exp)}`, `₹${Math.round(share)}`]);
+                });
+                doc.autoTable({ head: [['Date', 'Customer', 'Bill', 'Exp', 'Share']], body: rows });
+            } else {
+                filtered.forEach(d => d.logs?.forEach(l => {
+                    const wage = (parseFloat(l.sal)||0) + ((parseFloat(l.sal)||0)/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+                    total += wage; rows.push([l.hDate, d.customer, l.helper, `₹${Math.round(wage)}`]);
+                }));
+                doc.autoTable({ head: [['Date', 'Site', 'Helper', 'Wage']], body: rows });
+            }
+            doc.save(`Ayyappan_${type}_Report.pdf`); document.getElementById('pdfDateModal').style.display = 'none';
+        }
+
+        function generateSmartReport() {
+            let gross = 0, exp = 0, partner = 0;
+            const fM = document.getElementById('reportMonthFilter').value, fY = document.getElementById('reportYearFilter').value;
+            allEntries.forEach(d => {
+                const eD = new Date(d.date);
+                if(!d.isHoliday && (fM === 'all' || eD.getMonth() == fM) && (eD.getFullYear() == fY)) {
+                    gross += parseFloat(d.total) || 0;
+                    let siteExp = 0; d.logs?.forEach(l => { const s = parseFloat(l.sal)||0; siteExp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); });
+                    exp += siteExp; if(d.projectType === 'Partner') partner += (parseFloat(d.total) - siteExp)/2;
+                }
+            });
+            document.getElementById('monthlyReportStats').innerHTML = `<div class="bg-blue-600/10 p-4 rounded-xl border border-blue-500/30 font-bold">Net Profit: ₹${Math.round(gross-exp-partner).toLocaleString()}</div>`;
+        }
+
+        async function backupData() {
+            const blob = new Blob([JSON.stringify(allEntries)], {type: "application/json"});
+            const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `Backup.json`; a.click();
+        }
+
+        async function restoreData(event) {
+            const file = event.target.files[0]; if(!file) return;
+            const reader = new FileReader(); reader.onload = async (e) => {
+                const data = JSON.parse(e.target.result);
+                if(confirm(`Import ${data.length} records?`)) { for(const item of data) { delete item.id; await db.collection("workLogs").add(item); } location.reload(); }
+            };
+            reader.readAsText(file);
+        }
+
         window.onload = async () => { 
             const now = new Date();
             initTheme();
@@ -616,7 +719,8 @@
             await syncSettings(); 
             document.getElementById('filterMonth').value = now.getMonth();
             document.getElementById('filterYear').value = now.getFullYear();
-            addDayRow(); applyFilters();
+            if(localStorage.getItem('history_collapsed') === 'true') toggleHistory();
+            applyFilters();
         };
     </script>
 </body>
