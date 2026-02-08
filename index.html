@@ -46,7 +46,14 @@
     <div id="smartReportModal" class="modal">
         <div class="glass p-6 w-full max-w-md max-h-[85vh] overflow-y-auto space-y-6">
             <div class="flex justify-between items-center border-b border-white/10 pb-4"><h2 class="text-xl font-bold text-blue-400">Business Insights</h2><button onclick="toggleReport()"><i class="fas fa-times"></i></button></div>
-            <div id="companyStats" class="space-y-2"></div>
+            
+            <div id="monthlyReportStats" class="space-y-3"></div>
+            
+            <div class="border-t border-white/10 pt-4">
+                <label class="text-blue-400 mb-2">Company Performance</label>
+                <div id="companyStats" class="space-y-2"></div>
+            </div>
+
             <div class="grid grid-cols-2 gap-3">
                 <div class="bg-white/5 p-3 rounded-xl border border-white/10"><label>Solo Profit/Day</label><div id="soloEffort" class="text-lg font-bold text-green-400">₹0</div></div>
                 <div class="bg-white/5 p-3 rounded-xl border border-white/10"><label>Partner Profit/Day</label><div id="partnerEffort" class="text-lg font-bold text-blue-400">₹0</div></div>
@@ -152,7 +159,7 @@
                 <option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
             </select>
             <select id="filterYear" onchange="applyFilters()" class="input-box h-full py-0 bg-slate-900 text-[10px] font-bold uppercase">
-                </select>
+            </select>
         </div>
     </div>
 
@@ -188,7 +195,6 @@
             const helps = (globalSettings.helpers || "").split(',');
             document.querySelectorAll('.d-helper').forEach(sel => { const cur = sel.value; sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join(''); if(cur) sel.value = cur; });
             
-            // Populate Year Dropdown if empty
             const yearSel = document.getElementById('filterYear');
             if(yearSel.options.length === 0) {
                 const currentYear = new Date().getFullYear();
@@ -280,13 +286,10 @@
                 });
                 
                 const net = (parseFloat(d.total)||0) - siteExp;
-                
-                // Keep target calculation for the specific selected year
                 if(!d.isHoliday && entryYear == fYear) { 
                     if(d.projectType === 'Partner') currentEarned += (net/2); else currentEarned += net; 
                 }
 
-                // Month Match Logic
                 const monthMatch = (fMonth === 'all' || entryMonth == fMonth);
                 const yearMatch = (entryYear == fYear);
 
@@ -312,14 +315,52 @@
 
         function generateSmartReport() {
             const stats = {}; let sT = 0, sD = 0, pT = 0, pD = 0;
+            let mSites = 0, mGross = 0, mHelperExp = 0, mPartnerPay = 0;
+            const fMonth = document.getElementById('filterMonth').value;
+            const fYear = document.getElementById('filterYear').value;
+
             allEntries.forEach(d => {
+                const entryDate = new Date(d.date);
+                const isSelectedMonth = (fMonth === 'all' || entryDate.getMonth() == fMonth) && (entryDate.getFullYear() == fYear);
+
                 if (d.isHoliday) return;
                 let siteExp = 0; d.logs?.forEach(l => { siteExp += (parseFloat(l.sal)||0) + (parseFloat(l.ot)||0) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); });
-                const net = (parseFloat(d.total) || 0) - siteExp, myShare = d.projectType === 'Partner' ? net / 2 : net, days = d.logs?.length || 1;
+                
+                const gross = parseFloat(d.total) || 0;
+                const net = gross - siteExp;
+                const myShare = d.projectType === 'Partner' ? net / 2 : net;
+                const partnerShare = d.projectType === 'Partner' ? net / 2 : 0;
+                const days = d.logs?.length || 1;
+
                 if (!stats[d.company]) stats[d.company] = { j: 0, p: 0 };
                 stats[d.company].j++; stats[d.company].p += myShare;
                 if (d.projectType === 'Solo') { sT += myShare; sD += days; } else { pT += myShare; pD += days; }
+
+                if (isSelectedMonth) {
+                    mSites++;
+                    mGross += gross;
+                    mHelperExp += siteExp;
+                    mPartnerPay += partnerShare;
+                }
             });
+
+            const mName = fMonth === 'all' ? 'All' : new Date(2000, fMonth).toLocaleString('default', { month: 'short' });
+            document.getElementById('monthlyReportStats').innerHTML = `
+                <div class="bg-blue-600/20 p-4 rounded-2xl border border-blue-500/30">
+                    <div class="text-[10px] uppercase font-black text-blue-400 mb-2">${mName} ${fYear} Financial Breakdown</div>
+                    <div class="grid grid-cols-2 gap-y-3">
+                        <div><label class="m-0 text-gray-400">Total Sites</label><div class="text-white font-bold">${mSites}</div></div>
+                        <div><label class="m-0 text-gray-400">Gross Bill</label><div class="text-white font-bold">₹${Math.round(mGross).toLocaleString()}</div></div>
+                        <div><label class="m-0 text-red-400">Helper Wages</label><div class="text-red-400 font-bold">₹${Math.round(mHelperExp).toLocaleString()}</div></div>
+                        <div><label class="m-0 text-orange-400">Partner Share</label><div class="text-orange-400 font-bold">₹${Math.round(mPartnerPay).toLocaleString()}</div></div>
+                        <div class="col-span-2 pt-2 border-t border-white/10 mt-1">
+                            <label class="m-0 text-green-400">Final Net Profit</label>
+                            <div class="text-2xl font-black text-green-400">₹${Math.round(mGross - mHelperExp - mPartnerPay).toLocaleString()}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
             document.getElementById('companyStats').innerHTML = Object.entries(stats).sort((a,b)=>b[1].p - a[1].p).map(([n,v])=>`<div class="flex justify-between p-3 bg-white/5 rounded border border-white/5 mb-2"><div><b>${n}</b><br><span class="text-gray-500 text-[10px]">${v.j} sites</span></div><div class="text-green-400 font-bold">₹${Math.round(v.p)}</div></div>`).join('');
             document.getElementById('soloEffort').innerText = `₹${sD ? Math.round(sT/sD) : 0}`;
             document.getElementById('partnerEffort').innerText = `₹${pD ? Math.round(pT/pD) : 0}`;
@@ -387,7 +428,6 @@
             const now = new Date();
             document.getElementById('date').valueAsDate = now; 
             await syncSettings(); 
-            // Default dropdowns to current month/year
             document.getElementById('filterMonth').value = now.getMonth();
             document.getElementById('filterYear').value = now.getFullYear();
             addDayRow(); 
