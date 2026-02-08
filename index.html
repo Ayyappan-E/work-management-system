@@ -141,10 +141,18 @@
                 </table>
             </div>
         </div>
-        <div class="grid grid-cols-3 gap-3 px-2">
-            <button onclick="startPdfExport('partner')" class="bg-blue-700 py-3 rounded-xl text-[10px] font-black uppercase">Partner Report</button>
-            <button onclick="startPdfExport('helper')" class="bg-orange-700 py-3 rounded-xl text-[10px] font-black uppercase">Helper Report</button>
-            <select id="filterMonth" onchange="applyFilters()" class="input-box h-full py-0 bg-slate-900 text-xs font-bold uppercase"><option value="all">Full History</option><option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option><option value="4">May</option><option value="5">June</option><option value="6">July</option><option value="7">August</option><option value="8">September</option><option value="9">October</option><option value="10">November</option><option value="11">December</option></select>
+        <div class="grid grid-cols-4 gap-2 px-2">
+            <button onclick="startPdfExport('partner')" class="bg-blue-700 py-3 rounded-xl text-[9px] font-black uppercase">Partner</button>
+            <button onclick="startPdfExport('helper')" class="bg-orange-700 py-3 rounded-xl text-[9px] font-black uppercase">Helper</button>
+            <select id="filterMonth" onchange="applyFilters()" class="input-box h-full py-0 bg-slate-900 text-[10px] font-bold uppercase">
+                <option value="all">Months</option>
+                <option value="0">Jan</option><option value="1">Feb</option><option value="2">Mar</option>
+                <option value="3">Apr</option><option value="4">May</option><option value="5">Jun</option>
+                <option value="6">Jul</option><option value="7">Aug</option><option value="8">Sep</option>
+                <option value="9">Oct</option><option value="10">Nov</option><option value="11">Dec</option>
+            </select>
+            <select id="filterYear" onchange="applyFilters()" class="input-box h-full py-0 bg-slate-900 text-[10px] font-bold uppercase">
+                </select>
         </div>
     </div>
 
@@ -179,6 +187,18 @@
             document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
             const helps = (globalSettings.helpers || "").split(',');
             document.querySelectorAll('.d-helper').forEach(sel => { const cur = sel.value; sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join(''); if(cur) sel.value = cur; });
+            
+            // Populate Year Dropdown if empty
+            const yearSel = document.getElementById('filterYear');
+            if(yearSel.options.length === 0) {
+                const currentYear = new Date().getFullYear();
+                for(let y = currentYear; y >= 2024; y--) {
+                    let opt = document.createElement('option');
+                    opt.value = y; opt.innerText = y;
+                    yearSel.appendChild(opt);
+                }
+                yearSel.value = currentYear;
+            }
         }
 
         function addDayRow(data = null) {
@@ -244,19 +264,36 @@
 
         function applyFilters() {
             const fMonth = document.getElementById('filterMonth').value;
+            const fYear = document.getElementById('filterYear').value;
             let currentEarned = 0, soloEarn = 0, partnerEarn = 0;
             const container = document.getElementById('displayArea'); container.innerHTML = "";
+            
             allEntries.forEach(d => {
+                const entryDate = new Date(d.date);
+                const entryMonth = entryDate.getMonth();
+                const entryYear = entryDate.getFullYear();
+                
                 let siteExp = 0, helpers = [];
                 d.logs?.forEach(l => { 
                     siteExp += (parseFloat(l.sal)||0) + (parseFloat(l.ot)||0) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
                     if(!helpers.includes(l.helper)) helpers.push(l.helper); 
                 });
+                
                 const net = (parseFloat(d.total)||0) - siteExp;
-                if(!d.isHoliday) { if(d.projectType === 'Partner') currentEarned += (net/2); else currentEarned += net; }
-                if(fMonth !== 'all' && new Date(d.date).getMonth() != fMonth) return;
-                if(!d.isHoliday) { if(d.projectType === 'Partner') partnerEarn += (net/2); else soloEarn += net; }
-                container.innerHTML += `<div class="glass p-5 border-l-4 ${d.isHoliday ? 'border-red-500':'border-blue-600'} shadow-lg mb-4"><div class="flex justify-between items-start"><div onclick="editDoc('${d.id}')" class="flex-1 cursor-pointer"><div class="text-[10px] text-gray-400 font-bold mb-1 uppercase">${d.date} | ${d.projectType}</div><h4 class="font-black text-base uppercase text-white mb-1">${d.isHoliday ? 'Holiday' : d.customer}</h4><div class="text-[11px] text-gray-400 mb-2">${d.location || 'N/A'}</div>${!d.isHoliday ? `<div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-white/10"><div class="card-detail">Helpers: <span class="card-highlight">${helpers.join(', ') || 'Self'}</span></div><div class="card-detail text-right">Wages: <span class="text-red-400 font-bold">₹${Math.round(siteExp)}</span></div></div>${d.comment ? `<div class="work-note-box">${d.comment}</div>` : ''}` : `<p class="text-xs italic text-red-300 mt-2">${d.comment}</p>`}</div><div class="flex flex-col gap-4 ml-3"><button onclick="editDoc('${d.id}')" class="text-blue-400"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteDoc('${d.id}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></div></div></div>`;
+                
+                // Keep target calculation for the specific selected year
+                if(!d.isHoliday && entryYear == fYear) { 
+                    if(d.projectType === 'Partner') currentEarned += (net/2); else currentEarned += net; 
+                }
+
+                // Month Match Logic
+                const monthMatch = (fMonth === 'all' || entryMonth == fMonth);
+                const yearMatch = (entryYear == fYear);
+
+                if(monthMatch && yearMatch) {
+                    if(!d.isHoliday) { if(d.projectType === 'Partner') partnerEarn += (net/2); else soloEarn += net; }
+                    container.innerHTML += `<div class="glass p-5 border-l-4 ${d.isHoliday ? 'border-red-500':'border-blue-600'} shadow-lg mb-4"><div class="flex justify-between items-start"><div onclick="editDoc('${d.id}')" class="flex-1 cursor-pointer"><div class="text-[10px] text-gray-400 font-bold mb-1 uppercase">${d.date} | ${d.projectType}</div><h4 class="font-black text-base uppercase text-white mb-1">${d.isHoliday ? 'Holiday' : d.customer}</h4><div class="text-[11px] text-gray-400 mb-2">${d.location || 'N/A'}</div>${!d.isHoliday ? `<div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-white/10"><div class="card-detail">Helpers: <span class="card-highlight">${helpers.join(', ') || 'Self'}</span></div><div class="card-detail text-right">Wages: <span class="text-red-400 font-bold">₹${Math.round(siteExp)}</span></div></div>${d.comment ? `<div class="work-note-box">${d.comment}</div>` : ''}` : `<p class="text-xs italic text-red-300 mt-2">${d.comment}</p>`}</div><div class="flex flex-col gap-4 ml-3"><button onclick="editDoc('${d.id}')" class="text-blue-400"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteDoc('${d.id}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></div></div></div>`;
+                }
             });
             document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
             document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
@@ -345,7 +382,17 @@
         function toggleSettings() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
         function toggleReport() { const m = document.getElementById('smartReportModal'); const isOpen = m.style.display === 'flex'; m.style.display = isOpen ? 'none' : 'flex'; if (!isOpen) generateSmartReport(); }
         function checkHoliday() { document.getElementById('workFields').style.display = document.getElementById('isHoliday').checked ? 'none' : 'block'; document.getElementById('holidayReasonDiv').classList.toggle('hidden', !document.getElementById('isHoliday').checked); }
-        window.onload = async () => { document.getElementById('date').valueAsDate = new Date(); await syncSettings(); addDayRow(); };
+        
+        window.onload = async () => { 
+            const now = new Date();
+            document.getElementById('date').valueAsDate = now; 
+            await syncSettings(); 
+            // Default dropdowns to current month/year
+            document.getElementById('filterMonth').value = now.getMonth();
+            document.getElementById('filterYear').value = now.getFullYear();
+            addDayRow(); 
+            applyFilters();
+        };
     </script>
 </body>
 </html>
