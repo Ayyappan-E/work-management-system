@@ -106,7 +106,7 @@
     <div id="msgBox" class="bg-red-600 text-white shadow-2xl"></div>
 
     <div id="settingsModal" class="modal">
-        <div class="glass p-6 w-full max-sm max-h-[90vh] overflow-y-auto space-y-4">
+        <div class="glass p-6 w-full max-w-sm max-h-[90vh] overflow-y-auto space-y-4">
             <h2 class="text-xl font-bold border-b border-white/10 pb-2 text-blue-400 uppercase text-center">Cloud configuration</h2>
             <button onclick="toggleReport()" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 py-3 rounded-lg font-black text-white uppercase text-xs shadow-lg"><i class="fas fa-chart-line mr-2"></i> Performance Report</button>
             <div class="bg-black/10 p-3 rounded-xl border border-white/10">
@@ -345,7 +345,12 @@
                     const dDate = new Date(d.date);
                     if(dDate.getFullYear() == year && dDate.getMonth() == idx && !d.isHoliday) {
                         let siteExp = 0;
-                        d.logs?.forEach(l => siteExp += (parseFloat(l.sal)||0) + (parseFloat(l.ot)||0) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0));
+                        d.logs?.forEach(l => {
+                            const salVal = parseFloat(l.sal) || 0;
+                            const otCount = parseFloat(l.ot) || 0;
+                            const otVal = (salVal / 2) * otCount; // OT Logic: 1 OT = 0.5 Salary
+                            siteExp += salVal + otVal + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+                        });
                         const net = (parseFloat(d.total)||0) - siteExp;
                         monthlyProfit += (d.projectType === 'Partner' ? net/2 : net);
                     }
@@ -367,11 +372,24 @@
                 </div>
                 <div class="grid grid-cols-5 gap-1">
                     <select class="input-box h-8 py-0 d-status text-[9px] px-1"><option>Started</option><option>Ongoing</option><option>Completed</option></select>
-                    <input type="number" placeholder="Sal" class="input-box h-8 d-sal px-1 text-center" oninput="calculate()" value="${data?.sal || ''}">
-                    <input type="number" placeholder="OT" class="input-box h-8 d-ot px-1 text-center" oninput="calculate()" value="${data?.ot || ''}">
-                    <input type="number" placeholder="Pet" class="input-box h-8 d-pet px-1 text-center" oninput="calculate()" value="${data?.pet || ''}">
-                    <input type="number" placeholder="Fd" class="input-box h-8 d-food px-1 text-center" oninput="calculate()" value="${data?.food || ''}">
+                    <div class="flex flex-col">
+                        <label class="text-[8px] mb-0 opacity-50 text-center">Sal</label>
+                        <input type="number" placeholder="Sal" class="input-box h-8 d-sal px-1 text-center" oninput="calculate()" value="${data?.sal || ''}">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-[8px] mb-0 opacity-50 text-center">OT Qty</label>
+                        <input type="number" step="0.5" placeholder="OT" class="input-box h-8 d-ot px-1 text-center" oninput="calculate()" value="${data?.ot || ''}">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-[8px] mb-0 opacity-50 text-center">Pet</label>
+                        <input type="number" placeholder="Pet" class="input-box h-8 d-pet px-1 text-center" oninput="calculate()" value="${data?.pet || ''}">
+                    </div>
+                    <div class="flex flex-col">
+                        <label class="text-[8px] mb-0 opacity-50 text-center">Food</label>
+                        <input type="number" placeholder="Fd" class="input-box h-8 d-food px-1 text-center" oninput="calculate()" value="${data?.food || ''}">
+                    </div>
                 </div>
+                <div class="mt-2 text-[10px] font-bold text-right opacity-60 d-calc-row">Helper Total: ₹0</div>
                 <button onclick="this.parentElement.remove(); calculate()" class="absolute -top-2 -right-2 bg-red-600 text-white w-5 h-5 rounded-full text-xs">×</button>`;
             container.appendChild(dayDiv); loadDropdowns();
             if(data) { dayDiv.querySelector('.d-helper').value = data.helper; dayDiv.querySelector('.d-status').value = data.status; calculate(); }
@@ -379,13 +397,23 @@
 
         function calculate() {
             const val = (parseFloat(document.getElementById('totalSqft').value) || 0) * (parseFloat(document.getElementById('amtRate').value) || 0);
-            let siteExp = 0; 
+            let totalWages = 0; 
             document.querySelectorAll('.day-entry').forEach(row => { 
-                siteExp += (parseFloat(row.querySelector('.d-sal').value) || 0) + (parseFloat(row.querySelector('.d-ot').value) || 0) + (parseFloat(row.querySelector('.d-pet').value) || 0) + (parseFloat(row.querySelector('.d-food').value) || 0); 
+                const salVal = parseFloat(row.querySelector('.d-sal').value) || 0;
+                const otCount = parseFloat(row.querySelector('.d-ot').value) || 0;
+                const petVal = parseFloat(row.querySelector('.d-pet').value) || 0;
+                const foodVal = parseFloat(row.querySelector('.d-food').value) || 0;
+                
+                // OT Logic: 1 OT = Half of Salary
+                const otVal = (salVal / 2) * otCount;
+                const helperTotal = salVal + otVal + petVal + foodVal;
+                
+                row.querySelector('.d-calc-row').innerText = `Helper Total: ₹${Math.round(helperTotal)}`;
+                totalWages += helperTotal;
             });
             document.getElementById('resTotal').innerText = "₹" + Math.round(val);
-            document.getElementById('resExpDisplay').innerText = "₹" + Math.round(siteExp);
-            return { val, siteExp };
+            document.getElementById('resExpDisplay').innerText = "₹" + Math.round(totalWages);
+            return { val, totalWages };
         }
 
         async function saveData() {
@@ -420,7 +448,13 @@
             allEntries.forEach(d => {
                 const entryDate = new Date(d.date);
                 let siteExp = 0, helpers = [];
-                d.logs?.forEach(l => { siteExp += (parseFloat(l.sal)||0) + (parseFloat(l.ot)||0) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); if(!helpers.includes(l.helper)) helpers.push(l.helper); });
+                d.logs?.forEach(l => { 
+                    const salVal = parseFloat(l.sal) || 0;
+                    const otCount = parseFloat(l.ot) || 0;
+                    const otVal = (salVal / 2) * otCount;
+                    siteExp += salVal + otVal + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+                    if(!helpers.includes(l.helper)) helpers.push(l.helper); 
+                });
                 const net = (parseFloat(d.total)||0) - siteExp;
                 if((fMonth === 'all' || entryDate.getMonth() == fMonth) && (entryDate.getFullYear() == fYear)) {
                     const myShare = d.projectType === 'Partner' ? (net/2) : net;
@@ -451,7 +485,11 @@
             allEntries.forEach(d => {
                 const entryDate = new Date(d.date);
                 if (d.isHoliday) return;
-                let siteExp = 0; d.logs?.forEach(l => siteExp += (parseFloat(l.sal)||0) + (parseFloat(l.ot)||0) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0));
+                let siteExp = 0; d.logs?.forEach(l => {
+                    const salVal = parseFloat(l.sal) || 0;
+                    const otCount = parseFloat(l.ot) || 0;
+                    siteExp += salVal + ((salVal / 2) * otCount) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+                });
                 const gross = parseFloat(d.total) || 0, net = gross - siteExp;
                 const myShare = d.projectType === 'Partner' ? net / 2 : net, partnerShare = d.projectType === 'Partner' ? net / 2 : 0;
                 if (!stats[d.company]) stats[d.company] = { j: 0, p: 0 };
@@ -480,12 +518,21 @@
             let total = 0; const rows = [];
             if (type === 'partner') {
                 filtered.filter(d => d.projectType === 'Partner').forEach(d => {
-                    let se = 0; d.logs?.forEach(l => se += (parseFloat(l.sal)||0) + (parseFloat(l.ot)||0) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0));
-                    const share = ((parseFloat(d.total)||0)-se)/2; total += share; rows.push([d.date, d.customer, `₹${d.total}`, `₹${se}`, `₹${Math.round(share)}`]);
+                    let se = 0; d.logs?.forEach(l => {
+                        const sVal = parseFloat(l.sal) || 0;
+                        const oCount = parseFloat(l.ot) || 0;
+                        se += sVal + ((sVal/2)*oCount) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+                    });
+                    const share = ((parseFloat(d.total)||0)-se)/2; total += share; rows.push([d.date, d.customer, `₹${d.total}`, `₹${Math.round(se)}`, `₹${Math.round(share)}`]);
                 });
                 doc.autoTable({ startY: 30, head: [['Date', 'Customer', 'Bill', 'Exp', 'Share (50%)']], body: rows, foot: [['','','','Total Settlement:', `₹${Math.round(total)}`]] });
             } else {
-                filtered.forEach(d => { d.logs?.forEach(l => { const daily = (parseFloat(l.sal)||0)+(parseFloat(l.ot)||0)+(parseFloat(l.pet)||0)+(parseFloat(l.food)||0); total += daily; rows.push([l.hDate, d.customer, l.helper, l.status, `₹${daily}`]); }); });
+                filtered.forEach(d => { d.logs?.forEach(l => {
+                    const sVal = parseFloat(l.sal) || 0;
+                    const oCount = parseFloat(l.ot) || 0;
+                    const daily = sVal + ((sVal/2)*oCount) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+                    total += daily; rows.push([l.hDate, d.customer, l.helper, l.status, `₹${Math.round(daily)}`]); 
+                }); });
                 doc.autoTable({ startY: 30, head: [['Date', 'Site', 'Helper', 'Status', 'Daily Wage']], body: rows, foot: [['','','','Total Wages:', `₹${Math.round(total)}`]] });
             }
             doc.save(`Ayyappan_${type}_Report.pdf`); document.getElementById('pdfDateModal').style.display = 'none';
