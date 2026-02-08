@@ -12,7 +12,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #f1f5f9; min-height: 100vh; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        body { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #f1f5f9; min-height: 100vh; font-family: 'Inter', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; }
         .input-box { background: rgba(0,0,0,0.4); border: 1px solid #475569; border-radius: 0.6rem; padding: 0.7rem; color: white; width: 100%; outline: none; font-size: 14px; }
         label { font-size: 11px; font-weight: 800; color: #cbd5e1; text-transform: uppercase; margin-bottom: 4px; display: block; letter-spacing: 0.5px; }
@@ -22,77 +22,64 @@
         #authOverlay { position: fixed; inset: 0; z-index: 9999; background: #0f172a; display: flex; align-items: center; justify-content: center; }
         .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #3b82f6; transition: 0.2s; }
         .pin-dot.filled { background: #3b82f6; transform: scale(1.2); box-shadow: 0 0 10px #3b82f6; }
-        .active-press:active { transform: scale(0.95); background: rgba(59, 130, 246, 0.5); }
     </style>
 </head>
 <body class="p-4 pb-96">
 
     <div id="authOverlay">
-        <div class="text-center w-full max-w-xs p-8 glass border-blue-500/30 shadow-2xl">
-            <div class="mb-8">
-                <i class="fas fa-shield-halved text-4xl text-blue-500 mb-4"></i>
-                <h2 id="welcomeGreeting" class="text-2xl font-black text-white uppercase tracking-tight">Welcome</h2>
-                <p class="text-[10px] text-blue-400 font-bold tracking-[0.2em] uppercase mt-1 opacity-70">Ayyappan Pro Manager</p>
-            </div>
+        <div class="text-center w-full max-w-xs p-8 glass border-blue-500/30">
+            <i class="fas fa-shield-halved text-4xl text-blue-500 mb-4"></i>
+            <h2 class="text-xl font-black uppercase mb-6 tracking-widest">Ayyappan Pro</h2>
             <div class="flex justify-center gap-4 mb-10" id="pinDisplay">
                 <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
             </div>
             <div class="grid grid-cols-3 gap-4 mb-6">
-                <button onclick="pressPin(1)" class="h-14 glass font-bold text-xl active-press">1</button>
-                <button onclick="pressPin(2)" class="h-14 glass font-bold text-xl active-press">2</button>
-                <button onclick="pressPin(3)" class="h-14 glass font-bold text-xl active-press">3</button>
-                <button onclick="pressPin(4)" class="h-14 glass font-bold text-xl active-press">4</button>
-                <button onclick="pressPin(5)" class="h-14 glass font-bold text-xl active-press">5</button>
-                <button onclick="pressPin(6)" class="h-14 glass font-bold text-xl active-press">6</button>
-                <button onclick="pressPin(7)" class="h-14 glass font-bold text-xl active-press">7</button>
-                <button onclick="pressPin(8)" class="h-14 glass font-bold text-xl active-press">8</button>
-                <button onclick="pressPin(9)" class="h-14 glass font-bold text-xl active-press">9</button>
+                <button onclick="pressPin(1)" class="h-14 glass font-bold text-xl active:bg-blue-600">1</button>
+                <button onclick="pressPin(2)" class="h-14 glass font-bold text-xl active:bg-blue-600">2</button>
+                <button onclick="pressPin(3)" class="h-14 glass font-bold text-xl active:bg-blue-600">3</button>
+                <button onclick="pressPin(4)" class="h-14 glass font-bold text-xl active:bg-blue-600">4</button>
+                <button onclick="pressPin(5)" class="h-14 glass font-bold text-xl active:bg-blue-600">5</button>
+                <button onclick="pressPin(6)" class="h-14 glass font-bold text-xl active:bg-blue-600">6</button>
+                <button onclick="pressPin(7)" class="h-14 glass font-bold text-xl active:bg-blue-600">7</button>
+                <button onclick="pressPin(8)" class="h-14 glass font-bold text-xl active:bg-blue-600">8</button>
+                <button onclick="pressPin(9)" class="h-14 glass font-bold text-xl active:bg-blue-600">9</button>
                 <div class="h-14"></div>
-                <button onclick="pressPin(0)" class="h-14 glass font-bold text-xl active-press">0</button>
-                <button onclick="clearPin()" class="h-14 glass text-red-400 active-press"><i class="fas fa-backspace"></i></button>
+                <button onclick="pressPin(0)" class="h-14 glass font-bold text-xl active:bg-blue-600">0</button>
+                <button onclick="clearPin()" class="h-14 glass text-red-400"><i class="fas fa-backspace"></i></button>
             </div>
-            <p id="authMsg" class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Enter MPIN to Unlock</p>
+            <p id="authMsg" class="text-[10px] text-gray-500 uppercase font-bold">Encrypted Session</p>
         </div>
     </div>
 
     <div id="mainApp" class="hidden opacity-0 transition-opacity duration-500">
-        
         <div id="settingsModal" class="modal">
             <div class="glass p-6 w-full max-w-sm space-y-4">
-                <h2 class="text-xl font-bold text-blue-400 uppercase text-center border-b border-white/10 pb-2">Cloud Settings</h2>
+                <h2 class="text-xl font-bold text-blue-400 uppercase text-center">Config</h2>
                 <div class="bg-white/5 p-3 rounded-lg">
-                    <label>Update App PIN</label>
+                    <label>App Access PIN</label>
                     <input type="password" id="setMpin" maxlength="4" class="input-box text-center tracking-[1rem]">
                 </div>
-                <div><label>Yearly Profit Target (₹)</label><input type="number" id="setTarget" class="input-box"></div>
-                <div><label>Companies (Comma separated)</label><textarea id="setCompanies" class="input-box h-12 text-xs" placeholder="Company A, Company B"></textarea></div>
-                <div><label>Helpers (Comma separated)</label><textarea id="setHelpers" class="input-box h-12 text-xs" placeholder="Helper 1, Helper 2"></textarea></div>
-                <button onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-lg font-bold uppercase shadow-lg active-press">Sync to Cloud</button>
-                
-                <button onclick="generatePDF()" class="w-full bg-green-600 py-3 rounded-lg font-bold uppercase shadow-lg active-press mt-2">
-                    <i class="fas fa-file-pdf mr-2"></i>Download Monthly Report
-                </button>
-                
-                <button onclick="toggleSettings()" class="w-full text-xs text-gray-500 uppercase font-bold pt-2">Close</button>
+                <div><label>Yearly Target (₹)</label><input type="number" id="setTarget" class="input-box"></div>
+                <div><label>Companies</label><textarea id="setCompanies" class="input-box h-12"></textarea></div>
+                <div><label>Helpers</label><textarea id="setHelpers" class="input-box h-12"></textarea></div>
+                <button onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-lg font-bold uppercase">Sync to Cloud</button>
+                <button onclick="toggleSettings()" class="w-full text-xs text-gray-500">Close</button>
             </div>
         </div>
 
         <div class="max-w-md mx-auto">
             <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h1 class="font-black text-2xl italic uppercase tracking-tighter">Ayyappan <span class="text-blue-500">Pro</span></h1>
-                    <p id="appDateDisplay" class="text-[9px] text-gray-400 font-bold uppercase tracking-widest"></p>
-                </div>
+                <h1 class="font-black text-2xl italic uppercase tracking-tighter">Ayyappan <span class="text-blue-500">Pro</span></h1>
                 <div class="flex gap-3">
-                    <button onclick="logout()" class="w-10 h-10 glass flex items-center justify-center text-red-500 active-press"><i class="fas fa-power-off"></i></button>
-                    <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400 active-press"><i class="fas fa-cog"></i></button>
+                    <button onclick="logout()" class="w-10 h-10 glass flex items-center justify-center text-red-400"><i class="fas fa-power-off"></i></button>
+                    <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-cog"></i></button>
                 </div>
             </div>
 
-            <div class="glass p-4 mb-6 border-l-4 border-yellow-500 shadow-xl">
-                <div class="flex justify-between items-end mb-2"><label class="m-0 text-yellow-500">Savings Progress</label><span id="targetRem" class="text-xs font-black text-yellow-500">₹0</span></div>
-                <div class="w-full bg-white/10 h-3 rounded-full mb-2 overflow-hidden"><div id="targetBar" class="bg-yellow-500 h-full rounded-full transition-all duration-1000" style="width:0%"></div></div>
-                <div class="flex justify-between text-[10px] font-black text-gray-400"><span id="targetEarned">EARNED: ₹0</span><span id="targetGoal">GOAL: ₹0</span></div>
+            <div class="glass p-4 mb-6 border-l-4 border-yellow-500">
+                <div class="flex justify-between items-end mb-2"><label class="m-0 text-yellow-500">Savings Target</label><span id="targetRem" class="text-xs font-bold">₹0</span></div>
+                <div class="w-full bg-white/10 h-3 rounded-full mb-2"><div id="targetBar" class="bg-yellow-500 h-full rounded-full transition-all duration-700" style="width:0%"></div></div>
+                <div class="flex justify-between text-[10px] font-bold text-gray-400"><span id="targetEarned">Earned: ₹0</span><span id="targetGoal">Goal: ₹0</span></div>
             </div>
 
             <div class="glass p-5 mb-8 space-y-5 border-t-4 border-blue-600 shadow-2xl">
@@ -101,111 +88,119 @@
                     <div><label>Work Date</label><input type="date" id="date" class="input-box"></div>
                     <div><label>Quotation No</label><input type="text" id="qn" class="input-box" placeholder="QN-XXXX"></div>
                 </div>
-                <div class="grid grid-cols-2 gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
-                    <div class="flex items-center gap-2"><input type="checkbox" id="isHoliday" class="w-5 h-5 accent-red-500 cursor-pointer"><label class="m-0 text-red-400 cursor-pointer">Holiday</label></div>
-                    <select id="projectType" class="bg-transparent text-xs font-black text-blue-400 uppercase outline-none cursor-pointer">
-                        <option value="Solo">Solo Work</option>
-                        <option value="Partner">Partner (50/50)</option>
-                    </select>
+                <div class="grid grid-cols-2 gap-3 bg-white/5 p-3 rounded-xl">
+                    <div class="flex items-center gap-2"><input type="checkbox" id="isHoliday" class="w-5 h-5 accent-red-500"><label class="m-0 text-red-400">Holiday</label></div>
+                    <select id="projectType" class="bg-transparent text-xs font-black text-blue-400 uppercase outline-none"><option value="Solo">Solo</option><option value="Partner">Partner</option></select>
                 </div>
-                
-                <div><label>Company / Contractor</label><select id="company" class="input-box"></select></div>
+                <div><label>Company</label><select id="company" class="input-box"></select></div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label>Customer Name</label><input type="text" id="customer" class="input-box"></div>
                     <div><label>Site Location</label><input type="text" id="location" class="input-box"></div>
                 </div>
 
-                <div class="bg-blue-600/10 p-4 rounded-xl border border-blue-500/20">
-                    <div class="flex justify-between items-center mb-3">
-                        <label class="text-blue-400 m-0">Helper Attendance & Pay</label>
-                        <button onclick="addDayRow()" class="text-[9px] bg-blue-600 px-3 py-1 rounded-lg font-black uppercase active-press">+ Add Helper</button>
-                    </div>
+                <div class="bg-blue-600/10 p-4 rounded-xl border border-blue-500/30">
+                    <div class="flex justify-between items-center mb-3"><label class="text-blue-400 m-0">Helpers</label><button onclick="addDayRow()" class="text-[10px] bg-blue-600 px-3 py-1 rounded uppercase">+ Add</button></div>
                     <div id="dayLogsContainer" class="space-y-3"></div>
                 </div>
 
                 <div class="grid grid-cols-3 gap-3">
-                    <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
-                    <div><label>Rate/Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
-                    <div class="text-right"><label class="text-green-500">Gross Bill</label><div id="resTotal" class="text-lg font-black text-green-400 mt-1">₹0</div></div>
+                    <div><label>Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
+                    <div><label>Rate</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
+                    <div><label>Gross</label><div id="resTotal" class="text-green-400 font-bold mt-2">₹0</div></div>
                 </div>
-                
-                <button onclick="saveData()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase shadow-lg active-press">Save Daily Record</button>
+                <button onclick="saveData()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase shadow-lg">Save Record</button>
             </div>
 
-            <div id="displayArea" class="space-y-4 pb-48"></div>
+            <div id="displayArea" class="space-y-4 pb-40"></div>
         </div>
 
-        <div class="summary-footer max-w-md mx-auto rounded-t-3xl shadow-2xl">
-            <div class="grid grid-cols-2 gap-3 text-center mb-3 px-2">
-                <div class="bg-white/5 p-2 rounded-xl border border-white/10"><label class="text-[8px] opacity-60 uppercase font-bold">Solo Profit</label><div id="tblSolo" class="text-green-400 font-black text-sm">₹0</div></div>
-                <div class="bg-white/5 p-2 rounded-xl border border-white/10"><label class="text-[8px] opacity-60 uppercase font-bold">Partner Mine (50%)</label><div id="tblPartnerMine" class="text-blue-400 font-black text-sm">₹0</div></div>
+        <div class="summary-footer max-w-md mx-auto rounded-t-3xl">
+            <div class="grid grid-cols-2 gap-4 text-center mb-3 px-2">
+                <div class="bg-white/5 p-2 rounded-lg border border-white/10"><label class="text-[9px]">Solo Profit</label><div id="tblSolo" class="text-green-400 font-bold">₹0</div></div>
+                <div class="bg-white/5 p-2 rounded-lg border border-white/10"><label class="text-[9px]">Partner Share</label><div id="tblPartnerMine" class="text-blue-400 font-bold">₹0</div></div>
             </div>
             <div class="grid grid-cols-3 gap-2 px-2">
-                <select id="filterMonth" onchange="applyFilters()" class="input-box h-10 py-0 text-[10px] font-bold uppercase"></select>
-                <select id="filterYear" onchange="applyFilters()" class="input-box h-10 py-0 text-[10px] font-bold uppercase"></select>
-                <div class="bg-yellow-500 text-black flex flex-col items-center justify-center rounded-xl font-black shadow-lg">
-                    <span class="text-[7px] uppercase leading-none opacity-70 font-bold">Total Net Profit</span>
-                    <span id="tblGrandTotal" class="text-sm italic">₹0</span>
-                </div>
+                <select id="filterMonth" onchange="applyFilters()" class="input-box h-10 py-0 text-xs"></select>
+                <select id="filterYear" onchange="applyFilters()" class="input-box h-10 py-0 text-xs"></select>
+                <div id="tblGrandTotal" class="bg-yellow-500 text-black flex items-center justify-center rounded-xl font-black text-xs italic">₹0</div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- CONFIG & INIT ---
+        // --- CORE SETTINGS ---
         const firebaseConfig = { apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58", authDomain: "ayyappan-work-management.firebaseapp.com", projectId: "ayyappan-work-management" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        const SESSION_KEY = "ayyappan_pro_session_v2";
-        const SESSION_EXPIRY = 24 * 60 * 60 * 1000;
-        let globalSettings = { mpin: "0000", target: 500000, companies: "Direct", helpers: "Self" };
+        const SESSION_KEY = "ayyappan_pro_session";
+        const SESSION_EXPIRY = 24 * 60 * 60 * 1000; // 24 Hours
+        let globalSettings = { mpin: "0000", target: 500000 };
         let allEntries = [];
         let currentPinInput = "";
 
+        // --- AUTH & SESSION LOGIC ---
         async function init() {
-            const hr = new Date().getHours();
-            let greet = (hr < 12) ? "Good Morning" : (hr < 17) ? "Good Afternoon" : "Good Evening";
-            document.getElementById('welcomeGreeting').innerText = greet;
-            document.getElementById('appDateDisplay').innerText = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' });
-
+            // Load Cloud Config
             const doc = await db.collection("appSettings").doc("userConfig").get();
             if(doc.exists) globalSettings = doc.data();
             
-            const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+            // Populate Filters
             const mSel = document.getElementById('filterMonth');
+            const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
             mSel.innerHTML = '<option value="all">All Months</option>';
             months.forEach((m, i) => mSel.innerHTML += `<option value="${i}">${m}</option>`);
             
             const ySel = document.getElementById('filterYear');
-            const currentYear = new Date().getFullYear();
-            for(let y=currentYear; y>=2024; y--) ySel.innerHTML += `<option value="${y}">${y}</option>`;
-            ySel.value = currentYear;
-            mSel.value = new Date().getMonth();
-            
+            for(let y=2026; y>=2024; y--) ySel.innerHTML += `<option value="${y}">${y}</option>`;
             document.getElementById('date').valueAsDate = new Date();
 
-            if(localStorage.getItem(SESSION_KEY) && (new Date().getTime() - localStorage.getItem(SESSION_KEY) < SESSION_EXPIRY)) unlockApp();
+            // Check Session
+            const lastLogin = localStorage.getItem(SESSION_KEY);
+            const now = new Date().getTime();
+            if(lastLogin && (now - lastLogin < SESSION_EXPIRY)) {
+                unlockApp();
+            }
         }
 
-        // --- AUTH ---
         function pressPin(n) {
             if(currentPinInput.length < 4) {
                 currentPinInput += n;
                 updatePinUI();
                 if(currentPinInput.length === 4) {
-                    if(currentPinInput === globalSettings.mpin) { localStorage.setItem(SESSION_KEY, new Date().getTime()); unlockApp(); }
-                    else { alert("Wrong PIN!"); currentPinInput = ""; updatePinUI(); }
+                    if(currentPinInput === globalSettings.mpin) {
+                        localStorage.setItem(SESSION_KEY, new Date().getTime());
+                        unlockApp();
+                    } else {
+                        alert("Invalid PIN");
+                        currentPinInput = "";
+                        updatePinUI();
+                    }
                 }
             }
         }
-        function updatePinUI() { document.querySelectorAll('.pin-dot').forEach((dot, i) => dot.classList.toggle('filled', i < currentPinInput.length)); }
-        function clearPin() { currentPinInput = currentPinInput.slice(0, -1); updatePinUI(); }
-        function unlockApp() { document.getElementById('authOverlay').style.display = 'none'; document.getElementById('mainApp').classList.remove('hidden'); setTimeout(() => document.getElementById('mainApp').classList.add('opacity-100'), 50); startDataSync(); }
-        function logout() { localStorage.removeItem(SESSION_KEY); location.reload(); }
 
-        // --- DATA LOGIC ---
-        function startDataSync() {
+        function updatePinUI() {
+            const dots = document.querySelectorAll('.pin-dot');
+            dots.forEach((dot, i) => dot.classList.toggle('filled', i < currentPinInput.length));
+        }
+
+        function clearPin() { currentPinInput = currentPinInput.slice(0, -1); updatePinUI(); }
+
+        function unlockApp() {
+            document.getElementById('authOverlay').style.display = 'none';
+            document.getElementById('mainApp').classList.remove('hidden');
+            setTimeout(() => document.getElementById('mainApp').classList.add('opacity-100'), 50);
+            loadData();
+        }
+
+        function logout() {
+            localStorage.removeItem(SESSION_KEY);
+            location.reload();
+        }
+
+        // --- APP LOGIC ---
+        function loadData() {
             loadDropdowns();
             db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => {
                 allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -214,25 +209,25 @@
         }
 
         function loadDropdowns() {
-            const comps = globalSettings.companies.split(',');
+            const comps = (globalSettings.companies || "Contractor A, Contractor B").split(',');
             document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
         }
 
         function addDayRow(data = null) {
             const container = document.getElementById('dayLogsContainer');
-            const div = document.createElement('div'); div.className = "day-entry border-l-2 border-blue-500";
+            const div = document.createElement('div'); div.className = "day-entry";
             div.innerHTML = `
                 <div class="grid grid-cols-2 gap-2 mb-2">
-                    <input type="date" class="input-box h-8 py-0 text-xs d-hdate" value="${data?.hDate || document.getElementById('date').value}">
-                    <select class="input-box h-8 py-0 text-xs d-helper"></select>
+                    <input type="date" class="input-box h-8 d-hdate" value="${data?.hDate || document.getElementById('date').value}">
+                    <select class="input-box h-8 d-helper"></select>
                 </div>
                 <div class="grid grid-cols-3 gap-2">
-                    <input type="number" placeholder="Wages" class="input-box h-8 d-sal" oninput="calculate()" value="${data?.sal || ''}">
+                    <input type="number" placeholder="Salary" class="input-box h-8 d-sal" oninput="calculate()" value="${data?.sal || ''}">
                     <input type="number" placeholder="Food" class="input-box h-8 d-food" oninput="calculate()" value="${data?.food || ''}">
-                    <button onclick="this.parentElement.parentElement.remove();calculate()" class="text-red-500 text-[10px]"><i class="fas fa-trash"></i></button>
+                    <button onclick="this.parentElement.parentElement.remove();calculate()" class="text-red-400 text-[10px] font-bold uppercase">Remove</button>
                 </div>`;
             container.appendChild(div);
-            const helps = globalSettings.helpers.split(',');
+            const helps = (globalSettings.helpers || "Helper 1").split(',');
             const hSel = div.querySelector('.d-helper');
             hSel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
             if(data) hSel.value = data.helper;
@@ -240,7 +235,7 @@
 
         function calculate() {
             const gross = (parseFloat(document.getElementById('totalSqft').value)||0) * (parseFloat(document.getElementById('amtRate').value)||0);
-            document.getElementById('resTotal').innerText = "₹" + Math.round(gross).toLocaleString();
+            document.getElementById('resTotal').innerText = "₹" + Math.round(gross);
             return gross;
         }
 
@@ -262,7 +257,8 @@
                 logs: logs, 
                 isHoliday: document.getElementById('isHoliday').checked 
             };
-            await db.collection("workLogs").add(data);
+            const id = document.getElementById('editId').value;
+            if(id) await db.collection("workLogs").doc(id).update(data); else await db.collection("workLogs").add(data);
             alert("Record Saved!");
             location.reload();
         }
@@ -270,43 +266,43 @@
         function applyFilters() {
             const fM = document.getElementById('filterMonth').value;
             const fY = document.getElementById('filterYear').value;
-            let sNet = 0, pNet = 0, yearlyTotal = 0;
+            let sNet = 0, pNet = 0;
             const cont = document.getElementById('displayArea'); cont.innerHTML = "";
             
             allEntries.forEach(d => {
                 const dt = new Date(d.date);
-                let wages = 0; d.logs?.forEach(l => wages += (parseFloat(l.sal)||0) + (parseFloat(l.food)||0));
-                const netProfit = (d.total || 0) - wages;
-                const myProfit = d.projectType === 'Solo' ? netProfit : (netProfit/2);
-
-                if(dt.getFullYear() == fY) yearlyTotal += myProfit;
                 if(dt.getFullYear() == fY && (fM === 'all' || dt.getMonth() == fM)) {
-                    if(d.projectType === 'Solo') sNet += netProfit; else pNet += (netProfit/2);
+                    let wages = 0; d.logs?.forEach(l => wages += (parseFloat(l.sal)||0) + (parseFloat(l.food)||0));
+                    const net = (d.total || 0) - wages;
+                    if(d.projectType === 'Solo') sNet += net; else pNet += (net/2);
+                    
                     cont.innerHTML += `
                         <div class="glass p-4 border-l-4 ${d.isHoliday?'border-red-500':'border-blue-500'} mb-4">
-                            <div class="flex justify-between font-black items-start">
-                                <div><div class="text-[8px] text-gray-400 mb-1">${d.date}</div><h4 class="uppercase text-sm">${d.customer || 'MAINTENANCE'}</h4></div>
-                                <div class="text-right text-green-400">₹${Math.round(myProfit).toLocaleString()}</div>
+                            <div class="flex justify-between font-bold">
+                                <span class="uppercase">${d.customer || 'Holiday'}</span>
+                                <span class="text-blue-400">₹${Math.round(net)}</span>
                             </div>
+                            <div class="text-[10px] text-gray-400 mt-1">${d.date} | ${d.company} | ${d.projectType}</div>
                         </div>`;
                 }
             });
             
-            document.getElementById('tblSolo').innerText = "₹" + Math.round(sNet).toLocaleString();
-            document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(pNet).toLocaleString();
-            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(sNet + pNet).toLocaleString();
+            document.getElementById('tblSolo').innerText = "₹" + Math.round(sNet);
+            document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(pNet);
+            const total = sNet + pNet;
+            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(total);
             
             const goal = globalSettings.target || 500000;
-            const perc = Math.min((yearlyTotal/goal)*100, 100);
+            const perc = Math.min((total/goal)*100, 100);
             document.getElementById('targetBar').style.width = perc + "%";
-            document.getElementById('targetEarned').innerText = "EARNED: ₹" + Math.round(yearlyTotal).toLocaleString();
-            document.getElementById('targetGoal').innerText = "GOAL: ₹" + parseInt(goal).toLocaleString();
-            document.getElementById('targetRem').innerText = "₹" + Math.round(goal - yearlyTotal).toLocaleString();
+            document.getElementById('targetEarned').innerText = "Earned: ₹" + Math.round(total);
+            document.getElementById('targetGoal').innerText = "Goal: ₹" + goal;
+            document.getElementById('targetRem').innerText = "₹" + Math.round(goal - total);
         }
 
         function toggleSettings() { 
             const s = document.getElementById('settingsModal'); 
-            s.style.display = (s.style.display === 'flex') ? 'none' : 'flex';
+            s.style.display = s.style.display === 'flex' ? 'none' : 'flex';
             document.getElementById('setMpin').value = globalSettings.mpin;
             document.getElementById('setTarget').value = globalSettings.target;
             document.getElementById('setCompanies').value = globalSettings.companies;
@@ -314,35 +310,16 @@
         }
 
         async function saveSettings() {
-            globalSettings = { mpin: document.getElementById('setMpin').value, target: document.getElementById('setTarget').value, companies: document.getElementById('setCompanies').value, helpers: document.getElementById('setHelpers').value };
+            globalSettings = { 
+                mpin: document.getElementById('setMpin').value, 
+                target: document.getElementById('setTarget').value, 
+                companies: document.getElementById('setCompanies').value, 
+                helpers: document.getElementById('setHelpers').value 
+            };
             await db.collection("appSettings").doc("userConfig").set(globalSettings);
-            alert("Cloud Updated!");
+            alert("Settings Synced!");
+            toggleSettings();
             location.reload();
-        }
-
-        // --- PDF GENERATOR (RESTORED) ---
-        function generatePDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const month = document.getElementById('filterMonth').options[document.getElementById('filterMonth').selectedIndex].text;
-            const year = document.getElementById('filterYear').value;
-            
-            doc.setFontSize(18); doc.text(`Work Report - ${month} ${year}`, 14, 20);
-            doc.setFontSize(10); doc.text(`Generated for Ayyappan Pro`, 14, 28);
-
-            const rows = [];
-            allEntries.filter(d => {
-                const dt = new Date(d.date);
-                return dt.getFullYear() == year && (document.getElementById('filterMonth').value === 'all' || dt.getMonth() == document.getElementById('filterMonth').value);
-            }).forEach(d => {
-                let wages = 0; d.logs?.forEach(l => wages += (parseFloat(l.sal)||0) + (parseFloat(l.food)||0));
-                const net = (d.total || 0) - wages;
-                const myShare = d.projectType === 'Solo' ? net : (net/2);
-                rows.push([d.date, d.customer, d.projectType, d.total, wages, Math.round(myShare)]);
-            });
-
-            doc.autoTable({ head: [['Date', 'Customer', 'Type', 'Gross', 'Wages', 'Net (My Share)']], body: rows, startY: 35 });
-            doc.save(`Work_Report_${month}_${year}.pdf`);
         }
 
         window.onload = init;
