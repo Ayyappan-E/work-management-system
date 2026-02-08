@@ -89,11 +89,6 @@
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
 
-        .light-mode .input-box { border-color: #cbd5e1; }
-        .light-mode .text-white { color: #1e293b !important; }
-        .light-mode .text-gray-400 { color: #64748b !important; }
-        .light-mode select option { color: #1e293b; background: white; }
-
         #msgBox { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 200; min-width: 250px; text-align: center; border-radius: 12px; padding: 12px 24px; font-weight: bold; animation: slideDown 0.3s ease-out; }
         @keyframes slideDown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
     </style>
@@ -190,6 +185,7 @@
             </div>
         </div>
 
+        <!-- Target UI -->
         <div class="glass p-4 mb-6 border-l-4 border-yellow-500 shadow-lg">
             <div class="flex justify-between items-end mb-2">
                 <label id="targetLabel" class="m-0 text-yellow-500 font-black">Target Progress</label>
@@ -199,6 +195,7 @@
             <div class="flex justify-between text-[10px] font-bold opacity-70"><span id="targetEarned">Earned: ₹0</span><span id="targetGoal">Target: ₹0</span></div>
         </div>
 
+        <!-- Entry Form -->
         <div class="glass p-5 mb-8 space-y-5 border-t-4 border-blue-600 shadow-2xl">
             <input type="hidden" id="editId">
             <div class="grid grid-cols-2 gap-4">
@@ -538,39 +535,34 @@
             
             if (type === 'partner') {
                 filtered.filter(d => d.projectType === 'Partner').forEach(d => {
-                    let se = 0; d.logs?.forEach(l => {
+                    let se = 0, helpers = [];
+                    d.logs?.forEach(l => {
                         const sVal = parseFloat(l.sal) || 0;
                         se += sVal + ((sVal/2)*(parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+                        if(l.helper && !helpers.includes(l.helper)) helpers.push(l.helper);
                     });
                     const share = ((parseFloat(d.total)||0)-se)/2; total += share; 
-                    rows.push([d.date, d.customer, d.location || '-', `₹${d.total}`, `₹${Math.round(se)}`, `₹${Math.round(share)}`]);
+                    rows.push([d.date, d.customer, d.location || '-', helpers.join(', ') || 'Self', `₹${d.total}`, `₹${Math.round(se)}`, `₹${Math.round(share)}`]);
                 });
-                doc.autoTable({ startY: 30, head: [['Date', 'Customer', 'Location', 'Bill', 'Exp', 'Share (50%)']], body: rows, foot: [['','','','','Total:', `₹${Math.round(total)}`]] });
+                doc.autoTable({ startY: 30, head: [['Date', 'Customer', 'Location', 'Helper Name', 'Bill', 'Exp', 'Share']], body: rows, foot: [['','','','','','Total:', `₹${Math.round(total)}`]] });
+                
+                // Bottom Footer Signature
+                const finalY = doc.lastAutoTable.finalY + 30;
+                doc.setFontSize(10);
+                doc.line(14, finalY, 70, finalY);
+                doc.text("Partner Signature", 14, finalY + 5);
+
             } else {
-                // Modified Helper Report to include Location, OT data and both project types
                 filtered.forEach(d => { 
                     d.logs?.forEach(l => {
                         const sVal = parseFloat(l.sal) || 0;
                         const otQty = parseFloat(l.ot) || 0;
                         const dailyWage = sVal + ((sVal/2)*otQty) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
                         total += dailyWage; 
-                        rows.push([
-                            l.hDate, 
-                            d.customer, 
-                            d.location || '-', 
-                            l.helper, 
-                            otQty > 0 ? `${otQty} OT` : '-', 
-                            `₹${Math.round(dailyWage)}`,
-                            d.projectType.substring(0,1) // S or P
-                        ]); 
+                        rows.push([l.hDate, d.customer, d.location || '-', l.helper, otQty > 0 ? `${otQty} OT` : '-', `₹${Math.round(dailyWage)}`, d.projectType.substring(0,1)]); 
                     }); 
                 });
-                doc.autoTable({ 
-                    startY: 30, 
-                    head: [['Date', 'Site', 'Location', 'Helper', 'OT', 'Wage', 'Type']], 
-                    body: rows, 
-                    foot: [['','','','','Total Wages:', `₹${Math.round(total)}`, '']] 
-                });
+                doc.autoTable({ startY: 30, head: [['Date', 'Site', 'Location', 'Helper', 'OT', 'Wage', 'Type']], body: rows, foot: [['','','','','Total Wages:', `₹${Math.round(total)}`, '']] });
             }
             doc.save(`Ayyappan_${type}_Report.pdf`); document.getElementById('pdfDateModal').style.display = 'none';
         }
