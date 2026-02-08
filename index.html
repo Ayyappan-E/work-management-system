@@ -34,11 +34,9 @@
                 <h2 id="welcomeGreeting" class="text-2xl font-black text-white uppercase tracking-tight">Welcome</h2>
                 <p class="text-[10px] text-blue-400 font-bold tracking-[0.2em] uppercase mt-1 opacity-70">Ayyappan Pro Manager</p>
             </div>
-            
             <div class="flex justify-center gap-4 mb-10" id="pinDisplay">
                 <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
             </div>
-
             <div class="grid grid-cols-3 gap-4 mb-6">
                 <button onclick="pressPin(1)" class="h-14 glass font-bold text-xl active-press">1</button>
                 <button onclick="pressPin(2)" class="h-14 glass font-bold text-xl active-press">2</button>
@@ -67,10 +65,15 @@
                     <input type="password" id="setMpin" maxlength="4" class="input-box text-center tracking-[1rem]">
                 </div>
                 <div><label>Yearly Profit Target (₹)</label><input type="number" id="setTarget" class="input-box"></div>
-                <div><label>Registered Companies</label><textarea id="setCompanies" class="input-box h-12 text-xs" placeholder="Company A, Company B"></textarea></div>
-                <div><label>Helper Database</label><textarea id="setHelpers" class="input-box h-12 text-xs" placeholder="Helper 1, Helper 2"></textarea></div>
+                <div><label>Companies (Comma separated)</label><textarea id="setCompanies" class="input-box h-12 text-xs" placeholder="Company A, Company B"></textarea></div>
+                <div><label>Helpers (Comma separated)</label><textarea id="setHelpers" class="input-box h-12 text-xs" placeholder="Helper 1, Helper 2"></textarea></div>
                 <button onclick="saveSettings()" class="w-full bg-blue-600 py-3 rounded-lg font-bold uppercase shadow-lg active-press">Sync to Cloud</button>
-                <button onclick="toggleSettings()" class="w-full text-xs text-gray-500 uppercase font-bold pt-2">Cancel</button>
+                
+                <button onclick="generatePDF()" class="w-full bg-green-600 py-3 rounded-lg font-bold uppercase shadow-lg active-press mt-2">
+                    <i class="fas fa-file-pdf mr-2"></i>Download Monthly Report
+                </button>
+                
+                <button onclick="toggleSettings()" class="w-full text-xs text-gray-500 uppercase font-bold pt-2">Close</button>
             </div>
         </div>
 
@@ -81,23 +84,15 @@
                     <p id="appDateDisplay" class="text-[9px] text-gray-400 font-bold uppercase tracking-widest"></p>
                 </div>
                 <div class="flex gap-3">
-                    <button onclick="logout()" class="w-10 h-10 glass flex items-center justify-center text-red-500 active-press" title="Logout"><i class="fas fa-power-off"></i></button>
+                    <button onclick="logout()" class="w-10 h-10 glass flex items-center justify-center text-red-500 active-press"><i class="fas fa-power-off"></i></button>
                     <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400 active-press"><i class="fas fa-cog"></i></button>
                 </div>
             </div>
 
             <div class="glass p-4 mb-6 border-l-4 border-yellow-500 shadow-xl">
-                <div class="flex justify-between items-end mb-2">
-                    <label class="m-0 text-yellow-500">Savings Progress</label>
-                    <span id="targetRem" class="text-xs font-black text-yellow-500">₹0</span>
-                </div>
-                <div class="w-full bg-white/10 h-3 rounded-full mb-2 overflow-hidden">
-                    <div id="targetBar" class="bg-yellow-500 h-full rounded-full transition-all duration-1000" style="width:0%"></div>
-                </div>
-                <div class="flex justify-between text-[10px] font-black text-gray-400">
-                    <span id="targetEarned">EARNED: ₹0</span>
-                    <span id="targetGoal">GOAL: ₹0</span>
-                </div>
+                <div class="flex justify-between items-end mb-2"><label class="m-0 text-yellow-500">Savings Progress</label><span id="targetRem" class="text-xs font-black text-yellow-500">₹0</span></div>
+                <div class="w-full bg-white/10 h-3 rounded-full mb-2 overflow-hidden"><div id="targetBar" class="bg-yellow-500 h-full rounded-full transition-all duration-1000" style="width:0%"></div></div>
+                <div class="flex justify-between text-[10px] font-black text-gray-400"><span id="targetEarned">EARNED: ₹0</span><span id="targetGoal">GOAL: ₹0</span></div>
             </div>
 
             <div class="glass p-5 mb-8 space-y-5 border-t-4 border-blue-600 shadow-2xl">
@@ -107,64 +102,49 @@
                     <div><label>Quotation No</label><input type="text" id="qn" class="input-box" placeholder="QN-XXXX"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="isHoliday" class="w-5 h-5 accent-red-500 cursor-pointer">
-                        <label class="m-0 text-red-400 cursor-pointer">Holiday</label>
-                    </div>
+                    <div class="flex items-center gap-2"><input type="checkbox" id="isHoliday" class="w-5 h-5 accent-red-500 cursor-pointer"><label class="m-0 text-red-400 cursor-pointer">Holiday</label></div>
                     <select id="projectType" class="bg-transparent text-xs font-black text-blue-400 uppercase outline-none cursor-pointer">
                         <option value="Solo">Solo Work</option>
-                        <option value="Partner">Partner Work (50%)</option>
+                        <option value="Partner">Partner (50/50)</option>
                     </select>
                 </div>
                 
-                <div id="workFields" class="space-y-4">
-                    <div><label>Company / Contractor</label><select id="company" class="input-box"></select></div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div><label>Customer Name</label><input type="text" id="customer" class="input-box"></div>
-                        <div><label>Site Location</label><input type="text" id="location" class="input-box"></div>
-                    </div>
+                <div><label>Company / Contractor</label><select id="company" class="input-box"></select></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label>Customer Name</label><input type="text" id="customer" class="input-box"></div>
+                    <div><label>Site Location</label><input type="text" id="location" class="input-box"></div>
+                </div>
 
-                    <div class="bg-blue-600/10 p-4 rounded-xl border border-blue-500/20">
-                        <div class="flex justify-between items-center mb-3">
-                            <label class="text-blue-400 m-0">Helper Attendance</label>
-                            <button onclick="addDayRow()" class="text-[9px] bg-blue-600 px-3 py-1 rounded-lg font-black uppercase active-press">+ Add Helper</button>
-                        </div>
-                        <div id="dayLogsContainer" class="space-y-3"></div>
+                <div class="bg-blue-600/10 p-4 rounded-xl border border-blue-500/20">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="text-blue-400 m-0">Helper Attendance & Pay</label>
+                        <button onclick="addDayRow()" class="text-[9px] bg-blue-600 px-3 py-1 rounded-lg font-black uppercase active-press">+ Add Helper</button>
                     </div>
+                    <div id="dayLogsContainer" class="space-y-3"></div>
+                </div>
 
-                    <div class="grid grid-cols-3 gap-3">
-                        <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
-                        <div><label>Rate/Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
-                        <div class="text-right">
-                            <label class="text-green-500">Gross Bill</label>
-                            <div id="resTotal" class="text-lg font-black text-green-400 mt-1">₹0</div>
-                        </div>
-                    </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box"></div>
+                    <div><label>Rate/Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box"></div>
+                    <div class="text-right"><label class="text-green-500">Gross Bill</label><div id="resTotal" class="text-lg font-black text-green-400 mt-1">₹0</div></div>
                 </div>
                 
                 <button onclick="saveData()" class="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase shadow-lg active-press">Save Daily Record</button>
             </div>
 
-            <h3 class="text-[10px] font-black uppercase text-gray-500 mb-4 tracking-widest px-1">Recent Site History</h3>
             <div id="displayArea" class="space-y-4 pb-48"></div>
         </div>
 
         <div class="summary-footer max-w-md mx-auto rounded-t-3xl shadow-2xl">
             <div class="grid grid-cols-2 gap-3 text-center mb-3 px-2">
-                <div class="bg-white/5 p-2 rounded-xl border border-white/10">
-                    <label class="text-[8px] opacity-60">Solo Net</label>
-                    <div id="tblSolo" class="text-green-400 font-black text-sm">₹0</div>
-                </div>
-                <div class="bg-white/5 p-2 rounded-xl border border-white/10">
-                    <label class="text-[8px] opacity-60">Partner 50%</label>
-                    <div id="tblPartnerMine" class="text-blue-400 font-black text-sm">₹0</div>
-                </div>
+                <div class="bg-white/5 p-2 rounded-xl border border-white/10"><label class="text-[8px] opacity-60 uppercase font-bold">Solo Profit</label><div id="tblSolo" class="text-green-400 font-black text-sm">₹0</div></div>
+                <div class="bg-white/5 p-2 rounded-xl border border-white/10"><label class="text-[8px] opacity-60 uppercase font-bold">Partner Mine (50%)</label><div id="tblPartnerMine" class="text-blue-400 font-black text-sm">₹0</div></div>
             </div>
             <div class="grid grid-cols-3 gap-2 px-2">
                 <select id="filterMonth" onchange="applyFilters()" class="input-box h-10 py-0 text-[10px] font-bold uppercase"></select>
                 <select id="filterYear" onchange="applyFilters()" class="input-box h-10 py-0 text-[10px] font-bold uppercase"></select>
                 <div class="bg-yellow-500 text-black flex flex-col items-center justify-center rounded-xl font-black shadow-lg">
-                    <span class="text-[7px] uppercase leading-none opacity-70">Total Net</span>
+                    <span class="text-[7px] uppercase leading-none opacity-70 font-bold">Total Net Profit</span>
                     <span id="tblGrandTotal" class="text-sm italic">₹0</span>
                 </div>
             </div>
@@ -172,33 +152,26 @@
     </div>
 
     <script>
-        // --- CONFIGURATION ---
+        // --- CONFIG & INIT ---
         const firebaseConfig = { apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58", authDomain: "ayyappan-work-management.firebaseapp.com", projectId: "ayyappan-work-management" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
         const SESSION_KEY = "ayyappan_pro_session_v2";
-        const SESSION_EXPIRY = 24 * 60 * 60 * 1000; // 24 Hours
-        let globalSettings = { mpin: "0000", target: 500000, companies: "", helpers: "" };
+        const SESSION_EXPIRY = 24 * 60 * 60 * 1000;
+        let globalSettings = { mpin: "0000", target: 500000, companies: "Direct", helpers: "Self" };
         let allEntries = [];
         let currentPinInput = "";
 
-        // --- INITIALIZATION ---
         async function init() {
-            // 1. Time-based Greeting
             const hr = new Date().getHours();
-            let greet = "Welcome Back";
-            if (hr < 12) greet = "Good Morning";
-            else if (hr < 17) greet = "Good Afternoon";
-            else greet = "Good Evening";
+            let greet = (hr < 12) ? "Good Morning" : (hr < 17) ? "Good Afternoon" : "Good Evening";
             document.getElementById('welcomeGreeting').innerText = greet;
             document.getElementById('appDateDisplay').innerText = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' });
 
-            // 2. Load Config from Cloud
             const doc = await db.collection("appSettings").doc("userConfig").get();
             if(doc.exists) globalSettings = doc.data();
             
-            // 3. Setup Filters
             const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
             const mSel = document.getElementById('filterMonth');
             mSel.innerHTML = '<option value="all">All Months</option>';
@@ -208,62 +181,30 @@
             const currentYear = new Date().getFullYear();
             for(let y=currentYear; y>=2024; y--) ySel.innerHTML += `<option value="${y}">${y}</option>`;
             ySel.value = currentYear;
+            mSel.value = new Date().getMonth();
             
             document.getElementById('date').valueAsDate = new Date();
 
-            // 4. Session Check
-            const lastLogin = localStorage.getItem(SESSION_KEY);
-            const now = new Date().getTime();
-            if(lastLogin && (now - lastLogin < SESSION_EXPIRY)) {
-                unlockApp();
-            }
+            if(localStorage.getItem(SESSION_KEY) && (new Date().getTime() - localStorage.getItem(SESSION_KEY) < SESSION_EXPIRY)) unlockApp();
         }
 
-        // --- AUTH LOGIC ---
+        // --- AUTH ---
         function pressPin(n) {
             if(currentPinInput.length < 4) {
                 currentPinInput += n;
                 updatePinUI();
                 if(currentPinInput.length === 4) {
-                    if(currentPinInput === globalSettings.mpin) {
-                        localStorage.setItem(SESSION_KEY, new Date().getTime());
-                        unlockApp();
-                    } else {
-                        document.getElementById('authMsg').innerText = "Wrong PIN! Try Again";
-                        document.getElementById('authMsg').classList.add('text-red-500');
-                        setTimeout(() => {
-                            currentPinInput = "";
-                            updatePinUI();
-                            document.getElementById('authMsg').innerText = "Enter MPIN to Unlock";
-                            document.getElementById('authMsg').classList.remove('text-red-500');
-                        }, 1000);
-                    }
+                    if(currentPinInput === globalSettings.mpin) { localStorage.setItem(SESSION_KEY, new Date().getTime()); unlockApp(); }
+                    else { alert("Wrong PIN!"); currentPinInput = ""; updatePinUI(); }
                 }
             }
         }
-
-        function updatePinUI() {
-            const dots = document.querySelectorAll('.pin-dot');
-            dots.forEach((dot, i) => dot.classList.toggle('filled', i < currentPinInput.length));
-        }
-
+        function updatePinUI() { document.querySelectorAll('.pin-dot').forEach((dot, i) => dot.classList.toggle('filled', i < currentPinInput.length)); }
         function clearPin() { currentPinInput = currentPinInput.slice(0, -1); updatePinUI(); }
+        function unlockApp() { document.getElementById('authOverlay').style.display = 'none'; document.getElementById('mainApp').classList.remove('hidden'); setTimeout(() => document.getElementById('mainApp').classList.add('opacity-100'), 50); startDataSync(); }
+        function logout() { localStorage.removeItem(SESSION_KEY); location.reload(); }
 
-        function unlockApp() {
-            document.getElementById('authOverlay').style.display = 'none';
-            document.getElementById('mainApp').classList.remove('hidden');
-            setTimeout(() => document.getElementById('mainApp').classList.add('opacity-100'), 50);
-            startDataSync();
-        }
-
-        function logout() {
-            if(confirm("Are you sure you want to log out?")) {
-                localStorage.removeItem(SESSION_KEY);
-                location.reload();
-            }
-        }
-
-        // --- BUSINESS LOGIC ---
+        // --- DATA LOGIC ---
         function startDataSync() {
             loadDropdowns();
             db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => {
@@ -273,7 +214,7 @@
         }
 
         function loadDropdowns() {
-            const comps = (globalSettings.companies || "Main Contractor, Direct").split(',');
+            const comps = globalSettings.companies.split(',');
             document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
         }
 
@@ -288,10 +229,10 @@
                 <div class="grid grid-cols-3 gap-2">
                     <input type="number" placeholder="Wages" class="input-box h-8 d-sal" oninput="calculate()" value="${data?.sal || ''}">
                     <input type="number" placeholder="Food" class="input-box h-8 d-food" oninput="calculate()" value="${data?.food || ''}">
-                    <button onclick="this.parentElement.parentElement.remove();calculate()" class="text-red-500 text-[10px] font-bold uppercase"><i class="fas fa-trash"></i></button>
+                    <button onclick="this.parentElement.parentElement.remove();calculate()" class="text-red-500 text-[10px]"><i class="fas fa-trash"></i></button>
                 </div>`;
             container.appendChild(div);
-            const helps = (globalSettings.helpers || "Self").split(',');
+            const helps = globalSettings.helpers.split(',');
             const hSel = div.querySelector('.d-helper');
             hSel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
             if(data) hSel.value = data.helper;
@@ -304,18 +245,14 @@
         }
 
         async function saveData() {
-            const customer = document.getElementById('customer').value;
-            if(!customer && !document.getElementById('isHoliday').checked) { alert("Enter Customer Name"); return; }
-            
             const logs = [];
             document.querySelectorAll('.day-entry').forEach(row => {
                 logs.push({ hDate: row.querySelector('.d-hdate').value, helper: row.querySelector('.d-helper').value, sal: row.querySelector('.d-sal').value, food: row.querySelector('.d-food').value });
             });
-            
             const data = { 
                 date: document.getElementById('date').value, 
                 qn: document.getElementById('qn').value, 
-                customer: customer, 
+                customer: document.getElementById('customer').value, 
                 location: document.getElementById('location').value, 
                 projectType: document.getElementById('projectType').value, 
                 company: document.getElementById('company').value, 
@@ -325,45 +262,31 @@
                 logs: logs, 
                 isHoliday: document.getElementById('isHoliday').checked 
             };
-            
-            const id = document.getElementById('editId').value;
-            if(id) await db.collection("workLogs").doc(id).update(data); else await db.collection("workLogs").add(data);
-            
-            alert("Record Synchronized!");
+            await db.collection("workLogs").add(data);
+            alert("Record Saved!");
             location.reload();
         }
 
         function applyFilters() {
             const fM = document.getElementById('filterMonth').value;
             const fY = document.getElementById('filterYear').value;
-            let sNet = 0, pNet = 0, yearlyAccumulated = 0;
+            let sNet = 0, pNet = 0, yearlyTotal = 0;
             const cont = document.getElementById('displayArea'); cont.innerHTML = "";
             
             allEntries.forEach(d => {
                 const dt = new Date(d.date);
                 let wages = 0; d.logs?.forEach(l => wages += (parseFloat(l.sal)||0) + (parseFloat(l.food)||0));
-                const net = (d.total || 0) - wages;
-                const myShare = d.projectType === 'Solo' ? net : (net/2);
+                const netProfit = (d.total || 0) - wages;
+                const myProfit = d.projectType === 'Solo' ? netProfit : (netProfit/2);
 
-                // Yearly Target Calculation (always based on selected year)
-                if(dt.getFullYear() == fY) yearlyAccumulated += myShare;
-
-                // Monthly List Rendering
+                if(dt.getFullYear() == fY) yearlyTotal += myProfit;
                 if(dt.getFullYear() == fY && (fM === 'all' || dt.getMonth() == fM)) {
-                    if(d.projectType === 'Solo') sNet += net; else pNet += (net/2);
-                    
+                    if(d.projectType === 'Solo') sNet += netProfit; else pNet += (netProfit/2);
                     cont.innerHTML += `
-                        <div class="glass p-4 border-l-4 ${d.isHoliday?'border-red-500':'border-blue-500'} mb-4 shadow-lg">
+                        <div class="glass p-4 border-l-4 ${d.isHoliday?'border-red-500':'border-blue-500'} mb-4">
                             <div class="flex justify-between font-black items-start">
-                                <div class="flex-1">
-                                    <div class="text-[8px] text-gray-500 uppercase tracking-tighter mb-1">${d.date} | ${d.projectType}</div>
-                                    <h4 class="uppercase text-sm tracking-tight text-white">${d.customer || 'Holiday / Maintenance'}</h4>
-                                    <p class="text-[9px] text-gray-400 font-medium">${d.location || 'No Location'}</p>
-                                </div>
-                                <div class="text-right">
-                                    <div class="${net < 0 ? 'text-red-400' : 'text-green-400'} text-sm">₹${Math.round(myShare).toLocaleString()}</div>
-                                    <div class="text-[8px] text-gray-500 uppercase">Net Profit</div>
-                                </div>
+                                <div><div class="text-[8px] text-gray-400 mb-1">${d.date}</div><h4 class="uppercase text-sm">${d.customer || 'MAINTENANCE'}</h4></div>
+                                <div class="text-right text-green-400">₹${Math.round(myProfit).toLocaleString()}</div>
                             </div>
                         </div>`;
                 }
@@ -373,37 +296,53 @@
             document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(pNet).toLocaleString();
             document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(sNet + pNet).toLocaleString();
             
-            // Progress Bar Update
             const goal = globalSettings.target || 500000;
-            const perc = Math.min((yearlyAccumulated/goal)*100, 100);
+            const perc = Math.min((yearlyTotal/goal)*100, 100);
             document.getElementById('targetBar').style.width = perc + "%";
-            document.getElementById('targetEarned').innerText = "EARNED: ₹" + Math.round(yearlyAccumulated).toLocaleString();
+            document.getElementById('targetEarned').innerText = "EARNED: ₹" + Math.round(yearlyTotal).toLocaleString();
             document.getElementById('targetGoal').innerText = "GOAL: ₹" + parseInt(goal).toLocaleString();
-            document.getElementById('targetRem').innerText = "₹" + Math.max(0, Math.round(goal - yearlyAccumulated)).toLocaleString();
+            document.getElementById('targetRem').innerText = "₹" + Math.round(goal - yearlyTotal).toLocaleString();
         }
 
         function toggleSettings() { 
             const s = document.getElementById('settingsModal'); 
-            s.style.display = s.style.display === 'flex' ? 'none' : 'flex';
-            if(s.style.display === 'flex') {
-                document.getElementById('setMpin').value = globalSettings.mpin;
-                document.getElementById('setTarget').value = globalSettings.target;
-                document.getElementById('setCompanies').value = globalSettings.companies;
-                document.getElementById('setHelpers').value = globalSettings.helpers;
-            }
+            s.style.display = (s.style.display === 'flex') ? 'none' : 'flex';
+            document.getElementById('setMpin').value = globalSettings.mpin;
+            document.getElementById('setTarget').value = globalSettings.target;
+            document.getElementById('setCompanies').value = globalSettings.companies;
+            document.getElementById('setHelpers').value = globalSettings.helpers;
         }
 
         async function saveSettings() {
-            globalSettings = { 
-                mpin: document.getElementById('setMpin').value || "0000", 
-                target: document.getElementById('setTarget').value || 500000, 
-                companies: document.getElementById('setCompanies').value, 
-                helpers: document.getElementById('setHelpers').value 
-            };
+            globalSettings = { mpin: document.getElementById('setMpin').value, target: document.getElementById('setTarget').value, companies: document.getElementById('setCompanies').value, helpers: document.getElementById('setHelpers').value };
             await db.collection("appSettings").doc("userConfig").set(globalSettings);
-            alert("Cloud Synced Successfully");
-            toggleSettings();
+            alert("Cloud Updated!");
             location.reload();
+        }
+
+        // --- PDF GENERATOR (RESTORED) ---
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const month = document.getElementById('filterMonth').options[document.getElementById('filterMonth').selectedIndex].text;
+            const year = document.getElementById('filterYear').value;
+            
+            doc.setFontSize(18); doc.text(`Work Report - ${month} ${year}`, 14, 20);
+            doc.setFontSize(10); doc.text(`Generated for Ayyappan Pro`, 14, 28);
+
+            const rows = [];
+            allEntries.filter(d => {
+                const dt = new Date(d.date);
+                return dt.getFullYear() == year && (document.getElementById('filterMonth').value === 'all' || dt.getMonth() == document.getElementById('filterMonth').value);
+            }).forEach(d => {
+                let wages = 0; d.logs?.forEach(l => wages += (parseFloat(l.sal)||0) + (parseFloat(l.food)||0));
+                const net = (d.total || 0) - wages;
+                const myShare = d.projectType === 'Solo' ? net : (net/2);
+                rows.push([d.date, d.customer, d.projectType, d.total, wages, Math.round(myShare)]);
+            });
+
+            doc.autoTable({ head: [['Date', 'Customer', 'Type', 'Gross', 'Wages', 'Net (My Share)']], body: rows, startY: 35 });
+            doc.save(`Work_Report_${month}_${year}.pdf`);
         }
 
         window.onload = init;
