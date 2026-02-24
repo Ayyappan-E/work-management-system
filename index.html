@@ -152,8 +152,8 @@
 
         .status-badge { padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 900; text-transform: uppercase; }
         .status-received { background: #059669; color: white; }
-        .status-pending { background: #dc2626; color: white; }
-        .status-unknown { background: #4b5563; color: white; }
+        .status-Billed { background: #dc2626; color: white; }
+        .status-Not Billed { background: #4b5563; color: white; }
 
         #msgBox { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 200; min-width: 250px; text-align: center; border-radius: 12px; padding: 12px 24px; font-weight: bold; }
         
@@ -258,9 +258,9 @@
                 <label>Payment Status</label>
                 <div class="flex gap-2">
                     <button onclick="setPaymentStatus('Received')" id="btnReceived" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase border border-white/10 transition-all opacity-40">Received</button>
-                    <button onclick="setPaymentStatus('Pending')" id="btnPending" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase border border-white/10 transition-all opacity-40">Pending</button>
-                    <button onclick="setPaymentStatus('Unknown')" id="btnUnknown" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase border border-white/10 transition-all opacity-40">Unknown</button>
-                    <input type="hidden" id="paymentStatus" value="Pending">
+                    <button onclick="setPaymentStatus('Billed')" id="btnBilled" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase border border-white/10 transition-all opacity-40">Billed</button>
+                    <button onclick="setPaymentStatus('Not Billed')" id="btnNot Billed" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase border border-white/10 transition-all opacity-40">Not Billed</button>
+                    <input type="hidden" id="paymentStatus" value="Billed">
                 </div>
             </div>
             
@@ -420,14 +420,14 @@
 
         function setPaymentStatus(status) {
             document.getElementById('paymentStatus').value = status;
-            ['Received', 'Pending', 'Unknown'].forEach(s => {
+            ['Received', 'Billed', 'Not Billed'].forEach(s => {
                 const btn = document.getElementById(`btn${s}`);
                 btn.classList.add('opacity-40'); btn.style.backgroundColor = 'transparent'; btn.style.color = 'inherit';
                 if (s === status) {
                     btn.classList.remove('opacity-40');
                     if (s === 'Received') { btn.style.backgroundColor = '#059669'; btn.style.color = 'white'; }
-                    if (s === 'Pending') { btn.style.backgroundColor = '#dc2626'; btn.style.color = 'white'; }
-                    if (s === 'Unknown') { btn.style.backgroundColor = '#4b5563'; btn.style.color = 'white'; }
+                    if (s === 'Billed') { btn.style.backgroundColor = '#dc2626'; btn.style.color = 'white'; }
+                    if (s === 'Not Billed') { btn.style.backgroundColor = '#4b5563'; btn.style.color = 'white'; }
                 }
             });
         }
@@ -568,8 +568,8 @@
                     const net = (parseFloat(d.total)||0) - siteExp;
                     const share = d.projectType === 'Partner' ? (net/2) : net;
                     if(!d.isHoliday) { currentEarned += share; if(d.projectType === 'Partner') partnerEarn += share; else soloEarn += share; }
-                    const pStatus = d.paymentStatus || 'Pending';
-                    const statClass = pStatus === 'Received' ? 'status-received' : pStatus === 'Pending' ? 'status-pending' : 'status-unknown';
+                    const pStatus = d.paymentStatus || 'Billed';
+                    const statClass = pStatus === 'Received' ? 'status-received' : pStatus === 'Billed' ? 'status-Billed' : 'status-Not Billed';
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${d.date.split('-').slice(1).join('/')}</td>
@@ -701,7 +701,7 @@
             const d = allEntries.find(e => e.id === id);
             document.getElementById('editId').value = id; document.getElementById('date').value = d.date; document.getElementById('customer').value = d.customer; document.getElementById('qn').value = d.qn || "";
             document.getElementById('location').value = d.location || ""; document.getElementById('windowQty').value = d.windowQty || ""; document.getElementById('totalSqft').value = d.totalSqft || ""; document.getElementById('amtRate').value = d.amtRate || "";
-            document.getElementById('projectType').value = d.projectType; document.getElementById('isHoliday').checked = d.isHoliday; setPaymentStatus(d.paymentStatus || 'Pending');
+            document.getElementById('projectType').value = d.projectType; document.getElementById('isHoliday').checked = d.isHoliday; setPaymentStatus(d.paymentStatus || 'Billed');
             const logs = d.logs || []; document.getElementById('dayLogsContainer').innerHTML = ""; 
             if(logs.length > 0) { document.getElementById('helperSectionToggle').checked = true; toggleHelperVisibility(); logs.forEach(l => addDayRow(l)); }
             else { document.getElementById('helperSectionToggle').checked = false; toggleHelperVisibility(); }
