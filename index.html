@@ -71,16 +71,6 @@
             box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
         }
 
-        .animate-in {
-            animation: slideUp 0.4s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Loading Spinner */
         #loader {
             display: none;
             position: fixed;
@@ -134,7 +124,7 @@
         <main id="content-area" class="animate-in">
             <!-- INPUT TAB -->
             <div id="tab-content-input" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Left: Entry Form -->
+                <!-- Form Sidebar -->
                 <div class="lg:col-span-4 glass-card p-6 h-fit sticky top-6">
                     <h2 class="text-lg font-bold mb-6 flex items-center">
                         <span class="w-2 h-6 bg-indigo-500 rounded-full mr-3"></span>Log Activity
@@ -165,9 +155,7 @@
                                 </div>
                                 <div>
                                     <label class="text-[10px] text-dim font-bold uppercase mb-1 block">Company</label>
-                                    <select id="company" class="w-full p-3 rounded-xl text-sm">
-                                        <!-- Populated from settings -->
-                                    </select>
+                                    <select id="company" class="w-full p-3 rounded-xl text-sm"></select>
                                 </div>
                             </div>
                             
@@ -192,7 +180,7 @@
                                 </div>
                             </div>
 
-                            <!-- Helper Logging Sub-form -->
+                            <!-- Helper Sub-form -->
                             <div class="bg-black/10 p-4 rounded-2xl border border-white/5">
                                 <div class="flex justify-between items-center mb-3">
                                     <label class="text-[10px] text-dim font-bold uppercase">Helper Logs</label>
@@ -200,13 +188,10 @@
                                         <i class="fas fa-plus mr-1"></i> Add Helper
                                     </button>
                                 </div>
-                                <div id="helper-rows" class="space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
-                                    <!-- Rows added here -->
-                                </div>
+                                <div id="helper-rows" class="space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar"></div>
                             </div>
                         </div>
 
-                        <!-- Calculations Summary -->
                         <div class="p-4 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-500/20">
                             <div class="flex justify-between items-end">
                                 <div>
@@ -226,9 +211,8 @@
                     </div>
                 </div>
 
-                <!-- Right: Recent Activity -->
+                <!-- Recent Activity -->
                 <div class="lg:col-span-8 space-y-6">
-                    <!-- Stat Cards -->
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div class="glass-card p-4">
                             <p class="text-[10px] text-dim font-bold uppercase mb-1">Month Profit</p>
@@ -253,7 +237,6 @@
                         </div>
                     </div>
 
-                    <!-- Live Table -->
                     <div class="glass-card overflow-hidden">
                         <div class="p-5 border-b border-white/5 flex justify-between items-center bg-white/5">
                             <h3 class="font-bold flex items-center">
@@ -275,9 +258,7 @@
                                         <th class="p-4 text-center">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody id="entriesTableBody" class="divide-y divide-white/5">
-                                    <!-- Loaded via JS -->
-                                </tbody>
+                                <tbody id="entriesTableBody" class="divide-y divide-white/5"></tbody>
                             </table>
                         </div>
                     </div>
@@ -288,53 +269,25 @@
             <div id="tab-content-reports" class="hidden glass-card p-8">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
                     <div class="bg-indigo-600/10 p-6 rounded-3xl border border-indigo-500/20 text-center">
-                        <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-xl shadow-indigo-500/30">
+                        <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                             <i class="fas fa-file-pdf text-white"></i>
                         </div>
                         <h4 class="font-bold text-lg mb-2">Solo Report</h4>
-                        <p class="text-dim text-xs mb-4">Detailed breakdown of personal projects, expenses and net profit.</p>
-                        <button onclick="exportSoloPDF()" class="w-full py-3 bg-indigo-600 rounded-xl font-bold text-sm shadow-lg hover:bg-indigo-500 transition-all">Download PDF</button>
+                        <button onclick="exportSoloPDF()" class="w-full py-3 bg-indigo-600 rounded-xl font-bold text-sm">Download PDF</button>
                     </div>
-
                     <div class="bg-purple-600/10 p-6 rounded-3xl border border-purple-500/20 text-center">
-                        <div class="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-xl shadow-purple-500/30">
+                        <div class="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                             <i class="fas fa-handshake text-white"></i>
                         </div>
                         <h4 class="font-bold text-lg mb-2">Partner Report</h4>
-                        <p class="text-dim text-xs mb-4">50/50 partnership breakdown for shared sites and billing.</p>
-                        <button onclick="exportPartnerPDF()" class="w-full py-3 bg-purple-600 rounded-xl font-bold text-sm shadow-lg hover:bg-purple-500 transition-all">Download PDF</button>
+                        <button onclick="exportPartnerPDF()" class="w-full py-3 bg-purple-600 rounded-xl font-bold text-sm">Download PDF</button>
                     </div>
-
                     <div class="bg-green-600/10 p-6 rounded-3xl border border-green-500/20 text-center">
-                        <div class="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-xl shadow-green-500/30">
+                        <div class="w-16 h-16 bg-green-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4">
                             <i class="fas fa-users text-white"></i>
                         </div>
                         <h4 class="font-bold text-lg mb-2">Helper Ledger</h4>
-                        <p class="text-dim text-xs mb-4">Log of all helper attendance, OT, salary payments and food.</p>
-                        <button onclick="exportHelperPDF()" class="w-full py-3 bg-green-600 rounded-xl font-bold text-sm shadow-lg hover:bg-green-500 transition-all">Download PDF</button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="space-y-4">
-                        <h3 class="font-bold text-xl flex items-center">
-                            <i class="fas fa-calendar-alt mr-3 text-indigo-400"></i> Monthly Performance
-                        </h3>
-                        <div id="monthlyBreakdownGrid" class="grid grid-cols-2 gap-4">
-                            <!-- Populated -->
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <h3 class="font-bold text-xl flex items-center">
-                            <i class="fas fa-paper-plane mr-3 text-indigo-400"></i> Quick Summary Share
-                        </h3>
-                        <div class="bg-black/20 p-6 rounded-3xl border border-white/5 flex flex-col items-center justify-center text-center">
-                            <p class="text-dim text-sm mb-6">Send current month totals directly to your business contact on WhatsApp.</p>
-                            <button onclick="shareWhatsApp()" class="px-8 py-3 bg-emerald-600 rounded-2xl font-black shadow-lg hover:bg-emerald-500 transition-all flex items-center">
-                                <i class="fab fa-whatsapp text-2xl mr-3"></i> Share Summary
-                            </button>
-                        </div>
+                        <button onclick="exportHelperPDF()" class="w-full py-3 bg-green-600 rounded-xl font-bold text-sm">Download PDF</button>
                     </div>
                 </div>
             </div>
@@ -343,54 +296,26 @@
             <div id="tab-content-settings" class="hidden glass-card p-8">
                 <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10">
                     <section class="space-y-6">
-                        <h3 class="text-lg font-bold flex items-center"><i class="fas fa-database mr-3 text-indigo-400"></i> Management</h3>
-                        
-                        <div class="space-y-4">
-                            <div class="bg-white/5 p-4 rounded-2xl">
-                                <label class="text-[10px] text-dim font-bold uppercase block mb-3">Add Helper to Database</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="newHelper" placeholder="Helper Name" class="flex-1 p-2 rounded-xl text-sm">
-                                    <button onclick="addHelper()" class="bg-indigo-600 px-4 rounded-xl text-xs font-bold">ADD</button>
-                                </div>
-                                <div id="helperListTags" class="flex flex-wrap gap-2 mt-3"></div>
+                        <h3 class="text-lg font-bold">Helper Management</h3>
+                        <div class="bg-white/5 p-4 rounded-2xl">
+                            <div class="flex gap-2 mb-3">
+                                <input type="text" id="newHelper" placeholder="Helper Name" class="flex-1 p-2 rounded-xl text-sm">
+                                <button onclick="addHelper()" class="bg-indigo-600 px-4 rounded-xl text-xs font-bold">ADD</button>
                             </div>
-
-                            <div class="bg-white/5 p-4 rounded-2xl">
-                                <label class="text-[10px] text-dim font-bold uppercase block mb-3">Add Company</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="newCompany" placeholder="Company Name" class="flex-1 p-2 rounded-xl text-sm">
-                                    <button onclick="addCompany()" class="bg-purple-600 px-4 rounded-xl text-xs font-bold">ADD</button>
-                                </div>
-                                <div id="companyListTags" class="flex flex-wrap gap-2 mt-3"></div>
-                            </div>
+                            <div id="helperListTags" class="flex flex-wrap gap-2"></div>
                         </div>
-                    </section>
-
-                    <section class="space-y-6">
-                        <h3 class="text-lg font-bold flex items-center"><i class="fas fa-bullseye mr-3 text-indigo-400"></i> Goals & Targets</h3>
-                        
-                        <div class="space-y-4">
-                            <div class="bg-white/5 p-4 rounded-2xl">
-                                <label class="text-[10px] text-dim font-bold uppercase block mb-2">Annual Profit Target (₹)</label>
-                                <input type="number" id="annualTarget" onchange="saveSettings()" class="w-full p-3 rounded-xl text-sm" value="500000">
-                                <p class="text-[9px] text-dim mt-2 italic">* Used for tracking your progress bars across the app.</p>
+                        <h3 class="text-lg font-bold">Company Management</h3>
+                        <div class="bg-white/5 p-4 rounded-2xl">
+                            <div class="flex gap-2 mb-3">
+                                <input type="text" id="newCompany" placeholder="Company Name" class="flex-1 p-2 rounded-xl text-sm">
+                                <button onclick="addCompany()" class="bg-purple-600 px-4 rounded-xl text-xs font-bold">ADD</button>
                             </div>
-                            
-                            <div class="bg-white/5 p-4 rounded-2xl">
-                                <label class="text-[10px] text-dim font-bold uppercase block mb-2">Data Backup</label>
-                                <button onclick="backupData()" class="w-full py-2 border border-white/10 rounded-xl text-xs font-bold text-dim hover:bg-white/5">
-                                    <i class="fas fa-cloud-download-alt mr-2"></i> Export Data JSON
-                                </button>
-                            </div>
+                            <div id="companyListTags" class="flex flex-wrap gap-2"></div>
                         </div>
                     </section>
                 </div>
             </div>
         </main>
-
-        <footer class="text-center py-6 text-dim text-[10px] font-bold uppercase tracking-[0.2em]">
-            &copy; 2024 Ayyappan Pro Systems &bull; Built for Performance
-        </footer>
     </div>
 
     <!-- PDF Preview Overlay -->
@@ -405,10 +330,7 @@
         <iframe id="pdf-frame" class="flex-1 w-full bg-slate-800"></iframe>
     </div>
 
-    <!-- NOTIFICATION -->
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[10000] hidden px-6 py-3 bg-indigo-600 text-white rounded-2xl shadow-2xl font-bold animate-in">
-        Action Successful!
-    </div>
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[10000] hidden px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold">Action Successful!</div>
 
     <script>
         // FIREBASE SETUP
@@ -416,11 +338,9 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // APP STATE
         let allEntries = [], settings = { helpers: [], companies: [], target: 500000 };
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        
-        // UI HELPERS
+
         function showLoader(s) { document.getElementById('loader').style.display = s ? 'flex' : 'none'; }
         function notify(msg) { 
             const t = document.getElementById('toast'); 
@@ -441,7 +361,6 @@
             document.body.classList.toggle('light');
             const isLight = document.body.classList.contains('light');
             document.getElementById('theme-icon').className = isLight ? 'fas fa-sun' : 'fas fa-moon';
-            localStorage.setItem('ayyappan_theme', isLight ? 'light' : 'dark');
         }
 
         function initTheme() {
@@ -453,7 +372,6 @@
             document.getElementById('standard-fields').style.display = type === 'Holiday' ? 'none' : 'block';
         }
 
-        // SETTINGS & DB
         async function syncSettings() {
             const doc = await db.collection('settings').doc('master').get();
             if(doc.exists) settings = doc.data();
@@ -464,52 +382,42 @@
         function renderSettings() {
             const hCont = document.getElementById('helperListTags');
             const cCont = document.getElementById('companyListTags');
-            hCont.innerHTML = settings.helpers.map(h => `<span class="bg-indigo-600/20 text-indigo-400 px-3 py-1 rounded-full text-[10px] font-bold border border-indigo-500/20">${h} <button onclick="removeItem('helpers','${h}')" class="ml-1 opacity-50">&times;</button></span>`).join('');
-            cCont.innerHTML = settings.companies.map(c => `<span class="bg-purple-600/20 text-purple-400 px-3 py-1 rounded-full text-[10px] font-bold border border-purple-500/20">${c} <button onclick="removeItem('companies','${c}')" class="ml-1 opacity-50">&times;</button></span>`).join('');
-            document.getElementById('annualTarget').value = settings.target;
+            hCont.innerHTML = settings.helpers.map(h => `<span class="bg-indigo-600/20 px-3 py-1 rounded-full text-[10px] font-bold">${h} <button onclick="removeItem('helpers','${h}')">&times;</button></span>`).join('');
+            cCont.innerHTML = settings.companies.map(c => `<span class="bg-purple-600/20 px-3 py-1 rounded-full text-[10px] font-bold">${c} <button onclick="removeItem('companies','${c}')">&times;</button></span>`).join('');
         }
 
         function updateFormSelectors() {
             const co = document.getElementById('company');
             co.innerHTML = `<option value="">Select Company</option>` + settings.companies.map(c => `<option value="${c}">${c}</option>`).join('');
-            const list = document.getElementById('customerList');
-            const uniqueCustomers = [...new Set(allEntries.map(e => e.customer))];
-            list.innerHTML = uniqueCustomers.map(c => `<option value="${c}">`).join('');
         }
 
         async function removeItem(key, val) {
             settings[key] = settings[key].filter(i => i !== val);
-            await saveSettings();
-        }
-
-        async function addHelper() {
-            const n = document.getElementById('newHelper').value.trim();
-            if(n && !settings.helpers.includes(n)) { settings.helpers.push(n); await saveSettings(); document.getElementById('newHelper').value = ''; }
-        }
-
-        async function addCompany() {
-            const n = document.getElementById('newCompany').value.trim();
-            if(n && !settings.companies.includes(n)) { settings.companies.push(n); await saveSettings(); document.getElementById('newCompany').value = ''; }
-        }
-
-        async function saveSettings() {
-            settings.target = parseInt(document.getElementById('annualTarget').value) || 500000;
             await db.collection('settings').doc('master').set(settings);
             renderSettings(); updateFormSelectors();
         }
 
-        // LOGIC
+        async function addHelper() {
+            const n = document.getElementById('newHelper').value.trim();
+            if(n && !settings.helpers.includes(n)) { settings.helpers.push(n); await db.collection('settings').doc('master').set(settings); renderSettings(); }
+        }
+
+        async function addCompany() {
+            const n = document.getElementById('newCompany').value.trim();
+            if(n && !settings.companies.includes(n)) { settings.companies.push(n); await db.collection('settings').doc('master').set(settings); renderSettings(); updateFormSelectors(); }
+        }
+
         function addHelperRow(data = {}) {
             const cont = document.getElementById('helper-rows');
             const div = document.createElement('div');
-            div.className = 'grid grid-cols-12 gap-1 items-center bg-black/20 p-2 rounded-xl border border-white/5 animate-in';
+            div.className = 'grid grid-cols-12 gap-1 items-center bg-black/20 p-2 rounded-xl mb-1';
             const helpers = settings.helpers.map(h => `<option value="${h}" ${data.helper === h ? 'selected' : ''}>${h}</option>`).join('');
             div.innerHTML = `
-                <div class="col-span-4"><select class="h-name w-full p-1.5 rounded-lg text-xs bg-transparent">${helpers}</select></div>
-                <div class="col-span-2"><input type="number" placeholder="S" class="h-sal w-full p-1.5 rounded-lg text-xs bg-transparent" value="${data.sal || 500}" oninput="calculate()"></div>
-                <div class="col-span-2"><input type="number" step="0.5" placeholder="OT" class="h-ot w-full p-1.5 rounded-lg text-xs bg-transparent" value="${data.ot || 0}" oninput="calculate()"></div>
-                <div class="col-span-2"><input type="number" placeholder="F" class="h-food w-full p-1.5 rounded-lg text-xs bg-transparent" value="${data.food || 0}" oninput="calculate()"></div>
-                <div class="col-span-2 text-right"><button onclick="this.parentElement.parentElement.remove();calculate()" class="text-red-400 p-1"><i class="fas fa-trash"></i></button></div>
+                <div class="col-span-4"><select class="h-name w-full p-1 rounded-lg text-xs bg-transparent">${helpers}</select></div>
+                <div class="col-span-2"><input type="number" class="h-sal w-full p-1 rounded-lg text-xs bg-transparent" value="${data.sal || 500}" oninput="calculate()"></div>
+                <div class="col-span-2"><input type="number" class="h-ot w-full p-1 rounded-lg text-xs bg-transparent" value="${data.ot || 0}" oninput="calculate()"></div>
+                <div class="col-span-2"><input type="number" class="h-food w-full p-1 rounded-lg text-xs bg-transparent" value="${data.food || 0}" oninput="calculate()"></div>
+                <div class="col-span-2 text-right"><button onclick="this.parentElement.parentElement.remove();calculate()" class="text-red-400">&times;</button></div>
             `;
             cont.appendChild(div);
             calculate();
@@ -520,7 +428,7 @@
             const ra = parseFloat(document.getElementById('rate').value) || 0;
             const ex = parseFloat(document.getElementById('extraCharge').value) || 0;
             const total = (sq * ra) + ex;
-            document.getElementById('calc-total').innerText = '₹' + Math.round(total).toLocaleString();
+            document.getElementById('calc-total').innerText = '₹' + Math.round(total);
 
             let wages = 0;
             document.querySelectorAll('#helper-rows > div').forEach(row => {
@@ -529,15 +437,13 @@
                 const f = parseFloat(row.querySelector('.h-food').value) || 0;
                 wages += s + (s / 2 * ot) + f;
             });
-            document.getElementById('calc-wages').innerText = '₹' + Math.round(wages).toLocaleString();
+            document.getElementById('calc-wages').innerText = '₹' + Math.round(wages);
             return { total, wages };
         }
 
         async function saveData() {
             showLoader(true);
-            const type = document.getElementById('projectType').value;
             const { total, wages } = calculate();
-            
             const logs = [];
             document.querySelectorAll('#helper-rows > div').forEach(row => {
                 logs.push({
@@ -545,154 +451,77 @@
                     sal: parseFloat(row.querySelector('.h-sal').value) || 0,
                     ot: parseFloat(row.querySelector('.h-ot').value) || 0,
                     food: parseFloat(row.querySelector('.h-food').value) || 0,
-                    pet: 0, // Placeholder for pet if needed
                     hDate: document.getElementById('date').value
                 });
             });
 
             const payload = {
                 date: document.getElementById('date').value,
-                projectType: type,
-                isHoliday: type === 'Holiday',
+                projectType: document.getElementById('projectType').value,
+                isHoliday: document.getElementById('projectType').value === 'Holiday',
                 customer: document.getElementById('customer').value,
                 company: document.getElementById('company').value,
                 location: document.getElementById('location').value,
                 sqft: parseFloat(document.getElementById('totalSqft').value) || 0,
                 rate: parseFloat(document.getElementById('rate').value) || 0,
-                extra: parseFloat(document.getElementById('extraCharge').value) || 0,
                 total: total,
                 wages: wages,
-                logs: logs,
-                qn: `QN-${Date.now().toString().slice(-6)}`
+                logs: logs
             };
 
-            try {
-                await db.collection('entries').add(payload);
-                notify("Entry Saved Successfully!");
-                clearForm();
-                await refreshData();
-            } catch (e) { notify("Error: " + e.message); }
+            await db.collection('entries').add(payload);
+            notify("Saved!");
+            await refreshData();
             showLoader(false);
         }
 
-        function clearForm() {
-            document.getElementById('customer').value = '';
-            document.getElementById('location').value = '';
-            document.getElementById('totalSqft').value = '';
-            document.getElementById('extraCharge').value = '0';
-            document.getElementById('helper-rows').innerHTML = '';
-            calculate();
-        }
-
         async function refreshData() {
-            const fM = parseInt(document.getElementById('filterMonth').value);
-            const fY = parseInt(document.getElementById('filterYear').value);
-            
             const snap = await db.collection('entries').orderBy('date', 'desc').get();
             allEntries = snap.docs.map(d => ({id: d.id, ...d.data()}));
-            
+            const fM = parseInt(document.getElementById('filterMonth').value);
+            const fY = parseInt(document.getElementById('filterYear').value);
             renderEntries(fM, fY);
             updateStats(fM, fY);
-            renderMonthlyBreakdown(fM, fY);
         }
 
         function renderEntries(fM, fY) {
             const tbody = document.getElementById('entriesTableBody');
             tbody.innerHTML = '';
-            
             allEntries.forEach(d => {
                 const ed = new Date(d.date);
                 if(ed.getMonth() !== fM || ed.getFullYear() !== fY) return;
-
                 const profit = d.isHoliday ? 0 : (d.projectType === 'Solo' ? (d.total - d.wages) : (d.total - d.wages)/2);
-                
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-white/5 transition-colors";
-                tr.innerHTML = `
-                    <td class="p-4">
-                        <div class="font-bold">${d.date}</div>
-                        <div class="text-[9px] px-2 py-0.5 rounded-full inline-block mt-1 ${d.projectType === 'Solo' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-purple-500/20 text-purple-400'}">
-                            ${d.projectType}
-                        </div>
-                    </td>
-                    <td class="p-4">
-                        <div class="font-bold">${d.customer || 'N/A'}</div>
-                        <div class="text-[10px] text-dim">${d.location || 'No Location'}</div>
-                    </td>
-                    <td class="p-4 text-[10px] text-dim">
-                        ${d.sqft} sqft @ ${d.rate}<br>Wages: ₹${Math.round(d.wages)}
-                    </td>
-                    <td class="p-4 text-right">
-                        <div class="font-black text-indigo-400">₹${Math.round(profit).toLocaleString()}</div>
-                    </td>
-                    <td class="p-4 text-center">
-                        <button onclick="deleteEntry('${d.id}')" class="text-red-400/50 hover:text-red-400"><i class="fas fa-trash"></i></button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-4">${d.date}<br><span class="text-[9px] opacity-50">${d.projectType}</span></td>
+                        <td class="p-4 font-bold">${d.customer}<br><span class="text-[9px] opacity-50">${d.location}</span></td>
+                        <td class="p-4 text-dim text-[10px]">Sqft: ${d.sqft}<br>Wages: ₹${Math.round(d.wages)}</td>
+                        <td class="p-4 text-right font-black">₹${Math.round(profit)}</td>
+                        <td class="p-4 text-center"><button onclick="deleteEntry('${d.id}')">&times;</button></td>
+                    </tr>`;
             });
         }
 
         async function deleteEntry(id) {
-            if(confirm("Permanently delete this entry?")) {
-                await db.collection('entries').doc(id).delete();
-                notify("Entry Deleted");
-                refreshData();
-            }
+            if(confirm("Delete?")) { await db.collection('entries').doc(id).delete(); refreshData(); }
         }
 
         function updateStats(fM, fY) {
-            let totalProfit = 0, totalSqft = 0, days = 0;
-            allEntries.forEach(d => {
-                const ed = new Date(d.date);
-                if(ed.getMonth() === fM && ed.getFullYear() === fY && !d.isHoliday) {
-                    days++;
-                    totalSqft += d.sqft;
-                    totalProfit += (d.projectType === 'Solo' ? (d.total - d.wages) : (d.total - d.wages)/2);
+            let p = 0, s = 0, d = 0;
+            allEntries.forEach(entry => {
+                const ed = new Date(entry.date);
+                if(ed.getMonth() === fM && ed.getFullYear() === fY && !entry.isHoliday) {
+                    d++; s += entry.sqft;
+                    p += (entry.projectType === 'Solo' ? (entry.total - entry.wages) : (entry.total - entry.wages)/2);
                 }
             });
-
-            document.getElementById('stat-profit').innerText = '₹' + Math.round(totalProfit).toLocaleString();
-            document.getElementById('stat-sqft').innerText = Math.round(totalSqft).toLocaleString();
-            document.getElementById('stat-days').innerText = days;
-            
-            const targetPercent = Math.min(100, (totalProfit / (settings.target / 12)) * 100);
-            document.getElementById('stat-target').innerText = Math.round(targetPercent) + '%';
-            document.getElementById('target-bar').style.width = targetPercent + '%';
+            document.getElementById('stat-profit').innerText = '₹' + Math.round(p);
+            document.getElementById('stat-sqft').innerText = s;
+            document.getElementById('stat-days').innerText = d;
         }
 
-        function renderMonthlyBreakdown(fM, fY) {
-            let profit = 0, sqft = 0;
-            allEntries.forEach(d => {
-                const ed = new Date(d.date);
-                if(ed.getMonth() === fM && ed.getFullYear() === fY && !d.isHoliday) {
-                    sqft += d.sqft;
-                    profit += (d.projectType === 'Solo' ? (d.total - d.wages) : (d.total - d.wages)/2);
-                }
-            });
-            document.getElementById('monthlyBreakdownGrid').innerHTML = `
-                <div class="bg-blue-600/10 p-3 rounded-xl border border-blue-500/20"><div class="text-[9px] opacity-50 uppercase">Profit</div><div class="text-xl font-black text-blue-500">₹${Math.round(profit).toLocaleString()}</div></div>
-                <div class="bg-green-600/10 p-3 rounded-xl border border-green-500/20"><div class="text-[9px] opacity-50 uppercase">Sqft</div><div class="text-xl font-black text-green-500">${sqft}</div></div>`;
-        }
-
-        function shareWhatsApp() {
-            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
-            let profit = 0, sqft = 0;
-            allEntries.forEach(d => {
-                const ed = new Date(d.date);
-                if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday) {
-                    sqft += d.sqft;
-                    profit += (d.projectType === 'Solo' ? (d.total - d.wages) : (d.total - d.wages)/2);
-                }
-            });
-            let msg = `*📊 Work Report: ${monthNames[fM]} ${fY}*\n\nProfit: ₹${Math.round(profit).toLocaleString()}\nTotal Sqft: ${sqft}\n\nGenerated via Ayyappan Pro.`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        // PDF SYSTEMS
         function openPdfPreview(doc, filename, title) {
-            const blob = doc.output('blob');
-            const url = URL.createObjectURL(blob);
+            const url = URL.createObjectURL(doc.output('blob'));
             document.getElementById('pdf-frame').src = url;
             document.getElementById('pdf-title').innerText = title;
             document.getElementById('pdf-overlay').classList.remove('hidden');
@@ -704,190 +533,111 @@
             document.getElementById('pdf-frame').src = '';
         }
 
-        function exportHelperPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l');
-            const fM = document.getElementById('filterMonth').value;
-            const fY = document.getElementById('filterYear').value;
-            
-            doc.text(`Helper Report: ${monthNames[fM]} ${fY}`, 14, 15);
-            
-            const rows = [];
-            let grandTotal = 0;
-            
-            allEntries.forEach(entry => {
-                const ed = new Date(entry.date);
-                if(ed.getMonth() == fM && ed.getFullYear() == fY && entry.logs?.length > 0) {
-                    entry.logs.forEach(log => {
-                        const s = parseFloat(log.sal) || 0;
-                        const tot = s + (s/2 * (parseFloat(log.ot)||0)) + (parseFloat(log.pet)||0) + (parseFloat(log.food)||0);
-                        const roundedTot = Math.round(tot);
-                        rows.push([
-                            log.hDate || entry.date, 
-                            log.helper, 
-                            entry.location || '-', 
-                            entry.customer || 'Site', 
-                            `Rs. ${s}`, 
-                            log.ot || 0, 
-                            `Rs. ${roundedTot}`
-                        ]);
-                        grandTotal += roundedTot;
-                    });
-                }
-            });
-
-            // Push the Grand Total row
-            rows.push(['', '', '', '', '', 'GRAND TOTAL', `Rs. ${Math.round(grandTotal)}`]);
-
-            doc.autoTable({
-                startY: 25,
-                head: [['Date', 'Helper', 'Location', 'Site', 'Salary', 'OT', 'Total']],
-                body: rows,
-                didParseCell: function (data) {
-                    // Check if it's the last row
-                    if (data.row.index === rows.length - 1) {
-                        data.cell.styles.fontStyle = 'bold';
-                        data.cell.styles.fillColor = [240, 240, 240]; // Light gray background
-                        data.cell.styles.textColor = [0, 0, 0];
-                    }
-                }
-            });
-            
-            openPdfPreview(doc, `Helpers_${monthNames[fM]}_${fY}.pdf`, `Helper Report: ${monthNames[fM]} ${fY}`);
-        }
-
         function exportSoloPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l');
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('l');
             const fM = document.getElementById('filterMonth').value;
             const fY = document.getElementById('filterYear').value;
-            
-            doc.text(`Solo Work Report: ${monthNames[fM]} ${fY}`, 14, 15);
-            
-            const rows = [];
-            let grandNet = 0;
-
-            allEntries.forEach(d => {
-                const ed = new Date(d.date);
-                if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday && d.projectType === 'Solo') {
-                    let exp = 0, helperNames = [], totalOT = 0;
-                    d.logs?.forEach(l => { 
-                        const s = parseFloat(l.sal)||0; 
-                        exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
-                        if(!helperNames.includes(l.helper)) helperNames.push(l.helper);
-                        totalOT += parseFloat(l.ot) || 0;
-                    });
-                    const net = Math.round(d.total - exp);
-                    rows.push([
-                        d.date, 
-                        d.qn || '-', 
-                        d.customer, 
-                        d.location || '-', 
-                        helperNames.join(', '), 
-                        totalOT, 
-                        `Rs. ${Math.round(d.total)}`, 
-                        `Rs. ${Math.round(exp)}`, 
-                        `Rs. ${net}`
-                    ]);
-                    grandNet += net;
-                }
+            let totalNet = 0;
+            const rows = allEntries.filter(e => {
+                const ed = new Date(e.date);
+                return ed.getMonth() == fM && ed.getFullYear() == fY && e.projectType === 'Solo';
+            }).map(e => {
+                const net = e.total - e.wages;
+                totalNet += net;
+                return [e.date, e.customer, e.location, e.sqft, Math.round(e.total), Math.round(e.wages), Math.round(net)];
             });
+            
+            rows.push(['', '', '', '', '', 'GRAND TOTAL', `Rs. ${Math.round(totalNet)}`]);
 
-            rows.push(['', '', '', '', '', '', '', 'GRAND TOTAL', `Rs. ${Math.round(grandNet)}`]);
-
-            doc.autoTable({
-                startY: 25,
-                head: [['Date', 'QN', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Profit']],
+            doc.text(`Solo Report: ${monthNames[fM]} ${fY}`, 14, 15);
+            doc.autoTable({ 
+                startY: 25, 
+                head: [['Date', 'Customer', 'Location', 'Sqft', 'Bill', 'Wages', 'Net']], 
                 body: rows,
-                didParseCell: function (data) {
+                didParseCell: function(data) {
                     if (data.row.index === rows.length - 1) {
                         data.cell.styles.fontStyle = 'bold';
-                        data.cell.styles.fillColor = [220, 252, 231]; // Light green background (Tailwind green-100)
-                        data.cell.styles.textColor = [21, 128, 61]; // Dark green text
+                        data.cell.styles.fillColor = [240, 240, 240];
                     }
                 }
             });
-            
-            openPdfPreview(doc, `Solo_Work_${monthNames[fM]}_${fY}.pdf`, `Solo Work: ${monthNames[fM]} ${fY}`);
+            openPdfPreview(doc, 'Solo.pdf', 'Solo Report');
         }
 
         function exportPartnerPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l');
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('l');
             const fM = document.getElementById('filterMonth').value;
             const fY = document.getElementById('filterYear').value;
-            
-            doc.text(`Partner Work Report: ${monthNames[fM]} ${fY}`, 14, 15);
-            
-            const rows = [];
-            let grandShare = 0;
-
-            allEntries.forEach(d => {
-                const ed = new Date(d.date);
-                if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday && d.projectType === 'Partner') {
-                    let exp = 0, helperNames = [], totalOT = 0;
-                    d.logs?.forEach(l => { 
-                        const s = parseFloat(l.sal)||0; 
-                        exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
-                        if(!helperNames.includes(l.helper)) helperNames.push(l.helper);
-                        totalOT += parseFloat(l.ot) || 0;
-                    });
-                    const share = Math.round((d.total - exp) / 2);
-                    rows.push([
-                        d.date, 
-                        d.qn || '-', 
-                        d.customer, 
-                        d.location || '-', 
-                        helperNames.join(', '), 
-                        totalOT, 
-                        `Rs. ${Math.round(d.total)}`, 
-                        `Rs. ${Math.round(exp)}`, 
-                        `Rs. ${share}`
-                    ]);
-                    grandShare += share;
-                }
+            let totalShare = 0;
+            const rows = allEntries.filter(e => {
+                const ed = new Date(e.date);
+                return ed.getMonth() == fM && ed.getFullYear() == fY && e.projectType === 'Partner';
+            }).map(e => {
+                const share = (e.total - e.wages) / 2;
+                totalShare += share;
+                return [e.date, e.customer, e.location, e.sqft, Math.round(e.total), Math.round(e.wages), Math.round(share)];
             });
 
-            rows.push(['', '', '', '', '', '', '', 'GRAND TOTAL', `Rs. ${Math.round(grandShare)}`]);
+            rows.push(['', '', '', '', '', 'GRAND TOTAL', `Rs. ${Math.round(totalShare)}`]);
 
-            doc.autoTable({
-                startY: 25,
-                head: [['Date', 'QN', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Share (50%)']],
+            doc.text(`Partner Report: ${monthNames[fM]} ${fY}`, 14, 15);
+            doc.autoTable({ 
+                startY: 25, 
+                head: [['Date', 'Customer', 'Location', 'Sqft', 'Bill', 'Wages', 'Share']], 
                 body: rows,
-                didParseCell: function (data) {
+                didParseCell: function(data) {
                     if (data.row.index === rows.length - 1) {
                         data.cell.styles.fontStyle = 'bold';
-                        data.cell.styles.fillColor = [219, 234, 254]; // Light blue background (Tailwind blue-100)
-                        data.cell.styles.textColor = [29, 78, 216]; // Dark blue text
+                        data.cell.styles.fillColor = [240, 240, 240];
                     }
                 }
             });
-            
-            openPdfPreview(doc, `Partner_Work_${monthNames[fM]}_${fY}.pdf`, `Partner Work: ${monthNames[fM]} ${fY}`);
+            openPdfPreview(doc, 'Partner.pdf', 'Partner Report');
         }
 
-        function backupData() {
-            const blob = new Blob([JSON.stringify(allEntries, null, 2)], {type: "application/json"});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `AyyappanPro_Backup_${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
+        function exportHelperPDF() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('l');
+            const fM = document.getElementById('filterMonth').value;
+            const fY = document.getElementById('filterYear').value;
+            let totalHelperCost = 0;
+            const rows = [];
+            allEntries.forEach(e => {
+                const ed = new Date(e.date);
+                if(ed.getMonth() == fM && ed.getFullYear() == fY) {
+                    e.logs?.forEach(l => {
+                        const rowTotal = l.sal + (l.sal/2*l.ot) + l.food;
+                        totalHelperCost += rowTotal;
+                        rows.push([l.hDate || e.date, l.helper, e.customer, Math.round(l.sal), l.ot, Math.round(l.food), Math.round(rowTotal)]);
+                    });
+                }
+            });
+
+            rows.push(['', '', '', '', '', 'GRAND TOTAL', `Rs. ${Math.round(totalHelperCost)}`]);
+
+            doc.text(`Helper Ledger: ${monthNames[fM]} ${fY}`, 14, 15);
+            doc.autoTable({ 
+                startY: 25, 
+                head: [['Date', 'Helper', 'Site', 'Salary', 'OT', 'Food', 'Total']], 
+                body: rows,
+                didParseCell: function(data) {
+                    if (data.row.index === rows.length - 1) {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.fillColor = [240, 240, 240];
+                    }
+                }
+            });
+            openPdfPreview(doc, 'Helpers.pdf', 'Helper Ledger');
         }
 
         window.onload = async () => { 
             const now = new Date(); initTheme();
             document.getElementById('date').valueAsDate = now; 
-            
             const mSel = document.getElementById('filterMonth');
             const ySel = document.getElementById('filterYear');
             monthNames.forEach((m, i) => mSel.innerHTML += `<option value="${i}">${m}</option>`);
-            for(let y=2023; y<=2026; y++) ySel.innerHTML += `<option value="${y}">${y}</option>`;
-            
-            mSel.value = now.getMonth();
-            ySel.value = now.getFullYear();
-            
-            await syncSettings(); 
-            await refreshData();
+            for(let y=2024; y<=2026; y++) ySel.innerHTML += `<option value="${y}">${y}</option>`;
+            mSel.value = now.getMonth(); ySel.value = now.getFullYear();
+            await syncSettings(); await refreshData();
         }
     </script>
 </body>
