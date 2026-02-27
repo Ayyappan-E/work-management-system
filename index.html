@@ -13,17 +13,27 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap');
-        
         :root {
-            --bg-dark: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --accent: #3b82f6;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
             --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent: #3b82f6;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        .theme-light {
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --text-main: #0f172a;
+            --text-dim: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(0, 0, 0, 0.05);
         }
 
         body {
-            background: radial-gradient(circle at top right, #1e1b4b, #0f172a);
+            background: var(--bg-gradient);
             color: var(--text-main);
             min-height: 100vh;
             font-family: 'Inter', sans-serif;
@@ -31,19 +41,20 @@
         }
 
         .glass-panel {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
             border-radius: 1.5rem;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
         .input-field {
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
+            background: rgba(15, 23, 42, 0.05);
+            border: 1px solid var(--glass-border);
+            color: inherit;
             border-radius: 0.75rem;
-            padding: 0.75rem;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.875rem;
             width: 100%;
             transition: all 0.2s;
         }
@@ -51,197 +62,223 @@
         .input-field:focus {
             border-color: var(--accent);
             outline: none;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         }
 
         /* PDF Preview Modal Styles */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; align-items: center; justify-content: center; padding: 10px; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 10px; }
         .glass-modal { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1.5rem; }
-        .pdf-modal-container { width: 100%; max-width: 600px; height: 90vh; display: flex; flex-direction: column; }
+        .pdf-modal-container { width: 100%; max-width: 550px; height: 85vh; display: flex; flex-direction: column; }
         #pdfIframe { flex-grow: 1; width: 100%; border: none; background: white; border-radius: 12px; }
 
-        .btn-primary { background: linear-gradient(to right, #2563eb, #3b82f6); transition: transform 0.2s; }
-        .btn-primary:active { transform: scale(0.95); }
+        .stat-card {
+            transition: transform 0.2s;
+            cursor: default;
+        }
+        .stat-card:hover { transform: translateY(-5px); }
 
-        /* Animation for list items */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .list-item-anim { animation: fadeIn 0.3s ease forwards; }
+        .btn-action {
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-action:active { transform: scale(0.95); }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-7xl mx-auto space-y-8">
-        
-        <!-- Premium Header -->
-        <header class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div class="space-y-1">
-                <h1 class="text-4xl font-black tracking-tighter flex items-center gap-3">
-                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">AYYAPPAN</span>
-                    <span class="text-white opacity-90 uppercase text-2xl tracking-widest font-light">Manager</span>
-                    <span class="text-[10px] bg-blue-600 px-2 py-1 rounded-md font-bold self-start mt-1">PRO</span>
-                </h1>
-                <p id="wisdomDisplay" class="text-xs text-slate-400 italic opacity-80"></p>
+<body class="p-4 md:p-6 lg:p-8">
+    <div class="max-w-7xl mx-auto space-y-6">
+        <!-- Top Nav -->
+        <header class="flex flex-col md:flex-row justify-between items-center gap-4 glass-panel p-4 px-6">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-600/20">A</div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tighter italic">AYYAPPAN <span class="text-blue-500">PRO</span></h1>
+                    <p id="kuralText" class="text-[10px] text-slate-500 italic max-w-xs truncate"></p>
+                </div>
             </div>
-
-            <div class="flex items-center gap-3 bg-white/5 p-2 rounded-2xl border border-white/10">
-                <select id="filterMonth" class="bg-transparent text-sm font-bold p-2 focus:outline-none"></select>
-                <div class="w-px h-6 bg-white/10"></div>
-                <select id="filterYear" class="bg-transparent text-sm font-bold p-2 focus:outline-none"></select>
-                <button onclick="shareWhatsApp()" class="bg-green-600 w-10 h-10 rounded-xl flex items-center justify-center hover:bg-green-500 transition shadow-lg shadow-green-900/20">
-                    <i class="fab fa-whatsapp"></i>
+            
+            <div class="flex items-center gap-4">
+                <div class="flex bg-black/10 rounded-xl p-1">
+                    <select id="filterMonth" class="bg-transparent text-sm font-bold px-3 py-1.5 focus:outline-none"></select>
+                    <select id="filterYear" class="bg-transparent text-sm font-bold px-3 py-1.5 focus:outline-none"></select>
+                </div>
+                <button onclick="toggleTheme()" class="w-10 h-10 glass-panel flex items-center justify-center rounded-xl hover:bg-white/10">
+                    <i class="fas fa-moon text-xs"></i>
+                </button>
+                <button onclick="document.getElementById('settingsModal').classList.toggle('hidden')" class="w-10 h-10 glass-panel flex items-center justify-center rounded-xl hover:bg-white/10">
+                    <i class="fas fa-cog text-xs"></i>
                 </button>
             </div>
         </header>
 
-        <!-- Dynamic Dashboard Stats -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="glass-panel p-6 border-l-4 border-blue-500 bg-gradient-to-br from-blue-500/5 to-transparent">
-                <span class="text-[10px] font-black uppercase text-blue-400 tracking-widest">Net Month Profit</span>
-                <div id="tblGrandTotal" class="text-3xl font-black mt-1">₹0</div>
-                <div class="text-[10px] text-slate-500 mt-2 flex items-center gap-1">
-                    <i class="fas fa-chart-line"></i> This Month Breakdown
-                </div>
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="glass-panel p-5 stat-card border-b-4 border-blue-500">
+                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Net Earnings</div>
+                <div id="tblGrandTotal" class="text-2xl font-black">₹0</div>
             </div>
-            <div class="glass-panel p-6 border-l-4 border-indigo-500 bg-gradient-to-br from-indigo-500/5 to-transparent">
-                <span class="text-[10px] font-black uppercase text-indigo-400 tracking-widest">Solo Net</span>
-                <div id="tblSolo" class="text-3xl font-black mt-1">₹0</div>
-                <div class="text-[10px] text-slate-500 mt-2">Personal Work Earnings</div>
+            <div class="glass-panel p-5 stat-card border-b-4 border-indigo-500">
+                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Solo Only</div>
+                <div id="tblSolo" class="text-2xl font-black">₹0</div>
             </div>
-            <div class="glass-panel p-6 border-l-4 border-purple-500 bg-gradient-to-br from-purple-500/5 to-transparent">
-                <span class="text-[10px] font-black uppercase text-purple-400 tracking-widest">Partner Share</span>
-                <div id="tblPartnerMine" class="text-3xl font-black mt-1">₹0</div>
-                <div class="text-[10px] text-slate-500 mt-2">My 50% from Split Projects</div>
+            <div class="glass-panel p-5 stat-card border-b-4 border-purple-500">
+                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Partner Share</div>
+                <div id="tblPartnerMine" class="text-2xl font-black">₹0</div>
             </div>
-            <div class="glass-panel p-6 border-l-4 border-rose-500 bg-gradient-to-br from-rose-500/5 to-transparent">
-                <span class="text-[10px] font-black uppercase text-rose-400 tracking-widest">Helper Costs</span>
-                <div id="tblTotalExp" class="text-3xl font-black mt-1">₹0</div>
-                <div class="text-[10px] text-slate-500 mt-2">Total Monthly Expenses</div>
+            <div class="glass-panel p-5 stat-card border-b-4 border-rose-500">
+                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Helper Wage</div>
+                <div id="tblTotalExp" class="text-2xl font-black text-rose-500">₹0</div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <!-- Entry Interface -->
-            <div class="space-y-6">
-                <div class="glass-panel p-6 space-y-4">
-                    <h2 class="text-lg font-black uppercase tracking-tight flex items-center gap-2">
-                        <i class="fas fa-plus-circle text-blue-500"></i> Log Work
-                    </h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left: Form -->
+            <div class="glass-panel p-6 space-y-4">
+                <h2 class="font-black text-sm uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                    <i class="fas fa-plus-circle text-blue-500"></i> New Work Entry
+                </h2>
+                
+                <div class="space-y-3">
+                    <input type="date" id="date" class="input-field font-bold">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="qnNo" placeholder="QN Number" class="input-field">
+                        <input type="text" id="company" placeholder="Customer Name" class="input-field">
+                    </div>
                     
-                    <div class="space-y-3">
-                        <div class="group">
-                            <label class="text-[10px] font-bold text-slate-500 mb-1 block uppercase">Entry Date</label>
-                            <input type="date" id="date" class="input-field">
+                    <div class="bg-black/5 p-4 rounded-2xl space-y-3 border border-white/5">
+                        <div class="text-[10px] font-bold opacity-50 uppercase">Billing Specs</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="sqft" placeholder="Total Sqft" oninput="calculate()" class="input-field">
+                            <input type="number" id="rate" placeholder="Rate / Sqft" oninput="calculate()" class="input-field">
                         </div>
-                        
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 mb-1 block uppercase">QN Ref</label>
-                                <input type="text" id="qnNo" placeholder="QN-..." class="input-field">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-slate-500 mb-1 block uppercase">Site/Client</label>
-                                <input type="text" id="company" placeholder="Name" class="input-field">
-                            </div>
-                        </div>
-
-                        <div class="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-3">
-                            <span class="text-[10px] font-black text-slate-400 uppercase">Billing Specs</span>
-                            <div class="grid grid-cols-2 gap-3">
-                                <input type="number" id="sqft" placeholder="Sqft" oninput="calculate()" class="input-field">
-                                <input type="number" id="rate" placeholder="Rate" oninput="calculate()" class="input-field">
-                            </div>
-                            <div class="flex justify-between items-center px-1">
-                                <span class="text-xs text-slate-500">Project Gross:</span>
-                                <span id="grossPreview" class="font-bold text-blue-400">₹0</span>
-                            </div>
-                        </div>
-
-                        <div class="bg-red-500/5 p-4 rounded-2xl border border-red-500/10 space-y-3">
-                            <span class="text-[10px] font-black text-red-400 uppercase">Helper Expenses</span>
-                            <div class="grid grid-cols-2 gap-3">
-                                <input type="number" id="helperWage" placeholder="Base Wage" oninput="calculate()" class="input-field">
-                                <input type="number" id="ot" placeholder="OT Amt" oninput="calculate()" class="input-field">
-                                <input type="number" id="food" placeholder="Food" oninput="calculate()" class="input-field">
-                                <input type="number" id="petrol" placeholder="Petrol" oninput="calculate()" class="input-field">
-                            </div>
-                        </div>
-
-                        <label class="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition">
-                            <input type="checkbox" id="isPartner" class="w-5 h-5 accent-blue-600">
-                            <span class="text-sm font-semibold">Enable 50/50 Partner Split</span>
-                        </label>
-
-                        <button onclick="saveData()" id="saveBtn" class="w-full btn-primary text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-900/20 uppercase tracking-widest text-xs">
-                            Securely Save Record
-                        </button>
                     </div>
+
+                    <div class="bg-red-500/5 p-4 rounded-2xl space-y-3 border border-red-500/10">
+                        <div class="text-[10px] font-bold text-red-400 uppercase">Helper Expenses</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="helperWage" placeholder="Base Wage" oninput="calculate()" class="input-field">
+                            <input type="number" id="ot" placeholder="OT Amt" oninput="calculate()" class="input-field">
+                            <input type="number" id="food" placeholder="Food" oninput="calculate()" class="input-field">
+                            <input type="number" id="petrol" placeholder="Petrol" oninput="calculate()" class="input-field">
+                        </div>
+                    </div>
+
+                    <label class="flex items-center gap-3 p-3 glass-panel cursor-pointer hover:bg-white/5 transition">
+                        <input type="checkbox" id="isPartner" class="w-5 h-5 accent-blue-600 rounded-lg">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold">Partner Work</span>
+                            <span class="text-[10px] opacity-50">Split profit 50/50 with partner</span>
+                        </div>
+                    </label>
+
+                    <button onclick="saveData()" id="saveBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-600/20 uppercase tracking-widest text-xs">
+                        Save Entry Securely
+                    </button>
                 </div>
             </div>
 
-            <!-- Detailed List & Reports -->
-            <div class="lg:col-span-2 space-y-6">
-                <div class="glass-panel p-6 flex flex-col h-full">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                        <div>
-                            <h2 class="text-xl font-black">History Log</h2>
-                            <p class="text-xs text-slate-500">Manage and export your financial records</p>
-                        </div>
-                        <div class="flex flex-wrap gap-2">
-                            <button onclick="exportHelperPDF()" class="bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 px-3 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-emerald-600 hover:text-white transition">Helper PDF</button>
-                            <button onclick="exportSoloPDF()" class="bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 px-3 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-indigo-600 hover:text-white transition">Solo PDF</button>
-                            <button onclick="exportPartnerPDF()" class="bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition">Partner PDF</button>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full border-separate border-spacing-y-3">
-                            <thead>
-                                <tr class="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                                    <th class="px-4 pb-2 text-left">Details</th>
-                                    <th class="px-4 pb-2 text-left">Project Revenue</th>
-                                    <th class="px-4 pb-2 text-right">Net Profit</th>
-                                    <th class="px-4 pb-2 text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dataTable">
-                                <!-- Dynamic rows -->
-                            </tbody>
-                        </table>
+            <!-- Right: Table & Reports -->
+            <div class="lg:col-span-2 glass-panel p-6 flex flex-col">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <h2 class="font-black text-sm uppercase tracking-widest text-slate-500">Monthly Transactions</h2>
+                    <div class="flex gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
+                        <button onclick="exportHelperPDF()" class="text-[9px] font-black uppercase bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 px-3 py-2 rounded-xl whitespace-nowrap">Helper Report</button>
+                        <button onclick="exportSoloPDF()" class="text-[9px] font-black uppercase bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 px-3 py-2 rounded-xl whitespace-nowrap">Solo Report</button>
+                        <button onclick="exportPartnerPDF()" class="text-[9px] font-black uppercase bg-blue-600/20 text-blue-400 border border-blue-500/20 px-3 py-2 rounded-xl whitespace-nowrap">Partner Report</button>
+                        <button onclick="shareWhatsApp()" class="bg-green-600 w-9 h-9 flex items-center justify-center rounded-xl shrink-0"><i class="fab fa-whatsapp"></i></button>
                     </div>
                 </div>
-            </div>
 
+                <div class="flex-grow overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] font-black text-slate-500 uppercase tracking-tighter border-b border-white/5">
+                                <th class="pb-3 pl-2">Date & Site</th>
+                                <th class="pb-3">Billing</th>
+                                <th class="pb-3 text-right pr-2">Net Profit</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTable"></tbody>
+                    </table>
+                </div>
+
+                <div id="monthlyBreakdownGrid" class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-white/5"></div>
+            </div>
         </div>
     </div>
 
     <!-- PDF Modal Structure -->
     <div id="pdfModal" class="modal">
         <div class="glass-modal p-4 pdf-modal-container">
-            <div class="flex justify-between items-center mb-3">
-                <div class="flex items-center gap-2">
-                    <div class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                    <span class="text-xs font-black text-blue-400 uppercase tracking-widest">Live Report Preview</span>
-                </div>
-                <button onclick="closePdfModal()" class="text-white bg-white/10 hover:bg-red-600 w-8 h-8 rounded-full flex items-center justify-center font-bold transition">×</button>
+            <div class="flex justify-between items-center mb-3 px-2">
+                <span class="text-xs font-black text-blue-400 uppercase tracking-widest">Preview Document</span>
+                <button onclick="closePdfModal()" class="text-white bg-red-600/80 w-8 h-8 rounded-full flex items-center justify-center font-bold">×</button>
             </div>
-            <div class="flex-grow bg-white rounded-xl overflow-hidden shadow-2xl">
+            <div class="flex-grow bg-white rounded-xl overflow-hidden">
                 <iframe id="pdfIframe"></iframe>
             </div>
-            <button id="pdfDownloadBtn" class="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-900/20 transition">
-                <i class="fas fa-file-download mr-2"></i> Download Document
-            </button>
+            <button id="pdfDownloadBtn" class="w-full mt-4 bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-blue-600/20">Download File</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center p-4">
+        <div class="glass-panel p-8 w-full max-w-md space-y-6">
+            <h2 class="text-2xl font-black">Sync Settings</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold opacity-50 block mb-1 uppercase tracking-widest">Firebase Collection</label>
+                    <input type="text" id="settingCollection" class="input-field" placeholder="works">
+                </div>
+                <div>
+                    <label class="text-xs font-bold opacity-50 block mb-1 uppercase tracking-widest">Admin Name</label>
+                    <input type="text" id="settingAdmin" class="input-field" placeholder="Ayyappan">
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="saveSettings()" class="flex-grow bg-blue-600 py-3 rounded-xl font-black uppercase text-xs">Update</button>
+                    <button onclick="document.getElementById('settingsModal').classList.add('hidden')" class="px-6 py-3 border border-white/10 rounded-xl font-black uppercase text-xs">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Use empty string as requested for potential environment replacement
-        const apiKey = "";
+        // Core Configurations
         const firebaseConfig = { projectId: "ayyappan-manager" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        
         let allRecords = [];
+        let config = { collection: 'works', admin: 'Ayyappan' };
+
+        async function syncSettings() {
+            const saved = localStorage.getItem('app_config');
+            if(saved) config = JSON.parse(saved);
+            document.getElementById('settingCollection').value = config.collection;
+            document.getElementById('settingAdmin').value = config.admin;
+        }
+
+        function saveSettings() {
+            config.collection = document.getElementById('settingCollection').value;
+            config.admin = document.getElementById('settingAdmin').value;
+            localStorage.setItem('app_config', JSON.stringify(config));
+            location.reload();
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('theme-light');
+            localStorage.setItem('theme', document.body.classList.contains('theme-light') ? 'light' : 'dark');
+        }
+
+        function initTheme() {
+            if(localStorage.getItem('theme') === 'light') document.body.classList.add('theme-light');
+        }
 
         function calculate() {
             const sqft = parseFloat(document.getElementById('sqft').value) || 0;
@@ -250,19 +287,13 @@
             const ot = parseFloat(document.getElementById('ot').value) || 0;
             const food = parseFloat(document.getElementById('food').value) || 0;
             const petrol = parseFloat(document.getElementById('petrol').value) || 0;
-            
-            const gross = sqft * rate;
-            const exp = wage + ot + food + petrol;
-            
-            document.getElementById('grossPreview').innerText = `₹${gross.toLocaleString()}`;
-            return { gross, exp };
+            return { gross: sqft * rate, exp: wage + ot + food + petrol };
         }
 
         async function saveData() {
             const btn = document.getElementById('saveBtn');
-            btn.innerText = "SAVING...";
-            btn.disabled = true;
-
+            btn.innerText = "Processing..."; btn.disabled = true;
+            
             const { gross, exp } = calculate();
             const data = {
                 date: document.getElementById('date').value,
@@ -280,31 +311,13 @@
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            try {
-                await db.collection('works').add(data);
-                resetForm();
-                loadData();
-            } catch (e) {
-                alert("Error saving: " + e.message);
-            } finally {
-                btn.innerText = "SECURELY SAVE RECORD";
-                btn.disabled = false;
-            }
-        }
-
-        function resetForm() {
-            ['qnNo', 'company', 'sqft', 'rate', 'helperWage', 'ot', 'food', 'petrol'].forEach(id => {
-                document.getElementById(id).value = '';
-            });
-            document.getElementById('isPartner').checked = false;
-            calculate();
+            await db.collection(config.collection).add(data);
+            location.reload();
         }
 
         async function loadData() {
-            const m = parseInt(document.getElementById('filterMonth').value);
-            const y = parseInt(document.getElementById('filterYear').value);
-            
-            const snapshot = await db.collection('works').orderBy('date', 'desc').get();
+            const m = document.getElementById('filterMonth').value, y = document.getElementById('filterYear').value;
+            const snapshot = await db.collection(config.collection).orderBy('date', 'desc').get();
             allRecords = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
             
             const filtered = allRecords.filter(r => {
@@ -312,39 +325,29 @@
                 return d.getMonth() == m && d.getFullYear() == y;
             });
 
-            renderUI(filtered);
-        }
-
-        function renderUI(data) {
             const tbody = document.getElementById('dataTable');
-            let grandTotal = 0, soloTotal = 0, partnerMine = 0, totalExp = 0;
+            let grandTotal = 0, soloTotal = 0, partnerMine = 0, totalExp = 0, totalSqft = 0;
             
-            tbody.innerHTML = data.map(r => {
+            tbody.innerHTML = filtered.map(r => {
                 const profit = r.grossBill - r.helperTotal;
                 grandTotal += profit;
                 totalExp += r.helperTotal;
-                if(r.isPartner) partnerMine += (profit / 2);
-                else soloTotal += profit;
+                totalSqft += r.sqft;
+                if(r.isPartner) partnerMine += (profit / 2); else soloTotal += profit;
 
                 return `
-                <tr class="bg-white/5 rounded-2xl overflow-hidden hover:bg-white/10 transition list-item-anim">
-                    <td class="px-4 py-4 rounded-l-2xl">
-                        <div class="text-[10px] text-slate-500 font-bold mb-1">${r.date}</div>
-                        <div class="font-black text-white uppercase">${r.company}</div>
-                        <div class="text-[9px] text-slate-400 mt-1">${r.qnNo || 'NO QN'}</div>
+                <tr class="group border-b border-white/5 hover:bg-white/5 transition">
+                    <td class="py-4 pl-2">
+                        <div class="text-[10px] font-bold text-slate-500">${r.date}</div>
+                        <div class="font-black text-xs uppercase tracking-tight truncate max-w-[120px]">${r.company}</div>
                     </td>
-                    <td class="px-4 py-4">
-                        <div class="text-xs font-bold">₹${r.grossBill.toLocaleString()}</div>
-                        <div class="text-[9px] text-slate-500">${r.sqft} sqft @ ${r.rate}</div>
+                    <td class="py-4 text-xs font-bold opacity-70">
+                        <div>₹${Math.round(r.grossBill).toLocaleString()}</div>
+                        <div class="text-[9px] opacity-50">${r.sqft} sqft</div>
                     </td>
-                    <td class="px-4 py-4 text-right">
-                        <div class="font-black ${r.isPartner ? 'text-indigo-400' : 'text-blue-400'}">₹${profit.toLocaleString()}</div>
-                        ${r.isPartner ? '<span class="text-[8px] bg-indigo-500/20 px-1 rounded text-indigo-300 uppercase font-black">Split 50/50</span>' : ''}
-                    </td>
-                    <td class="px-4 py-4 text-center rounded-r-2xl">
-                        <button onclick="deleteDoc('${r.id}')" class="text-slate-600 hover:text-red-500 transition">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                    <td class="py-4 text-right pr-2">
+                        <div class="font-black ${r.isPartner ? 'text-indigo-400' : 'text-blue-500'}">₹${Math.round(profit).toLocaleString()}</div>
+                        <button onclick="deleteDoc('${r.id}')" class="text-[9px] text-red-500 opacity-0 group-hover:opacity-100 uppercase font-bold">Delete</button>
                     </td>
                 </tr>`;
             }).join('');
@@ -353,13 +356,24 @@
             document.getElementById('tblSolo').innerText = `₹${Math.round(soloTotal).toLocaleString()}`;
             document.getElementById('tblPartnerMine').innerText = `₹${Math.round(partnerMine).toLocaleString()}`;
             document.getElementById('tblTotalExp').innerText = `₹${Math.round(totalExp).toLocaleString()}`;
+            
+            renderAnalytics(grandTotal, totalSqft);
+        }
+
+        function renderAnalytics(profit, sqft) {
+            document.getElementById('monthlyBreakdownGrid').innerHTML = `
+                <div class="bg-blue-600/10 p-4 rounded-xl border border-blue-500/20">
+                    <div class="text-[9px] opacity-50 uppercase font-black tracking-widest">Monthly Yield</div>
+                    <div class="text-xl font-black text-blue-500">₹${Math.round(profit).toLocaleString()}</div>
+                </div>
+                <div class="bg-emerald-600/10 p-4 rounded-xl border border-emerald-500/20">
+                    <div class="text-[9px] opacity-50 uppercase font-black tracking-widest">Total Sqft</div>
+                    <div class="text-xl font-black text-emerald-500">${sqft}</div>
+                </div>`;
         }
 
         async function deleteDoc(id) {
-            if(confirm('Delete this record forever?')) { 
-                await db.collection('works').doc(id).delete(); 
-                loadData(); 
-            }
+            if(confirm('Permanent delete?')) { await db.collection(config.collection).doc(id).delete(); loadData(); }
         }
 
         async function fetchKural() {
@@ -367,24 +381,17 @@
                 const id = Math.floor(Math.random() * 1330) + 1;
                 const res = await fetch(`https://api-thirukkural.vercel.app/api?num=${id}`);
                 const data = await res.json();
-                document.getElementById('wisdomDisplay').innerText = `"${data.line1} ${data.line2}"`;
-            } catch (e) {
-                document.getElementById('wisdomDisplay').innerText = "Labor is the only path to prosperity.";
-            }
+                document.getElementById('kuralText').innerText = `${data.line1} ${data.line2}`;
+            } catch (e) {}
         }
 
         function shareWhatsApp() {
-            const fM = document.getElementById('filterMonth').value;
-            const fY = document.getElementById('filterYear').value;
-            let msg = `*📊 AYYAPPAN MANAGER: ${monthNames[fM]} ${fY}*\n\n`;
-            msg += `Solo Work: ${document.getElementById('tblSolo').innerText}\n`;
-            msg += `Partner Share: ${document.getElementById('tblPartnerMine').innerText}\n`;
-            msg += `Helper Expenses: ${document.getElementById('tblTotalExp').innerText}\n`;
-            msg += `*MONTH TOTAL PROFIT: ${document.getElementById('tblGrandTotal').innerText}*`;
+            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+            let msg = `*📊 Work Report: ${monthNames[fM]} ${fY}*\nSolo: ${document.getElementById('tblSolo').innerText}\nPartner: ${document.getElementById('tblPartnerMine').innerText}\n*TOTAL: ${document.getElementById('tblGrandTotal').innerText}*`;
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        /* --- ADVANCED PDF MODULE --- */
+        /* --- PDF MODULE START --- */
         function openPdfPreview(doc, filename) {
             const pdfDataUri = doc.output('datauristring');
             const modal = document.getElementById('pdfModal');
@@ -401,85 +408,49 @@
         }
 
         function exportHelperPDF() {
-            const { jsPDF } = window.jspdf; 
-            const doc = new jsPDF('p'); 
-            const monthIdx = document.getElementById('filterMonth').value;
-            const month = monthNames[monthIdx];
-            
-            doc.setFontSize(18);
-            doc.text(`Helper Wages Report: ${month}`, 14, 15);
-            
-            const rows = allRecords
-                .filter(r => r.helperTotal > 0 && new Date(r.date).getMonth() == monthIdx)
-                .map(r => [r.date, 'Helpers', r.company, `Rs. ${r.helperWage}`, r.ot, `Rs. ${Math.round(r.helperTotal)}`]);
-
-            doc.autoTable({ 
-                startY: 25, 
-                head: [['Date', 'Personnel', 'Site', 'Base Wage', 'OT', 'Total Cost']], 
-                body: rows, 
-                theme: 'grid', 
-                headStyles: { fillColor: [5, 150, 105] } 
-            });
-            openPdfPreview(doc, `Helpers_${month}.pdf`);
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('p');
+            const m = monthNames[document.getElementById('filterMonth').value];
+            doc.setFontSize(16).text(`Helper Wage Report - ${m}`, 14, 15);
+            const data = allRecords.filter(r => r.helperTotal > 0 && new Date(r.date).getMonth() == document.getElementById('filterMonth').value)
+                .map(r => [r.date, r.company, `Rs. ${r.helperWage}`, `Rs. ${r.ot}`, `Rs. ${r.food + r.petrol}`, `Rs. ${Math.round(r.helperTotal)}`]);
+            doc.autoTable({ startY: 25, head: [['Date', 'Site', 'Salary', 'OT', 'Others', 'Total']], body: data, theme: 'grid', headStyles: { fillColor: [5, 150, 105] } });
+            openPdfPreview(doc, `Helper_Wages_${m}.pdf`);
         }
 
         function exportSoloPDF() {
-            const { jsPDF } = window.jspdf; 
-            const doc = new jsPDF('l'); 
-            const monthIdx = document.getElementById('filterMonth').value;
-            const month = monthNames[monthIdx];
-            
-            doc.text(`Solo Work Statement: ${month}`, 14, 15);
-            const rows = allRecords
-                .filter(d => !d.isPartner && new Date(d.date).getMonth() == monthIdx)
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('l');
+            const m = monthNames[document.getElementById('filterMonth').value];
+            doc.setFontSize(16).text(`Solo Work Statement - ${m}`, 14, 15);
+            const data = allRecords.filter(d => !d.isPartner && new Date(d.date).getMonth() == document.getElementById('filterMonth').value)
                 .map(d => [d.date, d.qnNo || '-', d.company, `Rs. ${Math.round(d.grossBill)}`, `Rs. ${Math.round(d.helperTotal)}`, `Rs. ${Math.round(d.grossBill - d.helperTotal)}`]);
-
-            doc.autoTable({ 
-                startY: 20, 
-                head: [['Date', 'QN', 'Customer', 'Gross Bill', 'Exp', 'Net Profit']], 
-                body: rows, 
-                headStyles: { fillColor: [79, 70, 229] } 
-            });
-            openPdfPreview(doc, `Solo_Report_${month}.pdf`);
+            doc.autoTable({ startY: 20, head: [['Date', 'QN', 'Customer', 'Gross Bill', 'Exp', 'Net Profit']], body: data, headStyles: { fillColor: [79, 70, 229] } });
+            openPdfPreview(doc, `Solo_Report_${m}.pdf`);
         }
 
         function exportPartnerPDF() {
-            const { jsPDF } = window.jspdf; 
-            const doc = new jsPDF('l'); 
-            const monthIdx = document.getElementById('filterMonth').value;
-            const month = monthNames[monthIdx];
-            
-            doc.text(`Partner Split Statement: ${month}`, 14, 15);
-            const rows = allRecords
-                .filter(d => d.isPartner && new Date(d.date).getMonth() == monthIdx)
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('l');
+            const m = monthNames[document.getElementById('filterMonth').value];
+            doc.setFontSize(16).text(`Partner Split Statement - ${m}`, 14, 15);
+            const data = allRecords.filter(d => d.isPartner && new Date(d.date).getMonth() == document.getElementById('filterMonth').value)
                 .map(d => {
                     const net = d.grossBill - d.helperTotal;
                     return [d.date, d.company, `Rs. ${Math.round(d.grossBill)}`, `Rs. ${Math.round(d.helperTotal)}`, `Rs. ${Math.round(net)}`, `Rs. ${Math.round(net/2)}`];
                 });
-
-            doc.autoTable({ 
-                startY: 20, 
-                head: [['Date', 'Customer', 'Bill', 'Exp', 'Total Profit', 'My 50% Share']], 
-                body: rows, 
-                headStyles: { fillColor: [37, 99, 235] } 
-            });
-            openPdfPreview(doc, `Partner_Report_${month}.pdf`);
+            doc.autoTable({ startY: 20, head: [['Date', 'Customer', 'Bill', 'Exp', 'Total Profit', 'My 50% Share']], body: data, headStyles: { fillColor: [37, 99, 235] } });
+            openPdfPreview(doc, `Partner_Report_${m}.pdf`);
         }
 
-        window.onload = () => {
-            const now = new Date();
-            const fM = document.getElementById('filterMonth');
-            const fY = document.getElementById('filterYear');
+        window.onload = async () => { 
+            const now = new Date(); initTheme();
+            document.getElementById('date').valueAsDate = now; 
+            await syncSettings(); 
             
+            const fM = document.getElementById('filterMonth'), fY = document.getElementById('filterYear');
             monthNames.forEach((m, i) => fM.innerHTML += `<option value="${i}" ${i === now.getMonth() ? 'selected' : ''}>${m}</option>`);
             for(let y = 2024; y <= 2027; y++) fY.innerHTML += `<option value="${y}" ${y === now.getFullYear() ? 'selected' : ''}>${y}</option>`;
             
-            document.getElementById('date').valueAsDate = now;
-            fM.onchange = loadData; 
-            fY.onchange = loadData;
-            
-            fetchKural();
-            loadData();
+            fM.onchange = loadData; fY.onchange = loadData;
+            fetchKural(); loadData();
         };
     </script>
 </body>
