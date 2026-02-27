@@ -36,14 +36,7 @@
             --watermark-color: rgba(0, 0, 0, 0.02);
         }
 
-        body { 
-            background: var(--bg-gradient); 
-            color: var(--text-main); 
-            min-height: 100vh; 
-            font-family: 'Inter', sans-serif; 
-            transition: background 0.3s ease, color 0.3s ease;
-            position: relative;
-        }
+        body { background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; font-family: 'Inter', sans-serif; transition: background 0.3s ease, color 0.3s ease; position: relative; }
 
         body::before {
             content: "AYYAPPAN PRO";
@@ -60,87 +53,24 @@
             letter-spacing: 0.5rem;
         }
 
-        .glass { 
-            background: var(--glass-bg); 
-            backdrop-filter: blur(12px); 
-            border: 1px solid var(--glass-border); 
-            border-radius: 1rem; 
-        }
+        .glass { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 1rem; }
 
-        .input-box { 
-            background: var(--input-bg); 
-            border: 1px solid #475569; 
-            border-radius: 0.6rem; 
-            padding: 0.7rem; 
-            color: inherit; 
-            width: 100%; 
-            outline: none; 
-            font-size: 14px; 
-        }
+        .input-box { background: var(--input-bg); border: 1px solid #475569; border-radius: 0.6rem; padding: 0.7rem; color: inherit; width: 100%; outline: none; font-size: 14px; }
 
         label { font-size: 11px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; display: block; letter-spacing: 0.5px; }
         
-        .day-entry { 
-            background: var(--card-bg); 
-            border: 1px solid var(--glass-border); 
-            padding: 12px; 
-            border-radius: 12px; 
-            margin-bottom: 10px; 
-            position: relative; 
-        }
+        .day-entry { background: var(--card-bg); border: 1px solid var(--glass-border); padding: 12px; border-radius: 12px; margin-bottom: 10px; position: relative; }
 
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
         
-        .summary-section { 
-            margin-top: 2rem;
-            background: var(--footer-bg); 
-            border-top: 3px solid #3b82f6; 
-            padding: 20px 12px; 
-            border-radius: 24px 24px 0 0;
-            box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.3);
-        }
+        .summary-section { margin-top: 2rem; background: var(--footer-bg); border-top: 3px solid #3b82f6; padding: 20px 12px; border-radius: 24px 24px 0 0; box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.3); }
 
-        .excel-table-container {
-            overflow-x: auto;
-            border-radius: 12px;
-            border: 1px solid var(--glass-border);
-            background: var(--glass-bg);
-            max-height: 500px;
-            margin-bottom: 1.5rem;
-            transition: all 0.3s ease;
-        }
+        .excel-table-container { overflow-x: auto; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--glass-bg); max-height: 500px; margin-bottom: 1.5rem; }
 
-        .excel-table-container.collapsed {
-            max-height: 0;
-            margin-bottom: 0;
-            border: 0;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .excel-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 10.5px;
-            white-space: nowrap;
-        }
-        .excel-table th {
-            position: sticky;
-            top: 0;
-            background: #1e1b4b;
-            padding: 12px 10px;
-            text-align: left;
-            text-transform: uppercase;
-            color: var(--text-dim);
-            border-bottom: 2px solid var(--glass-border);
-            font-weight: 800;
-            z-index: 10;
-        }
+        .excel-table { width: 100%; border-collapse: collapse; font-size: 10.5px; white-space: nowrap; }
+        .excel-table th { position: sticky; top: 0; background: #1e1b4b; padding: 12px 10px; text-align: left; text-transform: uppercase; color: var(--text-dim); border-bottom: 2px solid var(--glass-border); font-weight: 800; z-index: 10; }
         .light-mode .excel-table th { background: #e2e8f0; }
-        .excel-table td {
-            padding: 10px;
-            border-bottom: 1px solid var(--glass-border);
-        }
+        .excel-table td { padding: 10px; border-bottom: 1px solid var(--glass-border); }
 
         .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
@@ -156,25 +86,9 @@
 
         #msgBox { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 200; min-width: 250px; text-align: center; border-radius: 12px; padding: 12px 24px; font-weight: bold; }
         
-        .kural-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: 2px solid #eab308;
-            background: #000;
-            object-fit: cover;
-            flex-shrink: 0;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
+        .kural-avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #eab308; background: #000; object-fit: cover; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
-        /* PDF Preview Specific */
-        #pdfPreviewFrame {
-            width: 100%;
-            height: 70vh;
-            border: none;
-            background: white;
-            border-radius: 8px;
-        }
+        #pdfPreviewFrame { width: 100%; height: 70vh; border: none; background: white; border-radius: 8px; }
     </style>
 </head>
 <body class="p-4">
@@ -278,29 +192,13 @@
             <h3 id="historyTitle" class="text-sm font-black uppercase text-blue-500 tracking-wide">Site History</h3>
             <div class="flex items-center gap-3">
                 <span id="recordCount" class="text-[9px] font-bold opacity-40 uppercase"></span>
-                <button onclick="toggleHistory()" class="text-[10px] font-black uppercase text-blue-500 flex items-center gap-2">
-                    <span id="historyToggleText">Minimize</span>
-                    <i id="historyToggleIcon" class="fas fa-chevron-up"></i>
-                </button>
             </div>
         </div>
         
         <div id="displayArea" class="excel-table-container">
             <table class="excel-table">
                 <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>QN</th>
-                        <th>Company</th>
-                        <th>Customer</th>
-                        <th>Helpers</th>
-                        <th>Qty</th>
-                        <th>Type</th>
-                        <th>Bill</th>
-                        <th>Status</th>
-                        <th>Net</th>
-                        <th>Action</th>
-                    </tr>
+                    <tr><th>Date</th><th>QN</th><th>Company</th><th>Customer</th><th>Helpers</th><th>Qty</th><th>Type</th><th>Bill</th><th>Status</th><th>Net</th><th>Action</th></tr>
                 </thead>
                 <tbody id="historyTableBody"></tbody>
             </table>
@@ -370,10 +268,9 @@
                 <div id="annualTargetReportList" class="space-y-4 max-h-64 overflow-y-auto pr-1"></div>
             </div>
             <div class="grid grid-cols-1 gap-3">
-                <button onclick="toggleReport()" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 py-3 rounded-xl font-black text-white uppercase text-xs shadow-lg"><i class="fas fa-chart-pie mr-2"></i> View Performance</button>
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="backupData()" class="bg-slate-700 py-2 rounded-xl font-bold text-white uppercase text-[10px] border border-white/10"><i class="fas fa-download mr-1"></i> Export</button>
-                    <button onclick="document.getElementById('importFile').click()" class="bg-slate-700 py-2 rounded-xl font-bold text-white uppercase text-[10px] border border-white/10"><i class="fas fa-upload mr-1"></i> Import</button>
+                    <button onclick="backupData()" class="bg-slate-700 py-2 rounded-xl font-bold text-white uppercase text-[10px] border border-white/10">Export</button>
+                    <button onclick="document.getElementById('importFile').click()" class="bg-slate-700 py-2 rounded-xl font-bold text-white uppercase text-[10px] border border-white/10">Import</button>
                     <input type="file" id="importFile" class="hidden" onchange="restoreData(event)">
                 </div>
             </div>
@@ -386,22 +283,7 @@
         </div>
     </div>
 
-    <div id="smartReportModal" class="modal">
-        <div class="glass p-6 w-full max-w-md max-h-[90vh] overflow-y-auto space-y-6 shadow-2xl">
-            <div class="flex justify-between items-center border-b border-white/10 pb-4">
-                <div><h2 class="text-xl font-bold text-blue-400">Monthly Insights</h2><p id="insightSelectedLabel" class="text-[10px] font-bold text-white/50 uppercase tracking-widest mt-1"></p></div>
-                <button onclick="toggleReport()" class="text-gray-500 p-2"><i class="fas fa-times"></i></button>
-            </div>
-            <div id="monthlyBreakdownGrid" class="grid grid-cols-2 gap-3"></div>
-            <div id="monthlyPerformanceDetails" class="space-y-6"></div>
-            <div class="pt-4">
-                <button onclick="toggleReport()" class="w-full bg-slate-800 py-4 rounded-2xl font-black text-white uppercase text-xs tracking-widest border border-white/5">Close Analytics</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        const apiKey = "";
         const firebaseConfig = { apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58", authDomain: "ayyappan-work-management.firebaseapp.com", projectId: "ayyappan-work-management" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -414,10 +296,9 @@
                 const section = document.getElementById('kuralSection');
                 section.classList.remove('hidden');
                 section.style.display = 'flex';
-                const systemPrompt = "Return ONLY a JSON object with: 'number' (num), 'tamil' (2 lines Tamil), 'meaning' (simple Tamil explanation). Randomly pick one from 1330 Thirukkural.";
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: "Give me a daily Thirukkural." }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json" } })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: "Give me a daily Thirukkural in JSON format {number, tamil, meaning}." }] }], generationConfig: { responseMimeType: "application/json" } })
                 });
                 const result = await response.json();
                 const kural = JSON.parse(result.candidates[0].content.parts[0].text);
@@ -452,25 +333,10 @@
             document.querySelector('#themeToggle i').className = isLight ? 'fas fa-sun' : 'fas fa-moon';
         }
 
-        function initTheme() {
-            if (localStorage.getItem('theme') === 'light') {
-                document.body.classList.add('light-mode');
-                document.querySelector('#themeToggle i').className = 'fas fa-sun';
-            }
-        }
-
-        function toggleHistory() {
-            const area = document.getElementById('displayArea');
-            const isColl = area.classList.toggle('collapsed');
-            document.getElementById('historyToggleText').innerText = isColl ? 'Maximize' : 'Minimize';
-            document.getElementById('historyToggleIcon').className = isColl ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
-        }
-
         function toggleHelperVisibility() {
             const isChecked = document.getElementById('helperSectionToggle').checked;
             document.getElementById('dayLogsContainer').classList.toggle('hidden', !isChecked);
             document.getElementById('addHelperBtn').classList.toggle('hidden', !isChecked);
-            if(isChecked && document.getElementById('dayLogsContainer').children.length === 0) addDayRow();
         }
 
         async function syncSettings() {
@@ -481,8 +347,7 @@
                 document.getElementById('setCompanies').value = globalSettings.companies;
                 document.getElementById('setHelpers').value = globalSettings.helpers;
             }
-            loadDropdowns();
-            generateTargetStatusReport();
+            loadDropdowns(); generateTargetStatusReport();
         }
 
         async function saveSettings() {
@@ -524,7 +389,6 @@
             const sel = dayDiv.querySelector('.d-helper');
             sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
             if(data) sel.value = data.helper;
-            calculate();
         }
 
         function calculate() {
@@ -562,12 +426,11 @@
         db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => { 
             allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
             applyFilters();
-            generateTargetStatusReport();
         });
 
         function applyFilters() {
             const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
-            let currentEarned = 0, soloEarn = 0, partnerEarn = 0, count = 0;
+            let soloEarn = 0, partnerEarn = 0, count = 0;
             const tbody = document.getElementById('historyTableBody'); tbody.innerHTML = "";
             allEntries.forEach(d => {
                 const eD = new Date(d.date);
@@ -581,25 +444,10 @@
                     });
                     const net = (parseFloat(d.total)||0) - siteExp;
                     const share = d.projectType === 'Partner' ? (net/2) : net;
-                    if(!d.isHoliday) { currentEarned += share; if(d.projectType === 'Partner') partnerEarn += share; else soloEarn += share; }
-                    const pStatus = d.paymentStatus || 'Billed';
-                    const statClass = pStatus === 'Received' ? 'status-received' : pStatus === 'Billed' ? 'status-Billed' : 'status-Not Billed';
+                    if(!d.isHoliday) { if(d.projectType === 'Partner') partnerEarn += share; else soloEarn += share; }
+                    const statClass = d.paymentStatus === 'Received' ? 'status-received' : d.paymentStatus === 'Billed' ? 'status-Billed' : 'status-Not Billed';
                     const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${d.date.split('-').slice(1).join('/')}</td>
-                        <td class="opacity-60">${d.qn || '-'}</td>
-                        <td class="font-bold opacity-80">${d.company || '-'}</td>
-                        <td class="font-bold">${d.isHoliday ? 'HOL' : d.customer}</td>
-                        <td class="italic">${helpers.join(', ') || '-'}</td>
-                        <td>${d.windowQty || '-'}</td>
-                        <td class="text-[8px] font-black">${d.projectType[0]}</td>
-                        <td>₹${Math.round(d.total || 0).toLocaleString()}</td>
-                        <td><span class="status-badge ${statClass}">${pStatus}</span></td>
-                        <td class="font-bold">₹${Math.round(share).toLocaleString()}</td>
-                        <td class="space-x-2">
-                            <button onclick="editDoc('${d.id}')" class="text-blue-500"><i class="fas fa-edit"></i></button>
-                            <button onclick="deleteDoc('${d.id}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button>
-                        </td>`;
+                    row.innerHTML = `<td>${d.date.split('-').slice(1).join('/')}</td><td class="opacity-60">${d.qn || '-'}</td><td class="font-bold opacity-80">${d.company || '-'}</td><td class="font-bold">${d.isHoliday ? 'HOL' : d.customer}</td><td class="italic">${helpers.join(', ') || '-'}</td><td>${d.windowQty || '-'}</td><td class="text-[8px] font-black">${d.projectType[0]}</td><td>₹${Math.round(d.total || 0).toLocaleString()}</td><td><span class="status-badge ${statClass}">${d.paymentStatus || 'Billed'}</span></td><td class="font-bold">₹${Math.round(share).toLocaleString()}</td><td><button onclick="editDoc('${d.id}')" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button><button onclick="deleteDoc('${d.id}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></td>`;
                     tbody.appendChild(row);
                 }
             });
@@ -607,45 +455,24 @@
             document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
             document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
             document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(soloEarn + partnerEarn).toLocaleString();
-            updateTargetUI(currentEarned);
         }
 
-        function updateTargetUI(earned) {
-            let target = parseFloat(globalSettings.target) || 50000;
-            const percent = Math.min((earned / target) * 100, 100);
-            document.getElementById('targetBar').style.width = percent + "%";
-            document.getElementById('targetEarned').innerText = `Earned: ₹${Math.round(earned).toLocaleString()}`;
-            document.getElementById('targetGoal').innerText = `Target: ₹${target.toLocaleString()}`;
-            document.getElementById('targetRem').innerText = `₹${Math.max(0, Math.round(target - earned)).toLocaleString()}`;
-        }
-
-        // --- NEW PDF MODAL LOGIC ---
+        // --- PDF LOGIC ---
         function openPdfPreview(pdfDoc, fileName, title) {
-            const pdfBlobUrl = pdfDoc.output('bloburl');
-            document.getElementById('pdfPreviewFrame').src = pdfBlobUrl;
+            document.getElementById('pdfPreviewFrame').src = pdfDoc.output('bloburl');
             document.getElementById('pdfModalTitle').innerText = title;
             document.getElementById('pdfModal').style.display = 'flex';
-            
-            const downloadBtn = document.getElementById('pdfDownloadBtn');
-            const newBtn = downloadBtn.cloneNode(true);
-            downloadBtn.parentNode.replaceChild(newBtn, downloadBtn);
-            newBtn.addEventListener('click', () => {
-                pdfDoc.save(fileName);
-                closePdfModal();
-            });
+            const btn = document.getElementById('pdfDownloadBtn');
+            btn.onclick = () => { pdfDoc.save(fileName); closePdfModal(); };
         }
 
-        function closePdfModal() {
-            document.getElementById('pdfModal').style.display = 'none';
-            document.getElementById('pdfPreviewFrame').src = '';
-        }
+        function closePdfModal() { document.getElementById('pdfModal').style.display = 'none'; }
 
         function exportHelperPDF() {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
             const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
             doc.text(`Helper Report: ${monthNames[fM]} ${fY}`, 14, 15);
-            const rows = [];
-            let grandTotal = 0;
+            const rows = []; let grandTotal = 0;
             allEntries.forEach(entry => {
                 const ed = new Date(entry.date);
                 if(ed.getMonth() == fM && ed.getFullYear() == fY && entry.logs?.length > 0) {
@@ -653,12 +480,12 @@
                         const s = parseFloat(log.sal) || 0;
                         const tot = s + (s/2 * (parseFloat(log.ot)||0)) + (parseFloat(log.pet)||0) + (parseFloat(log.food)||0);
                         grandTotal += tot;
-                        rows.push([log.hDate || entry.date, log.helper, entry.location || '-', entry.customer || 'Site', `Rs. ${s}`, log.ot || 0, `Rs. ${Math.round(tot)}`]);
+                        rows.push([log.hDate || entry.date, log.helper, entry.projectType || 'Solo', entry.location || '-', entry.customer || 'Site', `Rs. ${s}`, log.ot || 0, `Rs. ${Math.round(tot)}`]);
                     });
                 }
             });
-            rows.push(['', '', '', '', '', 'Grand Total', `Rs. ${Math.round(grandTotal).toLocaleString()}`]);
-            doc.autoTable({ startY: 25, head: [['Date', 'Helper', 'Location', 'Site', 'Salary', 'OT', 'Total']], body: rows });
+            rows.push(['', '', '', '', '', '', 'Grand Total', `Rs. ${Math.round(grandTotal).toLocaleString()}`]);
+            doc.autoTable({ startY: 25, head: [['Date', 'Helper', 'Type', 'Location', 'Site', 'Salary', 'OT', 'Total']], body: rows });
             openPdfPreview(doc, `Helpers_${monthNames[fM]}_${fY}.pdf`, `Helper Report: ${monthNames[fM]} ${fY}`);
         }
 
@@ -666,24 +493,23 @@
             const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
             const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
             doc.text(`Solo Work Report: ${monthNames[fM]} ${fY}`, 14, 15);
-            const rows = [];
-            let grandNet = 0;
+            const rows = []; let grandNet = 0; let grandWages = 0;
             allEntries.forEach(d => {
                 const ed = new Date(d.date);
                 if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday && d.projectType === 'Solo') {
                     let exp = 0, helperNames = [], totalOT = 0;
                     d.logs?.forEach(l => { 
-                        const s = parseFloat(l.sal)||0; 
-                        exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
+                        const s = parseFloat(l.sal)||0; exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
                         if(!helperNames.includes(l.helper)) helperNames.push(l.helper);
                         totalOT += parseFloat(l.ot) || 0;
                     });
-                    const net = d.total - exp;
+                    const net = (parseFloat(d.total)||0) - exp; 
                     grandNet += net;
+                    grandWages += exp;
                     rows.push([d.date, d.qn || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(net)}`]);
                 }
             });
-            rows.push(['', '', '', '', '', '', '', 'Grand Total', `Rs. ${Math.round(grandNet).toLocaleString()}`]);
+            rows.push(['', '', '', '', '', '', '', `Wages: Rs. ${Math.round(grandWages).toLocaleString()}`, `Net: Rs. ${Math.round(grandNet).toLocaleString()}`]);
             doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Profit']], body: rows });
             openPdfPreview(doc, `Solo_Work_${monthNames[fM]}_${fY}.pdf`, `Solo Work: ${monthNames[fM]} ${fY}`);
         }
@@ -692,24 +518,23 @@
             const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
             const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
             doc.text(`Partner Work Report: ${monthNames[fM]} ${fY}`, 14, 15);
-            const rows = [];
-            let grandShare = 0;
+            const rows = []; let grandShare = 0; let grandWages = 0;
             allEntries.forEach(d => {
                 const ed = new Date(d.date);
                 if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday && d.projectType === 'Partner') {
                     let exp = 0, helperNames = [], totalOT = 0;
                     d.logs?.forEach(l => { 
-                        const s = parseFloat(l.sal)||0; 
-                        exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
+                        const s = parseFloat(l.sal)||0; exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
                         if(!helperNames.includes(l.helper)) helperNames.push(l.helper);
                         totalOT += parseFloat(l.ot) || 0;
                     });
-                    const share = (d.total - exp) / 2;
+                    const share = ((parseFloat(d.total)||0) - exp) / 2; 
                     grandShare += share;
+                    grandWages += exp;
                     rows.push([d.date, d.qn || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(share)}`]);
                 }
             });
-            rows.push(['', '', '', '', '', '', '', 'Grand Total', `Rs. ${Math.round(grandShare).toLocaleString()}`]);
+            rows.push(['', '', '', '', '', '', '', `Wages: Rs. ${Math.round(grandWages).toLocaleString()}`, `Net Share: Rs. ${Math.round(grandShare).toLocaleString()}`]);
             doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Share (50%)']], body: rows });
             openPdfPreview(doc, `Partner_Work_${monthNames[fM]}_${fY}.pdf`, `Partner Work: ${monthNames[fM]} ${fY}`);
         }
@@ -718,8 +543,7 @@
             const container = document.getElementById('annualTargetReportList');
             const year = document.getElementById('reportYearSelect').value;
             const target = parseFloat(globalSettings.target) || 50000;
-            container.innerHTML = "";
-            let annual = 0, met = 0, tracked = 0;
+            container.innerHTML = ""; let annual = 0, met = 0, tracked = 0;
             monthNames.forEach((name, idx) => {
                 let monthlyProfit = 0, hasData = false;
                 allEntries.forEach(d => {
@@ -740,7 +564,7 @@
         function editDoc(id) {
             const d = allEntries.find(e => e.id === id);
             document.getElementById('editId').value = id; document.getElementById('date').value = d.date; document.getElementById('customer').value = d.customer; document.getElementById('qn').value = d.qn || "";
-            document.getElementById('location').value = d.location || ""; document.getElementById('windowQty').value = d.windowQty || ""; document.getElementById('totalSqft').value = d.windowQty || ""; document.getElementById('totalSqft').value = d.totalSqft || ""; document.getElementById('amtRate').value = d.amtRate || "";
+            document.getElementById('location').value = d.location || ""; document.getElementById('totalSqft').value = d.totalSqft || ""; document.getElementById('amtRate').value = d.amtRate || "";
             document.getElementById('projectType').value = d.projectType; document.getElementById('isHoliday').checked = d.isHoliday; setPaymentStatus(d.paymentStatus || 'Billed');
             const logs = d.logs || []; document.getElementById('dayLogsContainer').innerHTML = ""; 
             if(logs.length > 0) { document.getElementById('helperSectionToggle').checked = true; toggleHelperVisibility(); logs.forEach(l => addDayRow(l)); }
@@ -749,26 +573,9 @@
         }
 
         function toggleSettings() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
-        function toggleReport() { const m = document.getElementById('smartReportModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; if(m.style.display === 'flex') generatePerformanceInsights(); }
         function checkHoliday() { const isH = document.getElementById('isHoliday').checked; document.getElementById('workFields').style.display = isH ? 'none' : 'block'; document.getElementById('holidayReasonDiv').classList.toggle('hidden', !isH); document.getElementById('helperGlobalWrapper').style.display = isH ? 'none' : 'block'; }
         function backupData() { const blob = new Blob([JSON.stringify(allEntries)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `Backup.json`; a.click(); }
-        function restoreData(event) { const file = event.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = async (e) => { const data = JSON.parse(e.target.result); if(confirm(`Import ${data.length} records?`)) { for(const item of data) { delete item.id; await db.collection("workLogs").add(item); } location.reload(); } }; reader.readAsText(file); }
-
-        function generatePerformanceInsights() {
-            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
-            let profit = 0, sqft = 0, bill = 0, sites = 0;
-            allEntries.forEach(d => {
-                const ed = new Date(d.date);
-                if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday) {
-                    sites++; let exp = 0; d.logs?.forEach(l => { const s = parseFloat(l.sal)||0; exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); });
-                    const net = d.total - exp; profit += (d.projectType === 'Partner' ? net/2 : net); sqft += (parseFloat(d.totalSqft)||0); bill += (parseFloat(d.total)||0);
-                }
-            });
-            document.getElementById('monthlyBreakdownGrid').innerHTML = `
-                <div class="bg-blue-600/10 p-3 rounded-xl border border-blue-500/20"><div class="text-[9px] opacity-50 uppercase">Profit</div><div class="text-xl font-black text-blue-500">₹${Math.round(profit).toLocaleString()}</div></div>
-                <div class="bg-green-600/10 p-3 rounded-xl border border-green-500/20"><div class="text-[9px] opacity-50 uppercase">Sqft</div><div class="text-xl font-black text-green-500">${sqft}</div></div>`;
-        }
-
+        async function restoreData(event) { const file = event.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = async (e) => { const data = JSON.parse(e.target.result); if(confirm(`Import ${data.length} records?`)) { for(const item of data) { delete item.id; await db.collection("workLogs").add(item); } location.reload(); } }; reader.readAsText(file); }
         function shareWhatsApp() {
             const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
             let msg = `*📊 Work Report: ${monthNames[fM]} ${fY}*\nSolo: ${document.getElementById('tblSolo').innerText}\nPartner: ${document.getElementById('tblPartnerMine').innerText}\n*TOTAL: ${document.getElementById('tblGrandTotal').innerText}*`;
@@ -776,11 +583,8 @@
         }
 
         window.onload = async () => { 
-            const now = new Date(); initTheme();
-            document.getElementById('date').valueAsDate = now; 
-            await syncSettings(); 
-            document.getElementById('filterMonth').value = now.getMonth();
-            document.getElementById('filterYear').value = now.getFullYear();
+            const now = new Date(); document.getElementById('date').valueAsDate = now; await syncSettings(); 
+            document.getElementById('filterMonth').value = now.getMonth(); document.getElementById('filterYear').value = now.getFullYear();
             applyFilters(); fetchDailyKural();
         };
     </script>
