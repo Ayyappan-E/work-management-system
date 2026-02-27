@@ -4,306 +4,635 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ayyappan Manager | Pro Master</title>
+    
+    <!-- Firebase Legacy Compatibility -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <!-- UI Frameworks -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- PDF Generation Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        
         :root {
-            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-            --text-main: #f1f5f9;
-            --text-dim: #94a3b8;
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --bg-dark: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --accent-blue: #3b82f6;
+            --accent-green: #22c55e;
         }
-        [data-theme="light"] {
-            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            --text-main: #1e293b;
-            --text-dim: #64748b;
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(0, 0, 0, 0.05);
-        }
+
         body {
-            background: var(--bg-gradient);
-            background-attachment: fixed;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: #f1f5f9;
             min-height: 100vh;
-            color: var(--text-main);
-            font-family: 'Inter', system-ui, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            transition: all 0.3s ease;
+            background-attachment: fixed;
+            overflow-x: hidden;
         }
-        .glass { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); }
-        .input-glow:focus { box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); border-color: #3b82f6; }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-hover {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .btn-hover:active {
+            transform: scale(0.95);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        .form-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            width: 100%;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .tab-active {
+            border-bottom: 3px solid var(--accent-blue);
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
     </style>
 </head>
-<body class="p-4 pb-28">
+<body class="pb-24">
 
-    <div class="max-w-md mx-auto">
-        <!-- Header -->
-        <div class="flex justify-between items-center mb-6">
-            <div>
-                <h1 class="text-2xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
-                    AYYAPPAN PRO
-                </h1>
-                <p class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Work Management System</p>
+    <!-- Top Navigation -->
+    <nav class="sticky top-0 z-50 glass border-b border-white/5 px-4 py-3">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-500/20">
+                    <i class="fas fa-hard-hat text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-black tracking-tight leading-none">AYYAPPAN</h1>
+                    <span class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Construction Manager</span>
+                </div>
             </div>
-            <div class="flex gap-2">
-                <button id="themeToggle" class="w-10 h-10 rounded-full glass flex items-center justify-center text-amber-400">
-                    <i class="fas fa-moon"></i>
+            <div class="flex items-center gap-3">
+                <div id="syncIndicator" class="hidden text-[10px] text-blue-400 font-bold flex items-center gap-1">
+                    <i class="fas fa-sync fa-spin"></i> SYNCING
+                </div>
+                <button onclick="openSettings()" class="p-2 text-slate-400 hover:text-white transition-colors">
+                    <i class="fas fa-sliders-h"></i>
                 </button>
-                <button onclick="location.reload()" class="w-10 h-10 rounded-full glass flex items-center justify-center text-blue-400">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
+                <div id="authStatus" class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        
+        <!-- Dashboard Overview -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="glass p-4 rounded-2xl border-l-4 border-blue-500">
+                <p class="text-[10px] uppercase text-slate-400 font-bold mb-1">Total Earnings</p>
+                <h3 id="statProfit" class="text-xl font-black text-white">₹0</h3>
+                <div class="text-[9px] text-blue-400 mt-1 font-bold" id="profitTarget">0% of target</div>
+            </div>
+            <div class="glass p-4 rounded-2xl border-l-4 border-emerald-500">
+                <p class="text-[10px] uppercase text-slate-400 font-bold mb-1">Total Area</p>
+                <h3 id="statSqft" class="text-xl font-black text-white">0</h3>
+                <div class="text-[9px] text-emerald-400 mt-1 font-bold">Sq. Feet</div>
+            </div>
+            <div class="glass p-4 rounded-2xl border-l-4 border-amber-500">
+                <p class="text-[10px] uppercase text-slate-400 font-bold mb-1">Work Days</p>
+                <h3 id="statDays" class="text-xl font-black text-white">0</h3>
+                <div class="text-[9px] text-amber-400 mt-1 font-bold">Entries</div>
+            </div>
+            <div class="glass p-4 rounded-2xl border-l-4 border-rose-500">
+                <p class="text-[10px] uppercase text-slate-400 font-bold mb-1">Site Avg</p>
+                <h3 id="statAvg" class="text-xl font-black text-white">₹0</h3>
+                <div class="text-[9px] text-rose-400 mt-1 font-bold">Per Project</div>
             </div>
         </div>
 
-        <!-- Dashboard -->
-        <div class="glass rounded-3xl p-5 mb-6 shadow-2xl">
-            <div class="grid grid-cols-2 gap-3 mb-5" id="monthlyBreakdownGrid"></div>
-            <div class="flex items-center gap-2">
-                <select id="filterMonth" class="glass rounded-xl px-3 py-2 text-xs outline-none flex-1" onchange="updateUI()">
-                    <option value="0">January</option><option value="1">February</option><option value="2">March</option>
-                    <option value="3">April</option><option value="4">May</option><option value="5">June</option>
-                    <option value="6">July</option><option value="7">August</option><option value="8">September</option>
-                    <option value="9">October</option><option value="10">November</option><option value="11">December</option>
-                </select>
-                <select id="filterYear" class="glass rounded-xl px-3 py-2 text-xs outline-none" onchange="updateUI()">
-                    <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
-                </select>
-                <div class="flex gap-2">
-                    <button id="pdfBtn" onclick="downloadPDF()" class="bg-slate-700 text-white w-9 h-9 rounded-xl flex items-center justify-center shadow-lg active:scale-90">
-                        <i class="fas fa-file-pdf"></i>
-                    </button>
-                    <button onclick="shareWhatsApp()" class="bg-green-600 text-white w-9 h-9 rounded-xl flex items-center justify-center shadow-lg active:scale-90">
-                        <i class="fab fa-whatsapp"></i>
-                    </button>
-                </div>
-            </div>
+        <!-- Dynamic Tabs -->
+        <div class="flex border-b border-white/10 overflow-x-auto">
+            <button onclick="switchTab('add')" id="tabAdd" class="px-6 py-3 text-sm font-bold transition-all text-slate-400 tab-active">Log Entry</button>
+            <button onclick="switchTab('history')" id="tabHistory" class="px-6 py-3 text-sm font-bold transition-all text-slate-400">History</button>
+            <button onclick="switchTab('analytics')" id="tabAnalytics" class="px-6 py-3 text-sm font-bold transition-all text-slate-400">Analytics</button>
         </div>
 
-        <!-- Rates Settings -->
-        <details class="glass rounded-2xl mb-6 group">
-            <summary class="list-none p-4 text-[10px] font-bold uppercase tracking-widest cursor-pointer flex justify-between items-center text-blue-400">
-                Rate Settings <i class="fas fa-chevron-down transition-transform group-open:rotate-180"></i>
-            </summary>
-            <div class="p-4 pt-0 grid grid-cols-2 gap-4">
-                <div class="space-y-1">
-                    <label class="text-[8px] text-slate-500">SOLO RATE</label>
-                    <input type="number" id="rateSolo" class="glass w-full rounded-lg p-2 text-sm outline-none" onchange="saveRates()">
+        <!-- Add Work View -->
+        <section id="viewAdd" class="animate-fade">
+            <div class="glass rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-5">
+                    <i class="fas fa-pen-nib text-6xl"></i>
                 </div>
-                <div class="space-y-1">
-                    <label class="text-[8px] text-slate-500">PARTNER RATE</label>
-                    <input type="number" id="ratePartner" class="glass w-full rounded-lg p-2 text-sm outline-none" onchange="saveRates()">
-                </div>
+                <h2 class="text-xl font-black mb-6 flex items-center gap-2">
+                    <i class="fas fa-plus-circle text-blue-500"></i> New Project Entry
+                </h2>
+                <form id="workForm" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 px-1 uppercase tracking-wider">Date of Work</label>
+                        <input type="date" id="date" class="form-input" required>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 px-1 uppercase tracking-wider">Site Location/Name</label>
+                        <input type="text" id="site" placeholder="e.g. Prestige Heights" class="form-input" required>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 px-1 uppercase tracking-wider">Measurement (Sqft)</label>
+                        <div class="relative">
+                            <input type="number" id="sqft" placeholder="0" class="form-input pr-12" required>
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-500">FT²</span>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-bold text-slate-400 px-1 uppercase tracking-wider">Project Configuration</label>
+                        <select id="type" class="form-input">
+                            <option value="solo">Solo Project (100% Share)</option>
+                            <option value="partner">Partnership (50/50 Share)</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="text-xs font-bold text-slate-400 px-1 uppercase tracking-wider">Notes (Optional)</label>
+                        <textarea id="notes" placeholder="Any specific details..." class="form-input h-20 resize-none"></textarea>
+                    </div>
+                    <button type="submit" id="submitBtn" class="md:col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-900/40 btn-hover flex items-center justify-center gap-3">
+                        <i class="fas fa-save"></i> 
+                        <span>SAVE PROJECT DATA</span>
+                    </button>
+                </form>
             </div>
-        </details>
+        </section>
 
-        <!-- Entry Form -->
-        <div class="glass rounded-3xl p-5 mb-6">
-            <form id="workForm" class="space-y-4">
-                <div class="grid grid-cols-2 gap-3">
-                    <select id="type" class="glass rounded-xl p-3 text-sm outline-none">
-                        <option value="Solo">Solo</option><option value="Partner">Partner</option>
+        <!-- History View -->
+        <section id="viewHistory" class="hidden animate-fade space-y-4">
+            <div class="flex flex-col sm:flex-row gap-3 items-center justify-between glass p-4 rounded-2xl">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-calendar-alt text-blue-500"></i>
+                    <span class="text-sm font-black uppercase">Filter Period</span>
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <select id="filterMonth" onchange="fetchData()" class="form-input py-2 text-sm">
+                        <option value="0">January</option><option value="1">February</option>
+                        <option value="2">March</option><option value="3">April</option>
+                        <option value="4">May</option><option value="5">June</option>
+                        <option value="6">July</option><option value="7">August</option>
+                        <option value="8">September</option><option value="9">October</option>
+                        <option value="10">November</option><option value="11">December</option>
                     </select>
-                    <input type="date" id="date" class="glass rounded-xl p-3 text-sm outline-none">
+                    <select id="filterYear" onchange="fetchData()" class="form-input py-2 text-sm w-28">
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025" selected>2025</option>
+                        <option value="2026">2026</option>
+                    </select>
                 </div>
-                <input type="text" id="location" placeholder="Location/Site..." class="glass w-full rounded-xl p-3 text-sm outline-none input-glow" required>
-                <input type="number" id="sqft" step="0.01" placeholder="Square Footage (Sqft)..." class="glass w-full rounded-xl p-3 text-sm outline-none input-glow" required>
-                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl active:scale-95 transition-all">SAVE ENTRY</button>
-            </form>
-        </div>
+            </div>
 
-        <!-- List -->
-        <div id="logList" class="space-y-3"></div>
+            <div id="historyList" class="space-y-3">
+                <!-- Data injected here -->
+            </div>
+        </section>
+
+        <!-- Analytics View -->
+        <section id="viewAnalytics" class="hidden animate-fade space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="glass p-6 rounded-3xl">
+                    <h4 class="text-sm font-black uppercase text-slate-400 mb-4 tracking-widest">Share Breakdown</h4>
+                    <div class="flex items-center justify-between py-2 border-b border-white/5">
+                        <span class="text-sm">Solo Work Volume</span>
+                        <span id="anaSolo" class="font-bold text-blue-400">0 Sqft</span>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-white/5">
+                        <span class="text-sm">Partner Work Volume</span>
+                        <span id="anaPartner" class="font-bold text-amber-400">0 Sqft</span>
+                    </div>
+                    <div class="flex items-center justify-between py-2">
+                        <span class="text-sm">Partner Share Adjusted</span>
+                        <span id="anaPartnerAdj" class="font-bold text-emerald-400">0 Sqft</span>
+                    </div>
+                </div>
+                <div class="glass p-6 rounded-3xl">
+                    <h4 class="text-sm font-black uppercase text-slate-400 mb-4 tracking-widest">Efficiency Metrics</h4>
+                    <div class="flex items-center justify-between py-2 border-b border-white/5">
+                        <span class="text-sm">Avg Profit / Sqft</span>
+                        <span id="anaAvgRate" class="font-bold text-white">₹0</span>
+                    </div>
+                    <div class="flex items-center justify-between py-2 border-b border-white/5">
+                        <span class="text-sm">Daily Earnings Avg</span>
+                        <span id="anaDaily" class="font-bold text-white">₹0</span>
+                    </div>
+                    <div class="flex items-center justify-between py-2">
+                        <span class="text-sm">Estimated Monthly</span>
+                        <span id="anaMonthly" class="font-bold text-white">₹0</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <div class="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent pointer-events-none z-50">
+        <div class="max-w-4xl mx-auto flex gap-3 pointer-events-auto">
+            <button onclick="downloadPDF()" class="flex-1 bg-slate-800/90 hover:bg-slate-700 p-4 rounded-2xl border border-white/10 font-black text-xs uppercase flex items-center justify-center gap-2 transition-all btn-hover">
+                <i class="fas fa-file-pdf text-red-400"></i> Report
+            </button>
+            <button onclick="shareWhatsApp()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 p-4 rounded-2xl font-black text-xs uppercase flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/40 transition-all btn-hover text-white">
+                <i class="fab fa-whatsapp text-lg"></i> Send
+            </button>
+            <button onclick="fetchData()" class="w-16 bg-blue-600/20 hover:bg-blue-600/40 p-4 rounded-2xl border border-blue-500/20 flex items-center justify-center transition-all btn-hover text-blue-400">
+                <i class="fas fa-redo-alt"></i>
+            </button>
+        </div>
     </div>
 
-    <!-- Summary Bar -->
-    <div class="fixed bottom-0 left-0 right-0 p-4">
-        <div class="max-w-md mx-auto glass rounded-2xl p-4 shadow-2xl flex justify-between items-center">
-            <div>
-                <p class="text-[9px] text-slate-500 uppercase font-bold">Total Payout</p>
-                <p id="tblGrandTotal" class="text-xl font-black text-blue-400">₹0</p>
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-lg">
+        <div class="glass w-full max-w-md rounded-3xl p-6 relative animate-fade">
+            <button onclick="closeSettings()" class="absolute top-6 right-6 text-slate-500 hover:text-white"><i class="fas fa-times"></i></button>
+            
+            <div class="flex items-center gap-3 mb-8">
+                <div class="bg-blue-600 p-2 rounded-lg">
+                    <i class="fas fa-cog text-white"></i>
+                </div>
+                <h3 class="text-xl font-black">System Configuration</h3>
             </div>
-            <div class="flex gap-4 text-right">
-                <div><p class="text-[8px] text-slate-500 uppercase">Solo</p><p id="tblSolo" class="text-xs font-bold">₹0</p></div>
-                <div><p class="text-[8px] text-slate-500 uppercase">Partner</p><p id="tblPartnerMine" class="text-xs font-bold">₹0</p></div>
+
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase text-slate-500 tracking-widest px-1">Base Profit Rate (₹ / Sqft)</label>
+                    <input type="number" id="ratePerSqft" class="form-input text-lg font-bold" value="12">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase text-slate-500 tracking-widest px-1">Monthly Target (₹)</label>
+                    <input type="number" id="monthlyTarget" class="form-input text-lg font-bold" value="50000">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black uppercase text-slate-500 tracking-widest px-1">Cloud Storage Node</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="collectionId" class="form-input bg-slate-900/40 font-mono text-xs" value="ayyappan_master_data">
+                        <button onclick="copyToClipboard('collectionId')" class="px-4 glass rounded-xl text-slate-400 hover:text-white"><i class="fas fa-copy"></i></button>
+                    </div>
+                </div>
+                
+                <div class="pt-4 border-t border-white/5">
+                    <button onclick="saveSettings()" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl font-black shadow-lg shadow-blue-900/20 btn-hover transition-all">
+                        APPLY CONFIGURATION
+                    </button>
+                    <button onclick="closeSettings()" class="w-full mt-2 text-slate-500 font-bold py-2 text-xs uppercase">Cancel</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        /**
+         * AYYAPPAN MANAGER PRO - CORE SCRIPT
+         */
+
+        // 1. Initial State & Configuration
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ayyappan-manager-pro';
         const firebaseConfig = JSON.parse(__firebase_config);
+        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ayyappan-manager';
-        
-        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        let logs = [], rates = { solo: 12, partner: 12 };
+        const auth = firebase.auth();
 
-        const themeToggle = document.getElementById('themeToggle');
-        function initTheme() {
-            const saved = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', saved);
-            themeToggle.innerHTML = saved === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        let currentSettings = { rate: 12, collection: 'ayyappan_master_data', target: 50000 };
+        let workData = [];
+        let currentUserId = null;
+
+        const $ = id => document.getElementById(id);
+        const formatCurrency = val => `₹${Math.round(val).toLocaleString()}`;
+
+        // 2. Authentication Protocol
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await auth.signInWithCustomToken(__initial_auth_token);
+                } else {
+                    await auth.signInAnonymously();
+                }
+            } catch (err) {
+                console.error("Auth Failure:", err);
+            }
         }
-        themeToggle.onclick = () => {
-            const current = document.documentElement.getAttribute('data-theme');
-            const target = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', target);
-            localStorage.setItem('theme', target);
-            themeToggle.innerHTML = target === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-        };
 
-        async function syncSettings() {
-            const snap = await db.collection('artifacts').doc(appId).collection('settings').doc('general').get();
-            if(snap.exists) {
-                rates = snap.data();
-                document.getElementById('rateSolo').value = rates.solo;
-                document.getElementById('ratePartner').value = rates.partner;
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUserId = user.uid;
+                $('authStatus').classList.replace('bg-red-500', 'bg-green-500');
+                loadSettings();
+                fetchData();
             } else {
-                await db.collection('artifacts').doc(appId).collection('settings').doc('general').set(rates);
+                $('authStatus').classList.replace('bg-green-500', 'bg-red-500');
+            }
+        });
+
+        // 3. Settings Management
+        function loadSettings() {
+            const stored = localStorage.getItem('ayyappan_pro_settings');
+            if (stored) {
+                currentSettings = JSON.parse(stored);
+                $('ratePerSqft').value = currentSettings.rate;
+                $('collectionId').value = currentSettings.collection;
+                $('monthlyTarget').value = currentSettings.target || 50000;
             }
         }
 
-        async function saveRates() {
-            rates.solo = parseFloat(document.getElementById('rateSolo').value);
-            rates.partner = parseFloat(document.getElementById('ratePartner').value);
-            await db.collection('artifacts').doc(appId).collection('settings').doc('general').update(rates);
-            updateUI();
+        function saveSettings() {
+            currentSettings.rate = parseFloat($('ratePerSqft').value) || 12;
+            currentSettings.collection = $('collectionId').value || 'ayyappan_master_data';
+            currentSettings.target = parseFloat($('monthlyTarget').value) || 50000;
+            
+            localStorage.setItem('ayyappan_pro_settings', JSON.stringify(currentSettings));
+            closeSettings();
+            fetchData();
         }
 
-        function loadData() {
-            // Listen to public data collection as per environment rules
-            db.collection('artifacts').doc(appId).collection('public').doc('data').collection('logs').orderBy('date', 'desc')
-            .onSnapshot(snap => {
-                logs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                updateUI();
-            }, err => console.error("Firestore Error:", err));
+        function openSettings() { $('settingsModal').classList.remove('hidden'); }
+        function closeSettings() { $('settingsModal').classList.add('hidden'); }
+
+        // 4. Tab Navigation
+        function switchTab(tab) {
+            ['viewAdd', 'viewHistory', 'viewAnalytics'].forEach(v => $(v).classList.add('hidden'));
+            ['tabAdd', 'tabHistory', 'tabAnalytics'].forEach(t => $(t).classList.remove('tab-active'));
+            
+            if (tab === 'add') {
+                $('viewAdd').classList.remove('hidden');
+                $('tabAdd').classList.add('tab-active');
+            } else if (tab === 'history') {
+                $('viewHistory').classList.remove('hidden');
+                $('tabHistory').classList.add('tab-active');
+                fetchData();
+            } else if (tab === 'analytics') {
+                $('viewAnalytics').classList.remove('hidden');
+                $('tabAnalytics').classList.add('tab-active');
+                updateAnalytics();
+            }
         }
 
-        document.getElementById('workForm').onsubmit = async (e) => {
+        // 5. Data Operations
+        $('workForm').onsubmit = async (e) => {
             e.preventDefault();
-            const data = {
-                type: document.getElementById('type').value,
-                date: document.getElementById('date').value,
-                location: document.getElementById('location').value,
-                sqft: parseFloat(document.getElementById('sqft').value)
-            };
-            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('logs').add(data);
-            e.target.reset();
-            document.getElementById('date').valueAsDate = new Date();
-        };
+            if (!currentUserId) return;
 
-        window.deleteEntry = async (id) => {
-            if(confirm('Delete entry?')) {
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('logs').doc(id).delete();
+            const btn = $('submitBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> SYNCING...';
+
+            const entry = {
+                date: $('date').value,
+                site: $('site').value.trim(),
+                sqft: parseFloat($('sqft').value),
+                type: $('type').value,
+                notes: $('notes').value.trim(),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                userId: currentUserId
+            };
+
+            try {
+                await db.collection('artifacts')
+                        .doc(appId)
+                        .collection('public')
+                        .doc('data')
+                        .collection(currentSettings.collection)
+                        .add(entry);
+                
+                e.target.reset();
+                $('date').valueAsDate = new Date();
+                btn.classList.replace('from-blue-600', 'from-emerald-600');
+                btn.innerHTML = '<i class="fas fa-check"></i> ENTRY RECORDED';
+                
+                setTimeout(() => {
+                    btn.classList.replace('from-emerald-600', 'from-blue-600');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    switchTab('history');
+                }, 1500);
+
+            } catch (err) {
+                alert("Cloud Sync Error: " + err.message);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         };
 
-        function updateUI() {
-            const fM = parseInt(document.getElementById('filterMonth').value);
-            const fY = parseInt(document.getElementById('filterYear').value);
-            const filtered = logs.filter(l => {
-                const d = new Date(l.date);
-                return d.getMonth() === fM && d.getFullYear() === fY;
+        async function fetchData() {
+            if (!currentUserId) return;
+            $('syncIndicator').classList.remove('hidden');
+            const month = parseInt($('filterMonth').value);
+            const year = parseInt($('filterYear').value);
+            const startDate = new Date(year, month, 1).toISOString().split('T')[0];
+            const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
+
+            try {
+                const snapshot = await db.collection('artifacts')
+                                .doc(appId)
+                                .collection('public')
+                                .doc('data')
+                                .collection(currentSettings.collection)
+                                .where('date', '>=', startDate)
+                                .where('date', '<=', endDate)
+                                .get();
+                
+                workData = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                })).sort((a, b) => b.date.localeCompare(a.date));
+
+                renderHistory();
+                updateStats();
+                updateAnalytics();
+            } catch (err) {
+                console.error("Fetch Failure:", err);
+            } finally {
+                $('syncIndicator').classList.add('hidden');
+            }
+        }
+
+        async function deleteEntry(id) {
+            if (!confirm("Remove this entry from cloud records?")) return;
+            try {
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection(currentSettings.collection).doc(id).delete();
+                fetchData();
+            } catch (err) {
+                alert("Delete Failed");
+            }
+        }
+
+        // 6. UI & Analytics
+        function updateStats() {
+            let totalProfit = 0, totalSqft = 0;
+            workData.forEach(item => {
+                const profit = item.type === 'partner' ? (item.sqft * currentSettings.rate) / 2 : (item.sqft * currentSettings.rate);
+                totalProfit += profit;
+                totalSqft += item.sqft;
             });
+            $('statProfit').innerText = formatCurrency(totalProfit);
+            $('statSqft').innerText = totalSqft.toLocaleString();
+            $('statDays').innerText = workData.length;
+            $('statAvg').innerText = workData.length > 0 ? formatCurrency(totalProfit / workData.length) : '₹0';
+            const targetPct = Math.min(100, Math.round((totalProfit / currentSettings.target) * 100));
+            $('profitTarget').innerText = `${targetPct}% of ₹${(currentSettings.target/1000)}k target`;
+        }
 
-            const list = document.getElementById('logList');
-            list.innerHTML = '';
-            let solo = 0, partner = 0, profit = 0, sqft = 0;
-
-            filtered.forEach(l => {
-                const earn = l.type === 'Solo' ? l.sqft * rates.solo : (l.sqft * rates.partner) / 2;
-                if(l.type === 'Solo') solo += earn; else partner += earn;
-                profit += earn; sqft += l.sqft;
-
-                list.innerHTML += `
-                    <div class="glass p-4 rounded-2xl flex justify-between items-center animate-entry">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs ${l.type === 'Solo' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}">${l.type[0]}</div>
-                            <div>
-                                <p class="font-bold text-sm">${l.location}</p>
-                                <p class="text-[9px] text-slate-500 uppercase">${new Date(l.date).toLocaleDateString()} • ${l.sqft} SQFT</p>
+        function renderHistory() {
+            const list = $('historyList');
+            list.innerHTML = workData.length === 0 ? '<div class="text-center py-16 opacity-30"><p class="text-xs font-black uppercase">No records found</p></div>' : '';
+            workData.forEach(item => {
+                const profit = item.type === 'partner' ? (item.sqft * currentSettings.rate) / 2 : (item.sqft * currentSettings.rate);
+                const card = document.createElement('div');
+                card.className = 'glass p-4 rounded-2xl flex justify-between items-center transition-all hover:translate-x-1';
+                card.innerHTML = `
+                    <div class="flex gap-4 items-center">
+                        <div class="w-12 h-12 rounded-xl bg-slate-800/50 flex flex-col items-center justify-center border border-white/5">
+                            <span class="text-[8px] font-black opacity-50 uppercase">${new Date(item.date).toLocaleDateString('en-US', {month: 'short'})}</span>
+                            <span class="text-sm font-black">${new Date(item.date).getDate()}</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-black text-sm text-slate-200">${item.site}</h4>
+                                <span class="px-2 py-0.5 rounded-md text-[8px] font-black uppercase ${item.type === 'solo' ? 'bg-blue-500/10 text-blue-400' : 'bg-amber-500/10 text-amber-400'} border border-current opacity-60">${item.type}</span>
                             </div>
+                            <div class="flex items-center gap-3 mt-1"><span class="text-[10px] text-slate-500 font-bold">${item.sqft} FT²</span></div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <div class="text-right mr-2"><p class="font-black text-sm">₹${Math.round(earn).toLocaleString()}</p></div>
-                            <button onclick="deleteEntry('${l.id}')" class="text-slate-600 p-2"><i class="fas fa-trash text-xs"></i></button>
-                        </div>
+                    </div>
+                    <div class="text-right flex flex-col items-end gap-1">
+                        <p class="font-black text-blue-400 text-lg">${formatCurrency(profit)}</p>
+                        <button onclick="deleteEntry('${item.id}')" class="p-2 text-slate-600 hover:text-red-500"><i class="fas fa-trash-alt text-[10px]"></i></button>
                     </div>`;
+                list.appendChild(card);
             });
+        }
 
-            document.getElementById('tblSolo').innerText = `₹${Math.round(solo).toLocaleString()}`;
-            document.getElementById('tblPartnerMine').innerText = `₹${Math.round(partner).toLocaleString()}`;
-            document.getElementById('tblGrandTotal').innerText = `₹${Math.round(profit).toLocaleString()}`;
-            document.getElementById('monthlyBreakdownGrid').innerHTML = `
-                <div class="bg-blue-600/10 p-3 rounded-xl border border-blue-500/20"><div class="text-[9px] opacity-50 uppercase">Profit</div><div class="text-xl font-black text-blue-500">₹${Math.round(profit).toLocaleString()}</div></div>
-                <div class="bg-green-600/10 p-3 rounded-xl border border-green-500/20"><div class="text-[9px] opacity-50 uppercase">Sqft</div><div class="text-xl font-black text-green-500">${sqft.toFixed(2)}</div></div>`;
+        function updateAnalytics() {
+            let soloSqft = 0, partnerSqft = 0, totalProfit = 0;
+            workData.forEach(item => {
+                const p = item.type === 'partner' ? (item.sqft * currentSettings.rate)/2 : (item.sqft * currentSettings.rate);
+                totalProfit += p;
+                if (item.type === 'solo') soloSqft += item.sqft; else partnerSqft += item.sqft;
+            });
+            $('anaSolo').innerText = `${soloSqft.toLocaleString()} Sqft`;
+            $('anaPartner').innerText = `${partnerSqft.toLocaleString()} Sqft`;
+            $('anaPartnerAdj').innerText = `${(partnerSqft / 2).toLocaleString()} Sqft`;
+            $('anaAvgRate').innerText = `₹${currentSettings.rate}`;
+            const daysInMonth = new Date(parseInt($('filterYear').value), parseInt($('filterMonth').value) + 1, 0).getDate();
+            $('anaDaily').innerText = formatCurrency(totalProfit / daysInMonth);
+            $('anaMonthly').innerText = formatCurrency(totalProfit);
+        }
+
+        // 7. Robust PDF Export (Mobile Fixed)
+        function downloadPDF() {
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const m = $('filterMonth').options[$('filterMonth').selectedIndex].text;
+                const y = $('filterYear').value;
+
+                doc.setFillColor(15, 23, 42);
+                doc.rect(0, 0, 210, 40, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(22);
+                doc.setFont("helvetica", "bold");
+                doc.text("AYYAPPAN CONSTRUCTION", 14, 20);
+                doc.setFontSize(10);
+                doc.text(`MONTHLY WORK REPORT: ${m} ${y}`, 14, 30);
+
+                const tableData = workData.map((item, i) => [
+                    i + 1, item.date, item.site, item.sqft, item.type.toUpperCase(),
+                    item.type === 'partner' ? (item.sqft * currentSettings.rate)/2 : (item.sqft * currentSettings.rate)
+                ]);
+
+                doc.autoTable({
+                    startY: 45,
+                    head: [['ID', 'DATE', 'SITE NAME', 'AREA', 'TYPE', 'PROFIT (INR)']],
+                    body: tableData,
+                    foot: [['', '', 'TOTALS', $('statSqft').innerText, '', $('statProfit').innerText]],
+                    theme: 'striped',
+                    headStyles: { fillColor: [59, 130, 246] },
+                    styles: { fontSize: 8 }
+                });
+
+                // MOBILE FIX: Use blob for better compatibility
+                const pdfBlob = doc.output('blob');
+                const blobUrl = URL.createObjectURL(pdfBlob);
+                const filename = `Report_${m}_${y}.pdf`;
+
+                // Check if we are on a mobile device or within an iframe
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                
+                if (isMobile) {
+                    // Mobile strategy: Open in new tab or use FileReader to trigger download
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        const base64data = reader.result;
+                        const link = document.createElement('a');
+                        link.href = base64data;
+                        link.download = filename;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    };
+                    reader.readAsDataURL(pdfBlob);
+                } else {
+                    // Desktop strategy
+                    doc.save(filename);
+                }
+            } catch (err) {
+                console.error("PDF Generation Error:", err);
+                alert("Failed to generate PDF. Check console for details.");
+            }
         }
 
         function shareWhatsApp() {
-            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
-            let msg = `*📊 Work Report: ${monthNames[fM]} ${fY}*\nSolo: ${document.getElementById('tblSolo').innerText}\nPartner: ${document.getElementById('tblPartnerMine').innerText}\n*TOTAL: ${document.getElementById('tblGrandTotal').innerText}*`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+            const m = $('filterMonth').options[$('filterMonth').selectedIndex].text, y = $('filterYear').value;
+            let text = `*🏗️ CONSTRUCTION REPORT - ${m.toUpperCase()} ${y}*\n\n`;
+            workData.forEach(item => {
+                const profit = item.type === 'partner' ? (item.sqft * currentSettings.rate)/2 : (item.sqft * currentSettings.rate);
+                text += `▪️ *${item.site}*\n   ${item.sqft} sqft | ${item.type.toUpperCase()} | *₹${profit.toLocaleString()}*\n\n`;
+            });
+            text += `\n*TOTAL EARNINGS: ${$('statProfit').innerText}*`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
         }
 
-        window.downloadPDF = () => {
-            const pdfBtn = document.getElementById('pdfBtn');
-            const original = pdfBtn.innerHTML;
-            pdfBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            
-            setTimeout(() => {
-                try {
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF();
-                    const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
-                    const filtered = logs.filter(l => {
-                        const d = new Date(l.date);
-                        return d.getMonth() === parseInt(fM) && d.getFullYear() === parseInt(fY);
-                    }).sort((a,b) => new Date(a.date) - new Date(b.date));
+        function copyToClipboard(id) {
+            const input = $(id); input.select(); document.execCommand('copy'); alert("Copied");
+        }
 
-                    doc.setFontSize(20); doc.text('AYYAPPAN PRO WORK REPORT', 14, 20);
-                    doc.setFontSize(10); doc.text(`${monthNames[fM]} ${fY} | Generated: ${new Date().toLocaleDateString()}`, 14, 28);
-
-                    const body = filtered.map(l => [
-                        new Date(l.date).toLocaleDateString(), l.location, l.type, l.sqft,
-                        `Rs. ${Math.round(l.type === 'Solo' ? l.sqft * rates.solo : (l.sqft * rates.partner) / 2).toLocaleString()}`
-                    ]);
-
-                    doc.autoTable({
-                        startY: 35, head: [['Date', 'Location', 'Type', 'Sqft', 'Earning']],
-                        body: body, theme: 'grid', headStyles: { fillColor: [59, 130, 246] }
-                    });
-
-                    const finalY = doc.lastAutoTable.finalY + 10;
-                    doc.text(`Solo: ${document.getElementById('tblSolo').innerText}`, 14, finalY);
-                    doc.text(`Partner: ${document.getElementById('tblPartnerMine').innerText}`, 14, finalY + 7);
-                    doc.setFontSize(14); doc.text(`TOTAL: ${document.getElementById('tblGrandTotal').innerText}`, 14, finalY + 16);
-
-                    try {
-                        doc.save(`Work_Report_${monthNames[fM]}_${fY}.pdf`);
-                    } catch (e) {
-                        // Fallback for mobile browsers
-                        const blob = doc.output('bloburl');
-                        window.open(blob);
-                    }
-                } catch (err) { console.error(err); }
-                finally { pdfBtn.innerHTML = original; }
-            }, 100);
+        window.onload = () => {
+            const now = new Date();
+            $('date').valueAsDate = now;
+            $('filterYear').value = now.getFullYear();
+            $('filterMonth').value = now.getMonth();
+            initAuth();
         };
 
-        window.onload = async () => { 
-            const now = new Date(); initTheme();
-            document.getElementById('date').valueAsDate = now; 
-            await syncSettings(); 
-            document.getElementById('filterMonth').value = now.getMonth();
-            document.getElementById('filterYear').value = now.getFullYear();
-            loadData();
-        };
     </script>
 </body>
 </html>
