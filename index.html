@@ -3,398 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayyappan Manager | Cloud Edition</title>
-    <!-- Tailwind & Icons -->
+    <title>Ayyappan Manager | Pro Master</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- PDF Generation Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        [data-theme="light"] {
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --text-main: #1e293b;
+            --text-dim: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.05);
         }
         body {
             background: var(--bg-gradient);
             background-attachment: fixed;
             min-height: 100vh;
-            color: #f1f5f9;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            transition: all 0.3s ease;
         }
-        .glass-card {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .input-field {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            transition: all 0.2s;
-        }
-        .input-field:focus {
-            border-color: #3b82f6;
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-        }
-        /* Custom scrollbar for better aesthetics */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        .glass { background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); }
+        .input-glow:focus { box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); border-color: #3b82f6; }
     </style>
 </head>
-<body>
+<body class="p-4 pb-28">
 
-    <div id="app" class="max-w-4xl mx-auto p-4 pb-24">
+    <div class="max-w-md mx-auto">
         <!-- Header -->
-        <header class="flex justify-between items-center mb-8 pt-4">
+        <div class="flex justify-between items-center mb-6">
             <div>
-                <h1 class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400">
-                    AYYAPPAN MANAGER
+                <h1 class="text-2xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
+                    AYYAPPAN PRO
                 </h1>
-                <p class="text-[10px] text-slate-400 tracking-widest uppercase" id="user-display">Initializing...</p>
+                <p class="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Work Management System</p>
             </div>
             <div class="flex gap-2">
-                <button id="sync-indicator" class="w-8 h-8 rounded-full flex items-center justify-center bg-slate-800 text-xs">
-                    <i class="fas fa-cloud text-slate-500"></i>
+                <button id="themeToggle" class="w-10 h-10 rounded-full glass flex items-center justify-center text-amber-400">
+                    <i class="fas fa-moon"></i>
                 </button>
-                <button onclick="window.location.reload()" class="w-8 h-8 rounded-full flex items-center justify-center bg-slate-800 hover:bg-slate-700 transition-colors">
-                    <i class="fas fa-sync-alt text-slate-300"></i>
+                <button onclick="location.reload()" class="w-10 h-10 rounded-full glass flex items-center justify-center text-blue-400">
+                    <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
-        </header>
+        </div>
 
-        <!-- Main Stats Card -->
-        <div class="glass-card rounded-3xl p-6 mb-6">
-            <div class="grid grid-cols-2 gap-4 mb-6" id="monthlyBreakdownGrid">
-                <!-- Dynamic Content -->
-                <div class="animate-pulse bg-slate-700/50 h-20 rounded-2xl"></div>
-                <div class="animate-pulse bg-slate-700/50 h-20 rounded-2xl"></div>
-            </div>
-
-            <div class="flex flex-wrap gap-2 items-center">
-                <select id="filterMonth" class="input-field rounded-lg px-3 py-2 text-sm">
-                    <option value="0">January</option><option value="1">February</option>
-                    <option value="2">March</option><option value="3">April</option>
-                    <option value="4">May</option><option value="5">June</option>
-                    <option value="6">July</option><option value="7">August</option>
-                    <option value="8">September</option><option value="9">October</option>
-                    <option value="10">November</option><option value="11">December</option>
+        <!-- Dashboard -->
+        <div class="glass rounded-3xl p-5 mb-6 shadow-2xl">
+            <div class="grid grid-cols-2 gap-3 mb-5" id="monthlyBreakdownGrid"></div>
+            <div class="flex items-center gap-2">
+                <select id="filterMonth" class="glass rounded-xl px-3 py-2 text-xs outline-none flex-1" onchange="updateUI()">
+                    <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+                    <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+                    <option value="6">July</option><option value="7">August</option><option value="8">September</option>
+                    <option value="9">October</option><option value="10">November</option><option value="11">December</option>
                 </select>
-                <select id="filterYear" class="input-field rounded-lg px-3 py-2 text-sm">
-                    <option value="2024">2024</option>
-                    <option value="2025">2025</option>
-                    <option value="2026">2026</option>
+                <select id="filterYear" class="glass rounded-xl px-3 py-2 text-xs outline-none" onchange="updateUI()">
+                    <option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option>
                 </select>
-                <div class="ml-auto flex gap-2">
-                    <button onclick="downloadPDF()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
-                        <i class="fas fa-file-pdf"></i> PDF
+                <div class="flex gap-2">
+                    <button id="pdfBtn" onclick="downloadPDF()" class="bg-slate-700 text-white w-9 h-9 rounded-xl flex items-center justify-center shadow-lg active:scale-90">
+                        <i class="fas fa-file-pdf"></i>
                     </button>
-                    <button onclick="shareWhatsApp()" class="bg-green-600 hover:bg-green-500 text-white px-3 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
-                        <i class="fab fa-whatsapp"></i> Share
+                    <button onclick="shareWhatsApp()" class="bg-green-600 text-white w-9 h-9 rounded-xl flex items-center justify-center shadow-lg active:scale-90">
+                        <i class="fab fa-whatsapp"></i>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Add Entry Form -->
-        <div class="glass-card rounded-3xl p-6 mb-6">
-            <h3 class="text-sm font-bold text-slate-300 mb-4 uppercase tracking-tighter">Add New Entry</h3>
-            <form id="entryForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Rates Settings -->
+        <details class="glass rounded-2xl mb-6 group">
+            <summary class="list-none p-4 text-[10px] font-bold uppercase tracking-widest cursor-pointer flex justify-between items-center text-blue-400">
+                Rate Settings <i class="fas fa-chevron-down transition-transform group-open:rotate-180"></i>
+            </summary>
+            <div class="p-4 pt-0 grid grid-cols-2 gap-4">
                 <div class="space-y-1">
-                    <label class="text-[10px] text-slate-500 ml-1">WORK TYPE</label>
-                    <select id="workType" class="input-field w-full rounded-xl p-3">
-                        <option value="Solo">Solo Work</option>
-                        <option value="Partner">Partner Work</option>
+                    <label class="text-[8px] text-slate-500">SOLO RATE</label>
+                    <input type="number" id="rateSolo" class="glass w-full rounded-lg p-2 text-sm outline-none" onchange="saveRates()">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[8px] text-slate-500">PARTNER RATE</label>
+                    <input type="number" id="ratePartner" class="glass w-full rounded-lg p-2 text-sm outline-none" onchange="saveRates()">
+                </div>
+            </div>
+        </details>
+
+        <!-- Entry Form -->
+        <div class="glass rounded-3xl p-5 mb-6">
+            <form id="workForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <select id="type" class="glass rounded-xl p-3 text-sm outline-none">
+                        <option value="Solo">Solo</option><option value="Partner">Partner</option>
                     </select>
+                    <input type="date" id="date" class="glass rounded-xl p-3 text-sm outline-none">
                 </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] text-slate-500 ml-1">DATE</label>
-                    <input type="date" id="date" class="input-field w-full rounded-xl p-3">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] text-slate-500 ml-1">LOCATION / WORK NAME</label>
-                    <input type="text" id="location" placeholder="e.g. Apartment A" class="input-field w-full rounded-xl p-3" required>
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] text-slate-500 ml-1">SQFT AREA</label>
-                    <input type="number" id="sqft" placeholder="0" class="input-field w-full rounded-xl p-3" required>
-                </div>
-                <button type="submit" class="md:col-span-2 bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all active:scale-95">
-                    SAVE WORK ENTRY
-                </button>
+                <input type="text" id="location" placeholder="Location/Site..." class="glass w-full rounded-xl p-3 text-sm outline-none input-glow" required>
+                <input type="number" id="sqft" step="0.01" placeholder="Square Footage (Sqft)..." class="glass w-full rounded-xl p-3 text-sm outline-none input-glow" required>
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-xl active:scale-95 transition-all">SAVE ENTRY</button>
             </form>
         </div>
 
-        <!-- Log List -->
-        <div id="logList" class="space-y-3">
-            <!-- Entries will appear here -->
-        </div>
+        <!-- List -->
+        <div id="logList" class="space-y-3"></div>
+    </div>
 
-        <!-- Global Totals (Sticky Bottom) -->
-        <div class="fixed bottom-0 left-0 right-0 p-4 max-w-4xl mx-auto">
-            <div class="glass-card rounded-2xl p-4 shadow-2xl border-t border-blue-500/30 flex justify-between items-center">
-                <div class="flex flex-col">
-                    <span class="text-[9px] text-slate-400 uppercase">Grand Total (This Month)</span>
-                    <span id="tblGrandTotal" class="text-2xl font-black text-blue-400">₹0</span>
-                </div>
-                <div class="flex gap-4 text-right">
-                    <div>
-                        <div class="text-[9px] text-slate-400 uppercase">Solo</div>
-                        <div id="tblSolo" class="font-bold text-sm">₹0</div>
-                    </div>
-                    <div>
-                        <div class="text-[9px] text-slate-400 uppercase">Partner (My Share)</div>
-                        <div id="tblPartnerMine" class="font-bold text-sm">₹0</div>
-                    </div>
-                </div>
+    <!-- Summary Bar -->
+    <div class="fixed bottom-0 left-0 right-0 p-4">
+        <div class="max-w-md mx-auto glass rounded-2xl p-4 shadow-2xl flex justify-between items-center">
+            <div>
+                <p class="text-[9px] text-slate-500 uppercase font-bold">Total Payout</p>
+                <p id="tblGrandTotal" class="text-xl font-black text-blue-400">₹0</p>
+            </div>
+            <div class="flex gap-4 text-right">
+                <div><p class="text-[8px] text-slate-500 uppercase">Solo</p><p id="tblSolo" class="text-xs font-bold">₹0</p></div>
+                <div><p class="text-[8px] text-slate-500 uppercase">Partner</p><p id="tblPartnerMine" class="text-xs font-bold">₹0</p></div>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, addDoc, setDoc, deleteDoc, onSnapshot, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // --- CONFIG & INIT ---
+    <script>
         const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'ayyappan-manager';
+        
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        let logs = [], rates = { solo: 12, partner: 12 };
 
-        let currentUser = null;
-        let entries = [];
-        let rates = { solo: 12, partner: 12 }; // Default rates
-
-        // --- AUTH LOGIC (Rule 3) ---
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (err) {
-                console.error("Auth Error:", err);
-            }
+        const themeToggle = document.getElementById('themeToggle');
+        function initTheme() {
+            const saved = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', saved);
+            themeToggle.innerHTML = saved === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        }
+        themeToggle.onclick = () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            const target = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', target);
+            localStorage.setItem('theme', target);
+            themeToggle.innerHTML = target === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
         };
 
-        initAuth();
-
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            if (user) {
-                document.getElementById('user-display').innerText = `Logged in: ${user.uid}`;
-                setupListeners();
+        async function syncSettings() {
+            const snap = await db.collection('artifacts').doc(appId).collection('settings').doc('general').get();
+            if(snap.exists) {
+                rates = snap.data();
+                document.getElementById('rateSolo').value = rates.solo;
+                document.getElementById('ratePartner').value = rates.partner;
+            } else {
+                await db.collection('artifacts').doc(appId).collection('settings').doc('general').set(rates);
             }
-        });
-
-        // --- DATA SYNC (Rule 1 & 2) ---
-        function setupListeners() {
-            if (!currentUser) return;
-
-            // Sync User Settings (Rates)
-            const settingsDoc = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'settings', 'general');
-            onSnapshot(settingsDoc, (snapshot) => {
-                if (snapshot.exists()) {
-                    rates = snapshot.data();
-                } else {
-                    setDoc(settingsDoc, rates);
-                }
-            }, (err) => console.error("Settings error:", err));
-
-            // Sync Work Entries (Private Collection)
-            const entriesCol = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'workEntries');
-            onSnapshot(entriesCol, (snapshot) => {
-                entries = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                updateUI();
-                updateSyncStatus('synced');
-            }, (err) => {
-                console.error("Entries error:", err);
-                updateSyncStatus('error');
-            });
         }
 
-        // --- APP LOGIC ---
-        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        async function saveRates() {
+            rates.solo = parseFloat(document.getElementById('rateSolo').value);
+            rates.partner = parseFloat(document.getElementById('ratePartner').value);
+            await db.collection('artifacts').doc(appId).collection('settings').doc('general').update(rates);
+            updateUI();
+        }
 
-        document.getElementById('entryForm').onsubmit = async (e) => {
+        function loadData() {
+            // Listen to public data collection as per environment rules
+            db.collection('artifacts').doc(appId).collection('public').doc('data').collection('logs').orderBy('date', 'desc')
+            .onSnapshot(snap => {
+                logs = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                updateUI();
+            }, err => console.error("Firestore Error:", err));
+        }
+
+        document.getElementById('workForm').onsubmit = async (e) => {
             e.preventDefault();
-            if (!currentUser) return;
-
-            const entry = {
-                type: document.getElementById('workType').value,
+            const data = {
+                type: document.getElementById('type').value,
                 date: document.getElementById('date').value,
                 location: document.getElementById('location').value,
-                sqft: parseFloat(document.getElementById('sqft').value),
-                timestamp: Timestamp.now()
+                sqft: parseFloat(document.getElementById('sqft').value)
             };
-
-            updateSyncStatus('pending');
-            try {
-                const entriesCol = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'workEntries');
-                await addDoc(entriesCol, entry);
-                e.target.reset();
-                document.getElementById('date').valueAsDate = new Date();
-            } catch (err) {
-                console.error("Save error:", err);
-                updateSyncStatus('error');
-            }
+            await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('logs').add(data);
+            e.target.reset();
+            document.getElementById('date').valueAsDate = new Date();
         };
 
         window.deleteEntry = async (id) => {
-            if (!currentUser || !confirm("Delete this entry?")) return;
-            try {
-                await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'workEntries', id));
-            } catch (err) {
-                console.error("Delete error:", err);
+            if(confirm('Delete entry?')) {
+                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection('logs').doc(id).delete();
             }
         };
 
-        function getFilteredEntries() {
-            const filterM = parseInt(document.getElementById('filterMonth').value);
-            const filterY = parseInt(document.getElementById('filterYear').value);
-
-            return entries.filter(e => {
-                const d = new Date(e.date);
-                return d.getMonth() === filterM && d.getFullYear() === filterY;
-            }).sort((a,b) => new Date(b.date) - new Date(a.date));
-        }
-
         function updateUI() {
-            const filtered = getFilteredEntries();
-
-            // Calculate Totals
-            let soloTotal = 0;
-            let partnerTotal = 0;
-            let totalSqft = 0;
-
-            const logList = document.getElementById('logList');
-            logList.innerHTML = '';
-
-            filtered.forEach(item => {
-                const earning = item.type === 'Solo' ? item.sqft * rates.solo : (item.sqft * rates.partner) / 2;
-                if (item.type === 'Solo') soloTotal += earning;
-                else partnerTotal += earning;
-                totalSqft += item.sqft;
-
-                const card = document.createElement('div');
-                card.className = 'glass-card p-4 rounded-2xl flex justify-between items-center group animate-in fade-in slide-in-from-bottom-2';
-                card.innerHTML = `
-                    <div class="flex gap-4 items-center">
-                        <div class="w-10 h-10 rounded-xl ${item.type === 'Solo' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'} flex items-center justify-center font-bold text-xs">
-                            ${item.type[0]}
-                        </div>
-                        <div>
-                            <div class="font-bold text-sm">${item.location}</div>
-                            <div class="text-[10px] text-slate-500">${new Date(item.date).toLocaleDateString()} • ${item.sqft} sqft</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <div class="text-right">
-                            <div class="font-black text-slate-200">₹${Math.round(earning).toLocaleString()}</div>
-                            <div class="text-[9px] text-slate-500 uppercase">${item.type}</div>
-                        </div>
-                        <button onclick="deleteEntry('${item.id}')" class="text-slate-600 hover:text-red-400 transition-colors p-2">
-                            <i class="fas fa-trash-alt text-xs"></i>
-                        </button>
-                    </div>
-                `;
-                logList.appendChild(card);
+            const fM = parseInt(document.getElementById('filterMonth').value);
+            const fY = parseInt(document.getElementById('filterYear').value);
+            const filtered = logs.filter(l => {
+                const d = new Date(l.date);
+                return d.getMonth() === fM && d.getFullYear() === fY;
             });
 
-            // Update Summaries
-            const grand = soloTotal + partnerTotal;
-            document.getElementById('tblSolo').innerText = `₹${Math.round(soloTotal).toLocaleString()}`;
-            document.getElementById('tblPartnerMine').innerText = `₹${Math.round(partnerTotal).toLocaleString()}`;
-            document.getElementById('tblGrandTotal').innerText = `₹${Math.round(grand).toLocaleString()}`;
+            const list = document.getElementById('logList');
+            list.innerHTML = '';
+            let solo = 0, partner = 0, profit = 0, sqft = 0;
 
+            filtered.forEach(l => {
+                const earn = l.type === 'Solo' ? l.sqft * rates.solo : (l.sqft * rates.partner) / 2;
+                if(l.type === 'Solo') solo += earn; else partner += earn;
+                profit += earn; sqft += l.sqft;
+
+                list.innerHTML += `
+                    <div class="glass p-4 rounded-2xl flex justify-between items-center animate-entry">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs ${l.type === 'Solo' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}">${l.type[0]}</div>
+                            <div>
+                                <p class="font-bold text-sm">${l.location}</p>
+                                <p class="text-[9px] text-slate-500 uppercase">${new Date(l.date).toLocaleDateString()} • ${l.sqft} SQFT</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="text-right mr-2"><p class="font-black text-sm">₹${Math.round(earn).toLocaleString()}</p></div>
+                            <button onclick="deleteEntry('${l.id}')" class="text-slate-600 p-2"><i class="fas fa-trash text-xs"></i></button>
+                        </div>
+                    </div>`;
+            });
+
+            document.getElementById('tblSolo').innerText = `₹${Math.round(solo).toLocaleString()}`;
+            document.getElementById('tblPartnerMine').innerText = `₹${Math.round(partner).toLocaleString()}`;
+            document.getElementById('tblGrandTotal').innerText = `₹${Math.round(profit).toLocaleString()}`;
             document.getElementById('monthlyBreakdownGrid').innerHTML = `
-                <div class="bg-blue-600/10 p-4 rounded-2xl border border-blue-500/20">
-                    <div class="text-[9px] opacity-50 uppercase font-bold tracking-wider">Estimated Profit</div>
-                    <div class="text-2xl font-black text-blue-400">₹${Math.round(grand).toLocaleString()}</div>
-                </div>
-                <div class="bg-emerald-600/10 p-4 rounded-2xl border border-emerald-500/20">
-                    <div class="text-[9px] opacity-50 uppercase font-bold tracking-wider">Total Sqft</div>
-                    <div class="text-2xl font-black text-emerald-400">${totalSqft.toLocaleString()}</div>
-                </div>
-            `;
+                <div class="bg-blue-600/10 p-3 rounded-xl border border-blue-500/20"><div class="text-[9px] opacity-50 uppercase">Profit</div><div class="text-xl font-black text-blue-500">₹${Math.round(profit).toLocaleString()}</div></div>
+                <div class="bg-green-600/10 p-3 rounded-xl border border-green-500/20"><div class="text-[9px] opacity-50 uppercase">Sqft</div><div class="text-xl font-black text-green-500">${sqft.toFixed(2)}</div></div>`;
         }
 
-        function updateSyncStatus(status) {
-            const icon = document.querySelector('#sync-indicator i');
-            icon.className = 'fas ' + (status === 'synced' ? 'fa-cloud text-emerald-400' : 
-                                      status === 'pending' ? 'fa-circle-notch fa-spin text-blue-400' : 
-                                      'fa-exclamation-triangle text-red-400');
-        }
-
-        // Global Handlers
-        window.shareWhatsApp = () => {
-            const fM = document.getElementById('filterMonth').value;
-            const fY = document.getElementById('filterYear').value;
-            const total = document.getElementById('tblGrandTotal').innerText;
-            const msg = `*📊 Work Report: ${monthNames[fM]} ${fY}*\nTotal Earnings: ${total}\nShared from Ayyappan Manager Pro.`;
+        function shareWhatsApp() {
+            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+            let msg = `*📊 Work Report: ${monthNames[fM]} ${fY}*\nSolo: ${document.getElementById('tblSolo').innerText}\nPartner: ${document.getElementById('tblPartnerMine').innerText}\n*TOTAL: ${document.getElementById('tblGrandTotal').innerText}*`;
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-        };
+        }
 
         window.downloadPDF = () => {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+            const pdfBtn = document.getElementById('pdfBtn');
+            const original = pdfBtn.innerHTML;
+            pdfBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             
-            const fM = document.getElementById('filterMonth').value;
-            const fY = document.getElementById('filterYear').value;
-            const filtered = getFilteredEntries();
+            setTimeout(() => {
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+                    const filtered = logs.filter(l => {
+                        const d = new Date(l.date);
+                        return d.getMonth() === parseInt(fM) && d.getFullYear() === parseInt(fY);
+                    }).sort((a,b) => new Date(a.date) - new Date(b.date));
 
-            // Header
-            doc.setFontSize(22);
-            doc.setTextColor(40);
-            doc.text('AYYAPPAN MANAGER REPORT', 14, 22);
-            
-            doc.setFontSize(12);
-            doc.setTextColor(100);
-            doc.text(`Period: ${monthNames[fM]} ${fY}`, 14, 32);
-            doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 38);
+                    doc.setFontSize(20); doc.text('AYYAPPAN PRO WORK REPORT', 14, 20);
+                    doc.setFontSize(10); doc.text(`${monthNames[fM]} ${fY} | Generated: ${new Date().toLocaleDateString()}`, 14, 28);
 
-            // Table Data
-            const tableData = filtered.map(item => [
-                new Date(item.date).toLocaleDateString(),
-                item.location,
-                item.type,
-                item.sqft,
-                `Rs. ${Math.round(item.type === 'Solo' ? item.sqft * rates.solo : (item.sqft * rates.partner) / 2).toLocaleString()}`
-            ]);
+                    const body = filtered.map(l => [
+                        new Date(l.date).toLocaleDateString(), l.location, l.type, l.sqft,
+                        `Rs. ${Math.round(l.type === 'Solo' ? l.sqft * rates.solo : (l.sqft * rates.partner) / 2).toLocaleString()}`
+                    ]);
 
-            doc.autoTable({
-                startY: 45,
-                head: [['Date', 'Location', 'Type', 'Sqft', 'Earning']],
-                body: tableData,
-                headStyles: { fillStyle: 'f', fillColor: [59, 130, 246] },
-                alternateRowStyles: { fillColor: [245, 247, 250] }
-            });
+                    doc.autoTable({
+                        startY: 35, head: [['Date', 'Location', 'Type', 'Sqft', 'Earning']],
+                        body: body, theme: 'grid', headStyles: { fillColor: [59, 130, 246] }
+                    });
 
-            // Summary Footer
-            const finalY = doc.lastAutoTable.finalY + 10;
-            doc.setFontSize(14);
-            doc.setTextColor(40);
-            doc.text(`Total Solo Earning: ${document.getElementById('tblSolo').innerText}`, 14, finalY);
-            doc.text(`Total Partner Share: ${document.getElementById('tblPartnerMine').innerText}`, 14, finalY + 7);
-            doc.setFont(undefined, 'bold');
-            doc.text(`GRAND TOTAL: ${document.getElementById('tblGrandTotal').innerText}`, 14, finalY + 16);
+                    const finalY = doc.lastAutoTable.finalY + 10;
+                    doc.text(`Solo: ${document.getElementById('tblSolo').innerText}`, 14, finalY);
+                    doc.text(`Partner: ${document.getElementById('tblPartnerMine').innerText}`, 14, finalY + 7);
+                    doc.setFontSize(14); doc.text(`TOTAL: ${document.getElementById('tblGrandTotal').innerText}`, 14, finalY + 16);
 
-            doc.save(`Work_Report_${monthNames[fM]}_${fY}.pdf`);
+                    try {
+                        doc.save(`Work_Report_${monthNames[fM]}_${fY}.pdf`);
+                    } catch (e) {
+                        // Fallback for mobile browsers
+                        const blob = doc.output('bloburl');
+                        window.open(blob);
+                    }
+                } catch (err) { console.error(err); }
+                finally { pdfBtn.innerHTML = original; }
+            }, 100);
         };
 
-        // Init Form
-        document.getElementById('date').valueAsDate = new Date();
-        document.getElementById('filterMonth').value = new Date().getMonth();
-        document.getElementById('filterYear').value = new Date().getFullYear();
-        document.getElementById('filterMonth').onchange = updateUI;
-        document.getElementById('filterYear').onchange = updateUI;
-
+        window.onload = async () => { 
+            const now = new Date(); initTheme();
+            document.getElementById('date').valueAsDate = now; 
+            await syncSettings(); 
+            document.getElementById('filterMonth').value = now.getMonth();
+            document.getElementById('filterYear').value = now.getFullYear();
+            loadData();
+        };
     </script>
 </body>
 </html>
