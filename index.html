@@ -480,6 +480,7 @@
                         const s = parseFloat(log.sal) || 0;
                         const tot = s + (s/2 * (parseFloat(log.ot)||0)) + (parseFloat(log.pet)||0) + (parseFloat(log.food)||0);
                         grandTotal += tot;
+                        // Added 'projectType' as index 2 to confirm work source
                         rows.push([log.hDate || entry.date, log.helper, entry.projectType || 'Solo', entry.location || '-', entry.customer || 'Site', `Rs. ${s}`, log.ot || 0, `Rs. ${Math.round(tot)}`]);
                     });
                 }
@@ -493,7 +494,7 @@
             const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
             const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
             doc.text(`Solo Work Report: ${monthNames[fM]} ${fY}`, 14, 15);
-            const rows = []; let grandNet = 0; let grandWages = 0;
+            const rows = []; let grandNet = 0;
             allEntries.forEach(d => {
                 const ed = new Date(d.date);
                 if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday && d.projectType === 'Solo') {
@@ -503,13 +504,11 @@
                         if(!helperNames.includes(l.helper)) helperNames.push(l.helper);
                         totalOT += parseFloat(l.ot) || 0;
                     });
-                    const net = (parseFloat(d.total)||0) - exp; 
-                    grandNet += net;
-                    grandWages += exp;
+                    const net = d.total - exp; grandNet += net;
                     rows.push([d.date, d.qn || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(net)}`]);
                 }
             });
-            rows.push(['', '', '', '', '', '', '', `Wages: Rs. ${Math.round(grandWages).toLocaleString()}`, `Net: Rs. ${Math.round(grandNet).toLocaleString()}`]);
+            rows.push(['', '', '', '', '', '', '', 'Grand Total', `Rs. ${Math.round(grandNet).toLocaleString()}`]);
             doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Profit']], body: rows });
             openPdfPreview(doc, `Solo_Work_${monthNames[fM]}_${fY}.pdf`, `Solo Work: ${monthNames[fM]} ${fY}`);
         }
@@ -518,7 +517,7 @@
             const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
             const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
             doc.text(`Partner Work Report: ${monthNames[fM]} ${fY}`, 14, 15);
-            const rows = []; let grandShare = 0; let grandWages = 0;
+            const rows = []; let grandShare = 0;
             allEntries.forEach(d => {
                 const ed = new Date(d.date);
                 if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday && d.projectType === 'Partner') {
@@ -528,13 +527,11 @@
                         if(!helperNames.includes(l.helper)) helperNames.push(l.helper);
                         totalOT += parseFloat(l.ot) || 0;
                     });
-                    const share = ((parseFloat(d.total)||0) - exp) / 2; 
-                    grandShare += share;
-                    grandWages += exp;
+                    const share = (d.total - exp) / 2; grandShare += share;
                     rows.push([d.date, d.qn || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(share)}`]);
                 }
             });
-            rows.push(['', '', '', '', '', '', '', `Wages: Rs. ${Math.round(grandWages).toLocaleString()}`, `Net Share: Rs. ${Math.round(grandShare).toLocaleString()}`]);
+            rows.push(['', '', '', '', '', '', '', 'Grand Total', `Rs. ${Math.round(grandShare).toLocaleString()}`]);
             doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Share (50%)']], body: rows });
             openPdfPreview(doc, `Partner_Work_${monthNames[fM]}_${fY}.pdf`, `Partner Work: ${monthNames[fM]} ${fY}`);
         }
