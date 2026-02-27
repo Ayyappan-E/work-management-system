@@ -4,635 +4,786 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ayyappan Manager | Pro Master</title>
-    
-    <!-- Firebase Legacy Compatibility -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    
-    <!-- UI Frameworks -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PDF Generation Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
-        
         :root {
-            --bg-dark: #0f172a;
-            --glass-bg: rgba(30, 41, 59, 0.7);
-            --accent-blue: #3b82f6;
-            --accent-green: #22c55e;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(0,0,0,0.4);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --footer-bg: rgba(15, 23, 42, 0.8);
+            --watermark-color: rgba(255, 255, 255, 0.03);
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-dark);
-            color: #f1f5f9;
-            min-height: 100vh;
-            background-attachment: fixed;
-            overflow-x: hidden;
+        .light-mode {
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --text-main: #1e293b;
+            --text-dim: #64748b;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --card-bg: rgba(0, 0, 0, 0.02);
+            --footer-bg: rgba(241, 245, 249, 0.9);
+            --watermark-color: rgba(0, 0, 0, 0.02);
         }
 
-        .glass {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        body { 
+            background: var(--bg-gradient); 
+            color: var(--text-main); 
+            min-height: 100vh; 
+            font-family: 'Inter', sans-serif; 
+            transition: background 0.3s ease, color 0.3s ease;
+            position: relative;
         }
 
-        .btn-hover {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        body::before {
+            content: "AYYAPPAN PRO";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 8vw;
+            font-weight: 900;
+            color: var(--watermark-color);
+            z-index: -1;
+            pointer-events: none;
+            white-space: nowrap;
+            letter-spacing: 0.5rem;
         }
+
+        .glass { 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid var(--glass-border); 
+            border-radius: 1rem; 
+        }
+
+        .input-box { 
+            background: var(--input-bg); 
+            border: 1px solid #475569; 
+            border-radius: 0.6rem; 
+            padding: 0.7rem; 
+            color: inherit; 
+            width: 100%; 
+            outline: none; 
+            font-size: 14px; 
+        }
+
+        label { font-size: 11px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; display: block; letter-spacing: 0.5px; }
         
-        .btn-hover:active {
-            transform: scale(0.95);
+        .day-entry { 
+            background: var(--card-bg); 
+            border: 1px solid var(--glass-border); 
+            padding: 12px; 
+            border-radius: 12px; 
+            margin-bottom: 10px; 
+            position: relative; 
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+        
+        .summary-section { 
+            margin-top: 2rem;
+            background: var(--footer-bg); 
+            border-top: 3px solid #3b82f6; 
+            padding: 20px 12px; 
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
 
-        .form-input {
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 0.75rem;
-            border-radius: 0.75rem;
+        .excel-table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            max-height: 500px;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .excel-table-container.collapsed {
+            max-height: 0;
+            margin-bottom: 0;
+            border: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .excel-table {
             width: 100%;
+            border-collapse: collapse;
+            font-size: 10.5px;
+            white-space: nowrap;
+        }
+        .excel-table th {
+            position: sticky;
+            top: 0;
+            background: #1e1b4b;
+            padding: 12px 10px;
+            text-align: left;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            border-bottom: 2px solid var(--glass-border);
+            font-weight: 800;
+            z-index: 10;
+        }
+        .light-mode .excel-table th { background: #e2e8f0; }
+        .excel-table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--glass-border);
         }
 
-        .form-input:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider:before { transform: translateX(14px); }
+
+        .status-badge { padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 900; text-transform: uppercase; }
+        .status-received { background: #059669; color: white; }
+        .status-Billed { background: #dc2626; color: white; }
+        .status-Not Billed { background: #4b5563; color: white; }
+
+        #msgBox { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 200; min-width: 250px; text-align: center; border-radius: 12px; padding: 12px 24px; font-weight: bold; }
+        
+        .kural-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #eab308;
+            background: #000;
+            object-fit: cover;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        .tab-active {
-            border-bottom: 3px solid var(--accent-blue);
-            color: white;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animate-fade {
-            animation: fadeIn 0.4s ease-out forwards;
+        /* PDF Preview Specific */
+        #pdfPreviewFrame {
+            width: 100%;
+            height: 70vh;
+            border: none;
+            background: white;
+            border-radius: 8px;
         }
     </style>
 </head>
-<body class="pb-24">
+<body class="p-4">
 
-    <!-- Top Navigation -->
-    <nav class="sticky top-0 z-50 glass border-b border-white/5 px-4 py-3">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-500/20">
-                    <i class="fas fa-hard-hat text-white"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg font-black tracking-tight leading-none">AYYAPPAN</h1>
-                    <span class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Construction Manager</span>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <div id="syncIndicator" class="hidden text-[10px] text-blue-400 font-bold flex items-center gap-1">
-                    <i class="fas fa-sync fa-spin"></i> SYNCING
-                </div>
-                <button onclick="openSettings()" class="p-2 text-slate-400 hover:text-white transition-colors">
-                    <i class="fas fa-sliders-h"></i>
-                </button>
-                <div id="authStatus" class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>
-            </div>
-        </div>
-    </nav>
+    <div id="msgBox" class="bg-blue-600 text-white shadow-2xl"></div>
 
-    <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        
-        <!-- Dashboard Overview -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="glass p-4 rounded-2xl border-l-4 border-blue-500">
-                <p class="text-[10px] uppercase text-slate-400 font-bold mb-1">Total Earnings</p>
-                <h3 id="statProfit" class="text-xl font-black text-white">₹0</h3>
-                <div class="text-[9px] text-blue-400 mt-1 font-bold" id="profitTarget">0% of target</div>
-            </div>
-            <div class="glass p-4 rounded-2xl border-l-4 border-emerald-500">
-                <p class="text-[10px] uppercase text-slate-400 font-bold mb-1">Total Area</p>
-                <h3 id="statSqft" class="text-xl font-black text-white">0</h3>
-                <div class="text-[9px] text-emerald-400 mt-1 font-bold">Sq. Feet</div>
-            </div>
-            <div class="glass p-4 rounded-2xl border-l-4 border-amber-500">
-                <p class="text-[10px] uppercase text-slate-400 font-bold mb-1">Work Days</p>
-                <h3 id="statDays" class="text-xl font-black text-white">0</h3>
-                <div class="text-[9px] text-amber-400 mt-1 font-bold">Entries</div>
-            </div>
-            <div class="glass p-4 rounded-2xl border-l-4 border-rose-500">
-                <p class="text-[10px] uppercase text-slate-400 font-bold mb-1">Site Avg</p>
-                <h3 id="statAvg" class="text-xl font-black text-white">₹0</h3>
-                <div class="text-[9px] text-rose-400 mt-1 font-bold">Per Project</div>
+    <div class="max-w-4xl mx-auto">
+        <!-- Daily Thirukkural Section -->
+        <div id="kuralSection" class="glass p-4 mb-6 hidden border-l-4 border-yellow-500 flex items-start gap-4 shadow-xl">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6AonqI7C6YpP7t_v-nEw82e-9C08HlD-F_w&s" alt="Thiruvalluvar" class="kural-avatar">
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-yellow-500 text-black text-[9px] font-black px-2 py-0.5 rounded uppercase">Daily Thirukkural</span>
+                    <span id="kuralNumber" class="text-[10px] font-bold opacity-60"></span>
+                </div>
+                <p id="kuralTamil" class="text-sm font-bold mb-2 leading-relaxed text-yellow-500"></p>
+                <p id="kuralMeaning" class="text-xs italic opacity-80 leading-snug"></p>
             </div>
         </div>
 
-        <!-- Dynamic Tabs -->
-        <div class="flex border-b border-white/10 overflow-x-auto">
-            <button onclick="switchTab('add')" id="tabAdd" class="px-6 py-3 text-sm font-bold transition-all text-slate-400 tab-active">Log Entry</button>
-            <button onclick="switchTab('history')" id="tabHistory" class="px-6 py-3 text-sm font-bold transition-all text-slate-400">History</button>
-            <button onclick="switchTab('analytics')" id="tabAnalytics" class="px-6 py-3 text-sm font-bold transition-all text-slate-400">Analytics</button>
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="font-black text-2xl italic uppercase tracking-tighter text-blue-500">Ayyappan Pro <span class="text-white/40 font-normal text-xs not-italic lowercase">manager</span></h1>
+            <div class="flex gap-3">
+                <button id="themeToggle" onclick="toggleTheme()" class="w-10 h-10 glass flex items-center justify-center text-yellow-400"><i class="fas fa-moon"></i></button>
+                <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-cog"></i></button>
+            </div>
         </div>
 
-        <!-- Add Work View -->
-        <section id="viewAdd" class="animate-fade">
-            <div class="glass rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-4 opacity-5">
-                    <i class="fas fa-pen-nib text-6xl"></i>
+        <!-- Target UI -->
+        <div class="glass p-4 mb-6 border-l-4 border-yellow-500 shadow-lg max-w-md mx-auto">
+            <div class="flex justify-between items-end mb-2">
+                <label id="targetLabel" class="m-0 text-yellow-500 font-black">Target Progress</label>
+                <span id="targetRem" class="text-xs font-bold">₹0</span>
+            </div>
+            <div class="w-full bg-black/10 h-3 rounded-full mb-2"><div id="targetBar" class="bg-yellow-500 h-full rounded-full transition-all duration-700" style="width:0%"></div></div>
+            <div class="flex justify-between text-[10px] font-bold opacity-70"><span id="targetEarned">Earned: ₹0</span><span id="targetGoal">Target: ₹0</span></div>
+        </div>
+
+        <!-- Entry Form -->
+        <div class="glass p-5 mb-8 space-y-5 border-t-4 border-blue-600 shadow-2xl max-w-md mx-auto">
+            <input type="hidden" id="editId">
+            <div class="grid grid-cols-2 gap-4">
+                <div><label>Work Date</label><input type="date" id="date" class="input-box"></div>
+                <div><label>Quotation No</label><input type="text" id="qn" class="input-box" placeholder="QN-XXXX"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 bg-black/10 p-3 rounded-xl border border-white/10">
+                <div class="flex items-center gap-2"><input type="checkbox" id="isHoliday" onchange="checkHoliday()" class="w-5 h-5 accent-red-500"><label class="m-0 text-red-500">Holiday</label></div>
+                <select id="projectType" class="bg-transparent text-xs font-black text-blue-500 uppercase outline-none"><option value="Solo">Solo Work</option><option value="Partner">Partner Work</option></select>
+            </div>
+            
+            <div id="workFields" class="space-y-5">
+                <div><label>Company</label><select id="company" class="input-box"></select></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label>Customer Name *</label><input type="text" id="customer" class="input-box"></div>
+                    <div><label>Site Location</label><input type="text" id="location" class="input-box"></div>
                 </div>
-                <h2 class="text-xl font-black mb-6 flex items-center gap-2">
-                    <i class="fas fa-plus-circle text-blue-500"></i> New Project Entry
-                </h2>
-                <form id="workForm" class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-400 px-1 uppercase tracking-wider">Date of Work</label>
-                        <input type="date" id="date" class="form-input" required>
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-400 px-1 uppercase tracking-wider">Site Location/Name</label>
-                        <input type="text" id="site" placeholder="e.g. Prestige Heights" class="form-input" required>
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-400 px-1 uppercase tracking-wider">Measurement (Sqft)</label>
-                        <div class="relative">
-                            <input type="number" id="sqft" placeholder="0" class="form-input pr-12" required>
-                            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-500">FT²</span>
+
+                <div id="helperGlobalWrapper" class="bg-blue-600/5 p-4 rounded-xl border border-white/10">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2">
+                            <label class="text-blue-500 m-0">Helper Logs</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="helperSectionToggle" onchange="toggleHelperVisibility()">
+                                <span class="slider"></span>
+                            </label>
                         </div>
+                        <button id="addHelperBtn" onclick="addDayRow()" class="hidden text-[10px] bg-blue-600 text-white px-3 py-1 rounded uppercase font-bold">+ Helper</button>
                     </div>
-                    <div class="space-y-2">
-                        <label class="text-xs font-bold text-slate-400 px-1 uppercase tracking-wider">Project Configuration</label>
-                        <select id="type" class="form-input">
-                            <option value="solo">Solo Project (100% Share)</option>
-                            <option value="partner">Partnership (50/50 Share)</option>
-                        </select>
-                    </div>
-                    <div class="md:col-span-2 space-y-2">
-                        <label class="text-xs font-bold text-slate-400 px-1 uppercase tracking-wider">Notes (Optional)</label>
-                        <textarea id="notes" placeholder="Any specific details..." class="form-input h-20 resize-none"></textarea>
-                    </div>
-                    <button type="submit" id="submitBtn" class="md:col-span-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-900/40 btn-hover flex items-center justify-center gap-3">
-                        <i class="fas fa-save"></i> 
-                        <span>SAVE PROJECT DATA</span>
+                    <div id="dayLogsContainer" class="hidden space-y-3"></div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div><label>Windows Qty</label><input type="number" id="windowQty" class="input-box" placeholder="Qty"></div>
+                    <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box" placeholder="Sqft"></div>
+                    <div><label>Rate / Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box" placeholder="Rate"></div>
+                </div>
+
+                <div class="flex justify-between items-center p-4 bg-black/5 rounded-2xl border border-white/10">
+                    <div><label class="m-0 text-green-500">Gross Bill</label><div id="resTotal" class="text-xl font-black text-green-500">₹0</div></div>
+                    <div class="text-right"><label class="m-0 text-red-500">Total Wages</label><div id="resExpDisplay" class="text-lg font-bold text-red-500">₹0</div></div>
+                </div>
+                <div><label>Work Description</label><textarea id="workNotes" class="input-box h-16"></textarea></div>
+            </div>
+
+            <div id="holidayReasonDiv" class="hidden"><label>Holiday Remark *</label><textarea id="holidayReason" class="input-box h-16"></textarea></div>
+
+            <div class="p-3 bg-white/5 rounded-xl border border-white/10">
+                <label>Payment Status</label>
+                <div class="flex gap-2">
+                    <button onclick="setPaymentStatus('Received')" id="btnReceived" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase border border-white/10 transition-all opacity-40">Received</button>
+                    <button onclick="setPaymentStatus('Billed')" id="btnBilled" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase border border-white/10 transition-all opacity-40">Billed</button>
+                    <button onclick="setPaymentStatus('Not Billed')" id="btnNot Billed" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase border border-white/10 transition-all opacity-40">Not Billed</button>
+                    <input type="hidden" id="paymentStatus" value="Billed">
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-3">
+                <button onclick="saveData()" class="col-span-2 bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-lg active:scale-95 transition-transform">Save Record</button>
+                <button onclick="location.reload()" class="bg-slate-700 py-4 rounded-2xl font-bold text-white text-xs opacity-80">Reset</button>
+            </div>
+        </div>
+
+        <!-- History -->
+        <div class="flex justify-between items-center mb-4 px-1">
+            <h3 id="historyTitle" class="text-sm font-black uppercase text-blue-500 tracking-wide">Site History</h3>
+            <div class="flex items-center gap-3">
+                <span id="recordCount" class="text-[9px] font-bold opacity-40 uppercase"></span>
+                <button onclick="toggleHistory()" class="text-[10px] font-black uppercase text-blue-500 flex items-center gap-2">
+                    <span id="historyToggleText">Minimize</span>
+                    <i id="historyToggleIcon" class="fas fa-chevron-up"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div id="displayArea" class="excel-table-container">
+            <table class="excel-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>QN</th>
+                        <th>Company</th>
+                        <th>Customer</th>
+                        <th>Helpers</th>
+                        <th>Qty</th>
+                        <th>Type</th>
+                        <th>Bill</th>
+                        <th>Status</th>
+                        <th>Net</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="summary-section mt-8 max-w-md mx-auto">
+            <div class="bg-black/20 rounded-2xl border border-white/10 overflow-hidden mb-4">
+                <table class="w-full text-xs">
+                    <tbody>
+                        <tr class="border-b border-white/5"><td class="p-2 px-4 opacity-70">Solo Earnings</td><td id="tblSolo" class="p-2 text-right px-4 text-green-500 font-bold">₹0</td></tr>
+                        <tr class="border-b border-white/5"><td class="p-2 px-4 opacity-70">Partner Earnings</td><td id="tblPartnerMine" class="p-2 text-right px-4 text-blue-500 font-bold">₹0</td></tr>
+                        <tr class="bg-blue-600/10"><td class="p-3 px-4 font-black">TOTAL EARNED</td><td id="tblGrandTotal" class="p-3 text-right px-4 text-yellow-500 text-lg font-black">₹0</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <select id="filterMonth" onchange="applyFilters()" class="input-box py-2 text-[10px] font-bold uppercase"></select>
+                <select id="filterYear" onchange="applyFilters()" class="input-box py-2 text-[10px] font-bold uppercase"></select>
+            </div>
+
+            <div class="grid grid-cols-1 gap-2">
+                <button onclick="shareWhatsApp()" class="w-full bg-[#25D366] py-3 rounded-xl font-black text-white uppercase text-[10px] shadow-lg flex items-center justify-center gap-2">
+                    <i class="fab fa-whatsapp text-lg"></i> Send WhatsApp Report
+                </button>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="exportHelperPDF()" class="w-full bg-emerald-600 py-3 rounded-xl font-black text-white uppercase text-[8px] shadow-lg flex items-center justify-center flex-col gap-1">
+                        <i class="fas fa-users"></i> Helper
                     </button>
-                </form>
-            </div>
-        </section>
-
-        <!-- History View -->
-        <section id="viewHistory" class="hidden animate-fade space-y-4">
-            <div class="flex flex-col sm:flex-row gap-3 items-center justify-between glass p-4 rounded-2xl">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-calendar-alt text-blue-500"></i>
-                    <span class="text-sm font-black uppercase">Filter Period</span>
-                </div>
-                <div class="flex gap-2 w-full sm:w-auto">
-                    <select id="filterMonth" onchange="fetchData()" class="form-input py-2 text-sm">
-                        <option value="0">January</option><option value="1">February</option>
-                        <option value="2">March</option><option value="3">April</option>
-                        <option value="4">May</option><option value="5">June</option>
-                        <option value="6">July</option><option value="7">August</option>
-                        <option value="8">September</option><option value="9">October</option>
-                        <option value="10">November</option><option value="11">December</option>
-                    </select>
-                    <select id="filterYear" onchange="fetchData()" class="form-input py-2 text-sm w-28">
-                        <option value="2023">2023</option>
-                        <option value="2024">2024</option>
-                        <option value="2025" selected>2025</option>
-                        <option value="2026">2026</option>
-                    </select>
+                    <button onclick="exportSoloPDF()" class="w-full bg-indigo-600 py-3 rounded-xl font-black text-white uppercase text-[8px] shadow-lg flex items-center justify-center flex-col gap-1">
+                        <i class="fas fa-user"></i> Solo
+                    </button>
+                    <button onclick="exportPartnerPDF()" class="w-full bg-blue-600 py-3 rounded-xl font-black text-white uppercase text-[8px] shadow-lg flex items-center justify-center flex-col gap-1">
+                        <i class="fas fa-handshake"></i> Partner
+                    </button>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div id="historyList" class="space-y-3">
-                <!-- Data injected here -->
+    <!-- PDF Preview Modal -->
+    <div id="pdfModal" class="modal">
+        <div class="glass p-4 w-full max-w-4xl space-y-4">
+            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                <h2 id="pdfModalTitle" class="text-sm font-black text-blue-400 uppercase tracking-widest">Document Preview</h2>
+                <button onclick="closePdfModal()" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
             </div>
-        </section>
-
-        <!-- Analytics View -->
-        <section id="viewAnalytics" class="hidden animate-fade space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="glass p-6 rounded-3xl">
-                    <h4 class="text-sm font-black uppercase text-slate-400 mb-4 tracking-widest">Share Breakdown</h4>
-                    <div class="flex items-center justify-between py-2 border-b border-white/5">
-                        <span class="text-sm">Solo Work Volume</span>
-                        <span id="anaSolo" class="font-bold text-blue-400">0 Sqft</span>
-                    </div>
-                    <div class="flex items-center justify-between py-2 border-b border-white/5">
-                        <span class="text-sm">Partner Work Volume</span>
-                        <span id="anaPartner" class="font-bold text-amber-400">0 Sqft</span>
-                    </div>
-                    <div class="flex items-center justify-between py-2">
-                        <span class="text-sm">Partner Share Adjusted</span>
-                        <span id="anaPartnerAdj" class="font-bold text-emerald-400">0 Sqft</span>
-                    </div>
-                </div>
-                <div class="glass p-6 rounded-3xl">
-                    <h4 class="text-sm font-black uppercase text-slate-400 mb-4 tracking-widest">Efficiency Metrics</h4>
-                    <div class="flex items-center justify-between py-2 border-b border-white/5">
-                        <span class="text-sm">Avg Profit / Sqft</span>
-                        <span id="anaAvgRate" class="font-bold text-white">₹0</span>
-                    </div>
-                    <div class="flex items-center justify-between py-2 border-b border-white/5">
-                        <span class="text-sm">Daily Earnings Avg</span>
-                        <span id="anaDaily" class="font-bold text-white">₹0</span>
-                    </div>
-                    <div class="flex items-center justify-between py-2">
-                        <span class="text-sm">Estimated Monthly</span>
-                        <span id="anaMonthly" class="font-bold text-white">₹0</span>
-                    </div>
-                </div>
+            <iframe id="pdfPreviewFrame"></iframe>
+            <div class="flex gap-2">
+                <button id="pdfDownloadBtn" class="flex-1 bg-blue-600 py-3 rounded-xl font-black text-white uppercase text-xs shadow-lg">Download PDF</button>
+                <button onclick="closePdfModal()" class="px-6 bg-slate-700 py-3 rounded-xl font-bold text-white uppercase text-xs">Close</button>
             </div>
-        </section>
-
-    </main>
-
-    <!-- Bottom Navigation Bar -->
-    <div class="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-950 via-slate-950/90 to-transparent pointer-events-none z-50">
-        <div class="max-w-4xl mx-auto flex gap-3 pointer-events-auto">
-            <button onclick="downloadPDF()" class="flex-1 bg-slate-800/90 hover:bg-slate-700 p-4 rounded-2xl border border-white/10 font-black text-xs uppercase flex items-center justify-center gap-2 transition-all btn-hover">
-                <i class="fas fa-file-pdf text-red-400"></i> Report
-            </button>
-            <button onclick="shareWhatsApp()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 p-4 rounded-2xl font-black text-xs uppercase flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/40 transition-all btn-hover text-white">
-                <i class="fab fa-whatsapp text-lg"></i> Send
-            </button>
-            <button onclick="fetchData()" class="w-16 bg-blue-600/20 hover:bg-blue-600/40 p-4 rounded-2xl border border-blue-500/20 flex items-center justify-center transition-all btn-hover text-blue-400">
-                <i class="fas fa-redo-alt"></i>
-            </button>
         </div>
     </div>
 
     <!-- Settings Modal -->
-    <div id="settingsModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/90 backdrop-blur-lg">
-        <div class="glass w-full max-w-md rounded-3xl p-6 relative animate-fade">
-            <button onclick="closeSettings()" class="absolute top-6 right-6 text-slate-500 hover:text-white"><i class="fas fa-times"></i></button>
-            
-            <div class="flex items-center gap-3 mb-8">
-                <div class="bg-blue-600 p-2 rounded-lg">
-                    <i class="fas fa-cog text-white"></i>
-                </div>
-                <h3 class="text-xl font-black">System Configuration</h3>
+    <div id="settingsModal" class="modal">
+        <div class="glass p-5 w-full max-sm max-h-[95vh] overflow-y-auto space-y-4">
+            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                <h2 class="text-sm font-black text-blue-400 uppercase tracking-widest">Global Settings</h2>
+                <button onclick="toggleSettings()" class="text-gray-500"><i class="fas fa-times"></i></button>
             </div>
+            <div class="bg-black/20 p-4 rounded-2xl border border-white/10">
+                <div class="flex justify-between items-center mb-4"><label class="m-0 text-yellow-500 font-black">Annual Status</label><select id="reportYearSelect" onchange="generateTargetStatusReport()" class="bg-transparent text-xs font-bold text-blue-400 outline-none border border-white/10 rounded px-2 py-1"></select></div>
+                <div id="annualSummaryCard" class="bg-blue-600/10 rounded-xl p-3 mb-4 flex justify-between items-center border border-blue-500/20">
+                    <div><div class="text-[9px] uppercase opacity-60 font-bold">Annual Profit</div><div id="annualTotalVal" class="text-lg font-black text-blue-400">₹0</div></div>
+                    <div class="text-right"><div class="text-[9px] uppercase opacity-60 font-bold">Success Rate</div><div id="annualSuccessRate" class="text-lg font-black text-green-500">0%</div></div>
+                </div>
+                <div id="annualTargetReportList" class="space-y-4 max-h-64 overflow-y-auto pr-1"></div>
+            </div>
+            <div class="grid grid-cols-1 gap-3">
+                <button onclick="toggleReport()" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 py-3 rounded-xl font-black text-white uppercase text-xs shadow-lg"><i class="fas fa-chart-pie mr-2"></i> View Performance</button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="backupData()" class="bg-slate-700 py-2 rounded-xl font-bold text-white uppercase text-[10px] border border-white/10"><i class="fas fa-download mr-1"></i> Export</button>
+                    <button onclick="document.getElementById('importFile').click()" class="bg-slate-700 py-2 rounded-xl font-bold text-white uppercase text-[10px] border border-white/10"><i class="fas fa-upload mr-1"></i> Import</button>
+                    <input type="file" id="importFile" class="hidden" onchange="restoreData(event)">
+                </div>
+            </div>
+            <div class="space-y-3 pt-2 border-t border-white/10">
+                <div><label>Monthly Goal (₹)</label><input type="number" id="setTarget" class="input-box" placeholder="Target per month"></div>
+                <div><label>Registered Companies</label><textarea id="setCompanies" class="input-box h-12 text-xs"></textarea></div>
+                <div><label>Helper Database</label><textarea id="setHelpers" class="input-box h-12 text-xs"></textarea></div>
+            </div>
+            <button id="saveSettingsBtn" onclick="saveSettings()" class="w-full bg-blue-600 py-4 rounded-2xl font-black text-white uppercase shadow-xl">Update & Sync</button>
+        </div>
+    </div>
 
-            <div class="space-y-6">
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black uppercase text-slate-500 tracking-widest px-1">Base Profit Rate (₹ / Sqft)</label>
-                    <input type="number" id="ratePerSqft" class="form-input text-lg font-bold" value="12">
-                </div>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black uppercase text-slate-500 tracking-widest px-1">Monthly Target (₹)</label>
-                    <input type="number" id="monthlyTarget" class="form-input text-lg font-bold" value="50000">
-                </div>
-                <div class="space-y-2">
-                    <label class="text-[10px] font-black uppercase text-slate-500 tracking-widest px-1">Cloud Storage Node</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="collectionId" class="form-input bg-slate-900/40 font-mono text-xs" value="ayyappan_master_data">
-                        <button onclick="copyToClipboard('collectionId')" class="px-4 glass rounded-xl text-slate-400 hover:text-white"><i class="fas fa-copy"></i></button>
-                    </div>
-                </div>
-                
-                <div class="pt-4 border-t border-white/5">
-                    <button onclick="saveSettings()" class="w-full bg-blue-600 hover:bg-blue-500 py-4 rounded-2xl font-black shadow-lg shadow-blue-900/20 btn-hover transition-all">
-                        APPLY CONFIGURATION
-                    </button>
-                    <button onclick="closeSettings()" class="w-full mt-2 text-slate-500 font-bold py-2 text-xs uppercase">Cancel</button>
-                </div>
+    <!-- Analytics Modal -->
+    <div id="smartReportModal" class="modal">
+        <div class="glass p-6 w-full max-w-md max-h-[90vh] overflow-y-auto space-y-6 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-white/10 pb-4">
+                <div><h2 class="text-xl font-bold text-blue-400">Monthly Insights</h2><p id="insightSelectedLabel" class="text-[10px] font-bold text-white/50 uppercase tracking-widest mt-1"></p></div>
+                <button onclick="toggleReport()" class="text-gray-500 p-2"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="monthlyBreakdownGrid" class="grid grid-cols-2 gap-3"></div>
+            <div id="monthlyPerformanceDetails" class="space-y-6"></div>
+            <div class="pt-4">
+                <button onclick="toggleReport()" class="w-full bg-slate-800 py-4 rounded-2xl font-black text-white uppercase text-xs tracking-widest border border-white/5">Close Analytics</button>
             </div>
         </div>
     </div>
 
     <script>
-        /**
-         * AYYAPPAN MANAGER PRO - CORE SCRIPT
-         */
-
-        // 1. Initial State & Configuration
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ayyappan-manager-pro';
-        const firebaseConfig = JSON.parse(__firebase_config);
-        
+        const apiKey = "";
+        const firebaseConfig = { apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58", authDomain: "ayyappan-work-management.firebaseapp.com", projectId: "ayyappan-work-management" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const auth = firebase.auth();
+        let allEntries = [];
+        let globalSettings = { target: 50000, companies: "Sharp, Buildcon", helpers: "Ravi, Kumar" };
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-        let currentSettings = { rate: 12, collection: 'ayyappan_master_data', target: 50000 };
-        let workData = [];
-        let currentUserId = null;
-
-        const $ = id => document.getElementById(id);
-        const formatCurrency = val => `₹${Math.round(val).toLocaleString()}`;
-
-        // 2. Authentication Protocol
-        async function initAuth() {
+        async function fetchDailyKural() {
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await auth.signInWithCustomToken(__initial_auth_token);
-                } else {
-                    await auth.signInAnonymously();
+                const section = document.getElementById('kuralSection');
+                section.classList.remove('hidden');
+                section.style.display = 'flex';
+                const systemPrompt = "Return ONLY a JSON object with: 'number' (num), 'tamil' (2 lines Tamil), 'meaning' (simple Tamil explanation). Randomly pick one from 1330 Thirukkural.";
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: "Give me a daily Thirukkural." }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json" } })
+                });
+                const result = await response.json();
+                const kural = JSON.parse(result.candidates[0].content.parts[0].text);
+                document.getElementById('kuralNumber').innerText = `Kural ${kural.number}`;
+                document.getElementById('kuralTamil').innerHTML = kural.tamil.replace(/\n/g, '<br>');
+                document.getElementById('kuralMeaning').innerText = kural.meaning;
+            } catch (e) { console.error(e); }
+        }
+
+        function showMessage(msg) {
+            const box = document.getElementById('msgBox'); box.innerText = msg; box.style.display = 'block';
+            setTimeout(() => { box.style.display = 'none'; }, 3000);
+        }
+
+        function setPaymentStatus(status) {
+            document.getElementById('paymentStatus').value = status;
+            ['Received', 'Billed', 'Not Billed'].forEach(s => {
+                const btn = document.getElementById(`btn${s}`);
+                btn.classList.add('opacity-40'); btn.style.backgroundColor = 'transparent'; btn.style.color = 'inherit';
+                if (s === status) {
+                    btn.classList.remove('opacity-40');
+                    if (s === 'Received') { btn.style.backgroundColor = '#059669'; btn.style.color = 'white'; }
+                    if (s === 'Billed') { btn.style.backgroundColor = '#dc2626'; btn.style.color = 'white'; }
+                    if (s === 'Not Billed') { btn.style.backgroundColor = '#4b5563'; btn.style.color = 'white'; }
                 }
-            } catch (err) {
-                console.error("Auth Failure:", err);
+            });
+        }
+
+        function toggleTheme() {
+            const isLight = document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            document.querySelector('#themeToggle i').className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+        }
+
+        function initTheme() {
+            if (localStorage.getItem('theme') === 'light') {
+                document.body.classList.add('light-mode');
+                document.querySelector('#themeToggle i').className = 'fas fa-sun';
             }
         }
 
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                currentUserId = user.uid;
-                $('authStatus').classList.replace('bg-red-500', 'bg-green-500');
-                loadSettings();
-                fetchData();
-            } else {
-                $('authStatus').classList.replace('bg-green-500', 'bg-red-500');
+        function toggleHistory() {
+            const area = document.getElementById('displayArea');
+            const isColl = area.classList.toggle('collapsed');
+            document.getElementById('historyToggleText').innerText = isColl ? 'Maximize' : 'Minimize';
+            document.getElementById('historyToggleIcon').className = isColl ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+        }
+
+        function toggleHelperVisibility() {
+            const isChecked = document.getElementById('helperSectionToggle').checked;
+            document.getElementById('dayLogsContainer').classList.toggle('hidden', !isChecked);
+            document.getElementById('addHelperBtn').classList.toggle('hidden', !isChecked);
+            if(isChecked && document.getElementById('dayLogsContainer').children.length === 0) addDayRow();
+        }
+
+        async function syncSettings() {
+            const doc = await db.collection("appSettings").doc("userConfig").get();
+            if(doc.exists) {
+                globalSettings = doc.data();
+                document.getElementById('setTarget').value = globalSettings.target || 50000;
+                document.getElementById('setCompanies').value = globalSettings.companies;
+                document.getElementById('setHelpers').value = globalSettings.helpers;
             }
+            loadDropdowns();
+            generateTargetStatusReport();
+        }
+
+        async function saveSettings() {
+            globalSettings = { target: parseFloat(document.getElementById('setTarget').value) || 0, companies: document.getElementById('setCompanies').value, helpers: document.getElementById('setHelpers').value };
+            await db.collection("appSettings").doc("userConfig").set(globalSettings);
+            loadDropdowns(); toggleSettings(); applyFilters();
+        }
+
+        function loadDropdowns() {
+            const comps = (globalSettings.companies || "").split(',');
+            document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
+            const currentYear = new Date().getFullYear();
+            ['filterYear', 'reportYearSelect', 'filterMonth'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el && el.options.length === 0) {
+                    if(id.includes('Year')) { for(let y = currentYear; y >= 2024; y--) { el.add(new Option(y, y)); } }
+                    else { monthNames.forEach((m, i) => el.add(new Option(m, i))); }
+                }
+            });
+        }
+
+        function addDayRow(data = null) {
+            const container = document.getElementById('dayLogsContainer');
+            const dayDiv = document.createElement('div'); dayDiv.className = "day-entry border-l-4 border-blue-500";
+            dayDiv.innerHTML = `
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                    <input type="date" class="input-box h-8 py-0 d-hdate" value="${data?.hDate || document.getElementById('date').value}">
+                    <select class="input-box h-8 py-0 d-helper"></select>
+                </div>
+                <div class="grid grid-cols-4 gap-1">
+                    <input type="number" class="input-box h-8 d-sal px-1 text-center" oninput="calculate()" placeholder="Sal" value="${data?.sal || ''}">
+                    <input type="number" step="0.5" class="input-box h-8 d-ot px-1 text-center" oninput="calculate()" placeholder="OT" value="${data?.ot || ''}">
+                    <input type="number" class="input-box h-8 d-pet px-1 text-center" oninput="calculate()" placeholder="Pet" value="${data?.pet || ''}">
+                    <input type="number" class="input-box h-8 d-food px-1 text-center" oninput="calculate()" placeholder="Food" value="${data?.food || ''}">
+                </div>
+                <button onclick="this.parentElement.remove(); calculate()" class="absolute -top-2 -right-2 bg-red-600 text-white w-5 h-5 rounded-full text-xs">×</button>`;
+            container.appendChild(dayDiv);
+            const helps = (globalSettings.helpers || "").split(',');
+            const sel = dayDiv.querySelector('.d-helper');
+            sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
+            if(data) sel.value = data.helper;
+            calculate();
+        }
+
+        function calculate() {
+            const val = (parseFloat(document.getElementById('totalSqft').value) || 0) * (parseFloat(document.getElementById('amtRate').value) || 0);
+            let totalWages = 0; 
+            document.querySelectorAll('.day-entry').forEach(row => { 
+                const s = parseFloat(row.querySelector('.d-sal').value) || 0;
+                totalWages += s + (s/2 * (parseFloat(row.querySelector('.d-ot').value) || 0)) + (parseFloat(row.querySelector('.d-pet').value) || 0) + (parseFloat(row.querySelector('.d-food').value) || 0);
+            });
+            document.getElementById('resTotal').innerText = "₹" + Math.round(val).toLocaleString();
+            document.getElementById('resExpDisplay').innerText = "₹" + Math.round(totalWages).toLocaleString();
+            return { val, totalWages };
+        }
+
+        async function saveData() {
+            const isH = document.getElementById('isHoliday').checked;
+            const cust = document.getElementById('customer').value.trim();
+            if (!isH && !cust) { showMessage("CUSTOMER REQUIRED"); return; }
+            const cal = calculate(), logs = [];
+            if (!isH && document.getElementById('helperSectionToggle').checked) {
+                document.querySelectorAll('.day-entry').forEach(row => { 
+                    logs.push({ hDate: row.querySelector('.d-hdate').value, helper: row.querySelector('.d-helper').value, sal: row.querySelector('.d-sal').value, ot: row.querySelector('.d-ot').value, pet: row.querySelector('.d-pet').value, food: row.querySelector('.d-food').value }); 
+                });
+            }
+            const data = { 
+                date: document.getElementById('date').value, qn: document.getElementById('qn').value, customer: cust, location: document.getElementById('location').value, projectType: document.getElementById('projectType').value, company: document.getElementById('company').value, windowQty: document.getElementById('windowQty').value, totalSqft: document.getElementById('totalSqft').value, amtRate: document.getElementById('amtRate').value, total: cal.val, logs, isHoliday: isH, comment: isH ? document.getElementById('holidayReason').value : document.getElementById('workNotes').value, paymentStatus: document.getElementById('paymentStatus').value
+            };
+            const id = document.getElementById('editId').value;
+            if(id) await db.collection("workLogs").doc(id).update(data); else await db.collection("workLogs").add(data);
+            location.reload();
+        }
+
+        async function deleteDoc(id) { if(confirm("Delete record?")) { await db.collection("workLogs").doc(id).delete(); showMessage("Deleted"); } }
+
+        db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => { 
+            allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+            applyFilters();
+            generateTargetStatusReport();
         });
 
-        // 3. Settings Management
-        function loadSettings() {
-            const stored = localStorage.getItem('ayyappan_pro_settings');
-            if (stored) {
-                currentSettings = JSON.parse(stored);
-                $('ratePerSqft').value = currentSettings.rate;
-                $('collectionId').value = currentSettings.collection;
-                $('monthlyTarget').value = currentSettings.target || 50000;
-            }
-        }
-
-        function saveSettings() {
-            currentSettings.rate = parseFloat($('ratePerSqft').value) || 12;
-            currentSettings.collection = $('collectionId').value || 'ayyappan_master_data';
-            currentSettings.target = parseFloat($('monthlyTarget').value) || 50000;
-            
-            localStorage.setItem('ayyappan_pro_settings', JSON.stringify(currentSettings));
-            closeSettings();
-            fetchData();
-        }
-
-        function openSettings() { $('settingsModal').classList.remove('hidden'); }
-        function closeSettings() { $('settingsModal').classList.add('hidden'); }
-
-        // 4. Tab Navigation
-        function switchTab(tab) {
-            ['viewAdd', 'viewHistory', 'viewAnalytics'].forEach(v => $(v).classList.add('hidden'));
-            ['tabAdd', 'tabHistory', 'tabAnalytics'].forEach(t => $(t).classList.remove('tab-active'));
-            
-            if (tab === 'add') {
-                $('viewAdd').classList.remove('hidden');
-                $('tabAdd').classList.add('tab-active');
-            } else if (tab === 'history') {
-                $('viewHistory').classList.remove('hidden');
-                $('tabHistory').classList.add('tab-active');
-                fetchData();
-            } else if (tab === 'analytics') {
-                $('viewAnalytics').classList.remove('hidden');
-                $('tabAnalytics').classList.add('tab-active');
-                updateAnalytics();
-            }
-        }
-
-        // 5. Data Operations
-        $('workForm').onsubmit = async (e) => {
-            e.preventDefault();
-            if (!currentUserId) return;
-
-            const btn = $('submitBtn');
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> SYNCING...';
-
-            const entry = {
-                date: $('date').value,
-                site: $('site').value.trim(),
-                sqft: parseFloat($('sqft').value),
-                type: $('type').value,
-                notes: $('notes').value.trim(),
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                userId: currentUserId
-            };
-
-            try {
-                await db.collection('artifacts')
-                        .doc(appId)
-                        .collection('public')
-                        .doc('data')
-                        .collection(currentSettings.collection)
-                        .add(entry);
-                
-                e.target.reset();
-                $('date').valueAsDate = new Date();
-                btn.classList.replace('from-blue-600', 'from-emerald-600');
-                btn.innerHTML = '<i class="fas fa-check"></i> ENTRY RECORDED';
-                
-                setTimeout(() => {
-                    btn.classList.replace('from-emerald-600', 'from-blue-600');
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                    switchTab('history');
-                }, 1500);
-
-            } catch (err) {
-                alert("Cloud Sync Error: " + err.message);
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
-        };
-
-        async function fetchData() {
-            if (!currentUserId) return;
-            $('syncIndicator').classList.remove('hidden');
-            const month = parseInt($('filterMonth').value);
-            const year = parseInt($('filterYear').value);
-            const startDate = new Date(year, month, 1).toISOString().split('T')[0];
-            const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
-
-            try {
-                const snapshot = await db.collection('artifacts')
-                                .doc(appId)
-                                .collection('public')
-                                .doc('data')
-                                .collection(currentSettings.collection)
-                                .where('date', '>=', startDate)
-                                .where('date', '<=', endDate)
-                                .get();
-                
-                workData = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                })).sort((a, b) => b.date.localeCompare(a.date));
-
-                renderHistory();
-                updateStats();
-                updateAnalytics();
-            } catch (err) {
-                console.error("Fetch Failure:", err);
-            } finally {
-                $('syncIndicator').classList.add('hidden');
-            }
-        }
-
-        async function deleteEntry(id) {
-            if (!confirm("Remove this entry from cloud records?")) return;
-            try {
-                await db.collection('artifacts').doc(appId).collection('public').doc('data').collection(currentSettings.collection).doc(id).delete();
-                fetchData();
-            } catch (err) {
-                alert("Delete Failed");
-            }
-        }
-
-        // 6. UI & Analytics
-        function updateStats() {
-            let totalProfit = 0, totalSqft = 0;
-            workData.forEach(item => {
-                const profit = item.type === 'partner' ? (item.sqft * currentSettings.rate) / 2 : (item.sqft * currentSettings.rate);
-                totalProfit += profit;
-                totalSqft += item.sqft;
-            });
-            $('statProfit').innerText = formatCurrency(totalProfit);
-            $('statSqft').innerText = totalSqft.toLocaleString();
-            $('statDays').innerText = workData.length;
-            $('statAvg').innerText = workData.length > 0 ? formatCurrency(totalProfit / workData.length) : '₹0';
-            const targetPct = Math.min(100, Math.round((totalProfit / currentSettings.target) * 100));
-            $('profitTarget').innerText = `${targetPct}% of ₹${(currentSettings.target/1000)}k target`;
-        }
-
-        function renderHistory() {
-            const list = $('historyList');
-            list.innerHTML = workData.length === 0 ? '<div class="text-center py-16 opacity-30"><p class="text-xs font-black uppercase">No records found</p></div>' : '';
-            workData.forEach(item => {
-                const profit = item.type === 'partner' ? (item.sqft * currentSettings.rate) / 2 : (item.sqft * currentSettings.rate);
-                const card = document.createElement('div');
-                card.className = 'glass p-4 rounded-2xl flex justify-between items-center transition-all hover:translate-x-1';
-                card.innerHTML = `
-                    <div class="flex gap-4 items-center">
-                        <div class="w-12 h-12 rounded-xl bg-slate-800/50 flex flex-col items-center justify-center border border-white/5">
-                            <span class="text-[8px] font-black opacity-50 uppercase">${new Date(item.date).toLocaleDateString('en-US', {month: 'short'})}</span>
-                            <span class="text-sm font-black">${new Date(item.date).getDate()}</span>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h4 class="font-black text-sm text-slate-200">${item.site}</h4>
-                                <span class="px-2 py-0.5 rounded-md text-[8px] font-black uppercase ${item.type === 'solo' ? 'bg-blue-500/10 text-blue-400' : 'bg-amber-500/10 text-amber-400'} border border-current opacity-60">${item.type}</span>
-                            </div>
-                            <div class="flex items-center gap-3 mt-1"><span class="text-[10px] text-slate-500 font-bold">${item.sqft} FT²</span></div>
-                        </div>
-                    </div>
-                    <div class="text-right flex flex-col items-end gap-1">
-                        <p class="font-black text-blue-400 text-lg">${formatCurrency(profit)}</p>
-                        <button onclick="deleteEntry('${item.id}')" class="p-2 text-slate-600 hover:text-red-500"><i class="fas fa-trash-alt text-[10px]"></i></button>
-                    </div>`;
-                list.appendChild(card);
-            });
-        }
-
-        function updateAnalytics() {
-            let soloSqft = 0, partnerSqft = 0, totalProfit = 0;
-            workData.forEach(item => {
-                const p = item.type === 'partner' ? (item.sqft * currentSettings.rate)/2 : (item.sqft * currentSettings.rate);
-                totalProfit += p;
-                if (item.type === 'solo') soloSqft += item.sqft; else partnerSqft += item.sqft;
-            });
-            $('anaSolo').innerText = `${soloSqft.toLocaleString()} Sqft`;
-            $('anaPartner').innerText = `${partnerSqft.toLocaleString()} Sqft`;
-            $('anaPartnerAdj').innerText = `${(partnerSqft / 2).toLocaleString()} Sqft`;
-            $('anaAvgRate').innerText = `₹${currentSettings.rate}`;
-            const daysInMonth = new Date(parseInt($('filterYear').value), parseInt($('filterMonth').value) + 1, 0).getDate();
-            $('anaDaily').innerText = formatCurrency(totalProfit / daysInMonth);
-            $('anaMonthly').innerText = formatCurrency(totalProfit);
-        }
-
-        // 7. Robust PDF Export (Mobile Fixed)
-        function downloadPDF() {
-            try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                const m = $('filterMonth').options[$('filterMonth').selectedIndex].text;
-                const y = $('filterYear').value;
-
-                doc.setFillColor(15, 23, 42);
-                doc.rect(0, 0, 210, 40, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(22);
-                doc.setFont("helvetica", "bold");
-                doc.text("AYYAPPAN CONSTRUCTION", 14, 20);
-                doc.setFontSize(10);
-                doc.text(`MONTHLY WORK REPORT: ${m} ${y}`, 14, 30);
-
-                const tableData = workData.map((item, i) => [
-                    i + 1, item.date, item.site, item.sqft, item.type.toUpperCase(),
-                    item.type === 'partner' ? (item.sqft * currentSettings.rate)/2 : (item.sqft * currentSettings.rate)
-                ]);
-
-                doc.autoTable({
-                    startY: 45,
-                    head: [['ID', 'DATE', 'SITE NAME', 'AREA', 'TYPE', 'PROFIT (INR)']],
-                    body: tableData,
-                    foot: [['', '', 'TOTALS', $('statSqft').innerText, '', $('statProfit').innerText]],
-                    theme: 'striped',
-                    headStyles: { fillColor: [59, 130, 246] },
-                    styles: { fontSize: 8 }
-                });
-
-                // MOBILE FIX: Use blob for better compatibility
-                const pdfBlob = doc.output('blob');
-                const blobUrl = URL.createObjectURL(pdfBlob);
-                const filename = `Report_${m}_${y}.pdf`;
-
-                // Check if we are on a mobile device or within an iframe
-                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                
-                if (isMobile) {
-                    // Mobile strategy: Open in new tab or use FileReader to trigger download
-                    const reader = new FileReader();
-                    reader.onloadend = function() {
-                        const base64data = reader.result;
-                        const link = document.createElement('a');
-                        link.href = base64data;
-                        link.download = filename;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                    };
-                    reader.readAsDataURL(pdfBlob);
-                } else {
-                    // Desktop strategy
-                    doc.save(filename);
+        function applyFilters() {
+            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+            let currentEarned = 0, soloEarn = 0, partnerEarn = 0, count = 0;
+            const tbody = document.getElementById('historyTableBody'); tbody.innerHTML = "";
+            allEntries.forEach(d => {
+                const eD = new Date(d.date);
+                if((eD.getMonth() == fM) && (eD.getFullYear() == fY)) {
+                    count++;
+                    let siteExp = 0, helpers = [];
+                    d.logs?.forEach(l => { 
+                        const sVal = parseFloat(l.sal) || 0;
+                        siteExp += sVal + (sVal/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+                        if(!helpers.includes(l.helper)) helpers.push(l.helper); 
+                    });
+                    const net = (parseFloat(d.total)||0) - siteExp;
+                    const share = d.projectType === 'Partner' ? (net/2) : net;
+                    if(!d.isHoliday) { currentEarned += share; if(d.projectType === 'Partner') partnerEarn += share; else soloEarn += share; }
+                    const pStatus = d.paymentStatus || 'Billed';
+                    const statClass = pStatus === 'Received' ? 'status-received' : pStatus === 'Billed' ? 'status-Billed' : 'status-Not Billed';
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${d.date.split('-').slice(1).join('/')}</td>
+                        <td class="opacity-60">${d.qn || '-'}</td>
+                        <td class="font-bold opacity-80">${d.company || '-'}</td>
+                        <td class="font-bold">${d.isHoliday ? 'HOL' : d.customer}</td>
+                        <td class="italic">${helpers.join(', ') || '-'}</td>
+                        <td>${d.windowQty || '-'}</td>
+                        <td class="text-[8px] font-black">${d.projectType[0]}</td>
+                        <td>₹${Math.round(d.total || 0).toLocaleString()}</td>
+                        <td><span class="status-badge ${statClass}">${pStatus}</span></td>
+                        <td class="font-bold">₹${Math.round(share).toLocaleString()}</td>
+                        <td class="space-x-2">
+                            <button onclick="editDoc('${d.id}')" class="text-blue-500"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteDoc('${d.id}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button>
+                        </td>`;
+                    tbody.appendChild(row);
                 }
-            } catch (err) {
-                console.error("PDF Generation Error:", err);
-                alert("Failed to generate PDF. Check console for details.");
-            }
+            });
+            document.getElementById('recordCount').innerText = `${count} records`;
+            document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
+            document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
+            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(soloEarn + partnerEarn).toLocaleString();
+            updateTargetUI(currentEarned);
+        }
+
+        function updateTargetUI(earned) {
+            let target = parseFloat(globalSettings.target) || 50000;
+            const percent = Math.min((earned / target) * 100, 100);
+            document.getElementById('targetBar').style.width = percent + "%";
+            document.getElementById('targetEarned').innerText = `Earned: ₹${Math.round(earned).toLocaleString()}`;
+            document.getElementById('targetGoal').innerText = `Target: ₹${target.toLocaleString()}`;
+            document.getElementById('targetRem').innerText = `₹${Math.max(0, Math.round(target - earned)).toLocaleString()}`;
+        }
+
+        // --- NEW PDF MODAL LOGIC ---
+        function openPdfPreview(pdfDoc, fileName, title) {
+            const pdfBlobUrl = pdfDoc.output('bloburl');
+            document.getElementById('pdfPreviewFrame').src = pdfBlobUrl;
+            document.getElementById('pdfModalTitle').innerText = title;
+            document.getElementById('pdfModal').style.display = 'flex';
+            
+            const downloadBtn = document.getElementById('pdfDownloadBtn');
+            // Clean up previous listeners
+            const newBtn = downloadBtn.cloneNode(true);
+            downloadBtn.parentNode.replaceChild(newBtn, downloadBtn);
+            newBtn.addEventListener('click', () => {
+                pdfDoc.save(fileName);
+                closePdfModal();
+            });
+        }
+
+        function closePdfModal() {
+            document.getElementById('pdfModal').style.display = 'none';
+            document.getElementById('pdfPreviewFrame').src = '';
+        }
+
+        function exportHelperPDF() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
+            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+            doc.text(`Helper Report: ${monthNames[fM]} ${fY}`, 14, 15);
+            const rows = [];
+            allEntries.forEach(entry => {
+                const ed = new Date(entry.date);
+                if(ed.getMonth() == fM && ed.getFullYear() == fY && entry.logs?.length > 0) {
+                    entry.logs.forEach(log => {
+                        const s = parseFloat(log.sal) || 0;
+                        const tot = s + (s/2 * (parseFloat(log.ot)||0)) + (parseFloat(log.pet)||0) + (parseFloat(log.food)||0);
+                        rows.push([log.hDate || entry.date, log.helper, entry.location || '-', entry.customer || 'Site', `Rs. ${s}`, log.ot || 0, `Rs. ${Math.round(tot)}`]);
+                    });
+                }
+            });
+            doc.autoTable({ startY: 25, head: [['Date', 'Helper', 'Location', 'Site', 'Salary', 'OT', 'Total']], body: rows });
+            openPdfPreview(doc, `Helpers_${monthNames[fM]}_${fY}.pdf`, `Helper Report: ${monthNames[fM]} ${fY}`);
+        }
+
+        function exportSoloPDF() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
+            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+            doc.text(`Solo Work Report: ${monthNames[fM]} ${fY}`, 14, 15);
+            const rows = [];
+            allEntries.forEach(d => {
+                const ed = new Date(d.date);
+                if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday && d.projectType === 'Solo') {
+                    let exp = 0, helperNames = [], totalOT = 0;
+                    d.logs?.forEach(l => { 
+                        const s = parseFloat(l.sal)||0; 
+                        exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
+                        if(!helperNames.includes(l.helper)) helperNames.push(l.helper);
+                        totalOT += parseFloat(l.ot) || 0;
+                    });
+                    const net = d.total - exp;
+                    rows.push([d.date, d.qn || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(net)}`]);
+                }
+            });
+            doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Profit']], body: rows });
+            openPdfPreview(doc, `Solo_Work_${monthNames[fM]}_${fY}.pdf`, `Solo Work: ${monthNames[fM]} ${fY}`);
+        }
+
+        function exportPartnerPDF() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
+            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+            doc.text(`Partner Work Report: ${monthNames[fM]} ${fY}`, 14, 15);
+            const rows = [];
+            allEntries.forEach(d => {
+                const ed = new Date(d.date);
+                if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday && d.projectType === 'Partner') {
+                    let exp = 0, helperNames = [], totalOT = 0;
+                    d.logs?.forEach(l => { 
+                        const s = parseFloat(l.sal)||0; 
+                        exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
+                        if(!helperNames.includes(l.helper)) helperNames.push(l.helper);
+                        totalOT += parseFloat(l.ot) || 0;
+                    });
+                    const share = (d.total - exp) / 2;
+                    rows.push([d.date, d.qn || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(share)}`]);
+                }
+            });
+            doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Share (50%)']], body: rows });
+            openPdfPreview(doc, `Partner_Work_${monthNames[fM]}_${fY}.pdf`, `Partner Work: ${monthNames[fM]} ${fY}`);
+        }
+
+        function generateTargetStatusReport() {
+            const container = document.getElementById('annualTargetReportList');
+            const year = document.getElementById('reportYearSelect').value;
+            const target = parseFloat(globalSettings.target) || 50000;
+            container.innerHTML = "";
+            let annual = 0, met = 0, tracked = 0;
+            monthNames.forEach((name, idx) => {
+                let monthlyProfit = 0, hasData = false;
+                allEntries.forEach(d => {
+                    const dD = new Date(d.date);
+                    if(dD.getFullYear() == year && dD.getMonth() == idx && !d.isHoliday) {
+                        hasData = true;
+                        let exp = 0; d.logs?.forEach(l => { const s = parseFloat(l.sal)||0; exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); });
+                        const net = (parseFloat(d.total)||0) - exp;
+                        monthlyProfit += (d.projectType === 'Partner' ? net/2 : net);
+                    }
+                });
+                if(hasData) { tracked++; if(monthlyProfit >= target) met++; annual += monthlyProfit; container.innerHTML += `<div class="bg-white/5 p-3 rounded-xl border border-white/5 flex justify-between"><span>${name}</span><span>₹${Math.round(monthlyProfit).toLocaleString()}</span></div>`; }
+            });
+            document.getElementById('annualTotalVal').innerText = `₹${Math.round(annual).toLocaleString()}`;
+            document.getElementById('annualSuccessRate').innerText = `${tracked > 0 ? Math.round((met/tracked)*100) : 0}%`;
+        }
+
+        function editDoc(id) {
+            const d = allEntries.find(e => e.id === id);
+            document.getElementById('editId').value = id; document.getElementById('date').value = d.date; document.getElementById('customer').value = d.customer; document.getElementById('qn').value = d.qn || "";
+            document.getElementById('location').value = d.location || ""; document.getElementById('windowQty').value = d.windowQty || ""; document.getElementById('totalSqft').value = d.windowQty || ""; document.getElementById('totalSqft').value = d.totalSqft || ""; document.getElementById('amtRate').value = d.amtRate || "";
+            document.getElementById('projectType').value = d.projectType; document.getElementById('isHoliday').checked = d.isHoliday; setPaymentStatus(d.paymentStatus || 'Billed');
+            const logs = d.logs || []; document.getElementById('dayLogsContainer').innerHTML = ""; 
+            if(logs.length > 0) { document.getElementById('helperSectionToggle').checked = true; toggleHelperVisibility(); logs.forEach(l => addDayRow(l)); }
+            else { document.getElementById('helperSectionToggle').checked = false; toggleHelperVisibility(); }
+            checkHoliday(); calculate(); window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function toggleSettings() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
+        function toggleReport() { const m = document.getElementById('smartReportModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; if(m.style.display === 'flex') generatePerformanceInsights(); }
+        function checkHoliday() { const isH = document.getElementById('isHoliday').checked; document.getElementById('workFields').style.display = isH ? 'none' : 'block'; document.getElementById('holidayReasonDiv').classList.toggle('hidden', !isH); document.getElementById('helperGlobalWrapper').style.display = isH ? 'none' : 'block'; }
+        function backupData() { const blob = new Blob([JSON.stringify(allEntries)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `Backup.json`; a.click(); }
+        function restoreData(event) { const file = event.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = async (e) => { const data = JSON.parse(e.target.result); if(confirm(`Import ${data.length} records?`)) { for(const item of data) { delete item.id; await db.collection("workLogs").add(item); } location.reload(); } }; reader.readAsText(file); }
+
+        function generatePerformanceInsights() {
+            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+            let profit = 0, sqft = 0, bill = 0, sites = 0;
+            allEntries.forEach(d => {
+                const ed = new Date(d.date);
+                if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday) {
+                    sites++; let exp = 0; d.logs?.forEach(l => { const s = parseFloat(l.sal)||0; exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); });
+                    const net = d.total - exp; profit += (d.projectType === 'Partner' ? net/2 : net); sqft += (parseFloat(d.totalSqft)||0); bill += (parseFloat(d.total)||0);
+                }
+            });
+            document.getElementById('monthlyBreakdownGrid').innerHTML = `
+                <div class="bg-blue-600/10 p-3 rounded-xl border border-blue-500/20"><div class="text-[9px] opacity-50 uppercase">Profit</div><div class="text-xl font-black text-blue-500">₹${Math.round(profit).toLocaleString()}</div></div>
+                <div class="bg-green-600/10 p-3 rounded-xl border border-green-500/20"><div class="text-[9px] opacity-50 uppercase">Sqft</div><div class="text-xl font-black text-green-500">${sqft}</div></div>`;
         }
 
         function shareWhatsApp() {
-            const m = $('filterMonth').options[$('filterMonth').selectedIndex].text, y = $('filterYear').value;
-            let text = `*🏗️ CONSTRUCTION REPORT - ${m.toUpperCase()} ${y}*\n\n`;
-            workData.forEach(item => {
-                const profit = item.type === 'partner' ? (item.sqft * currentSettings.rate)/2 : (item.sqft * currentSettings.rate);
-                text += `▪️ *${item.site}*\n   ${item.sqft} sqft | ${item.type.toUpperCase()} | *₹${profit.toLocaleString()}*\n\n`;
-            });
-            text += `\n*TOTAL EARNINGS: ${$('statProfit').innerText}*`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`);
+            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+            let msg = `*📊 Work Report: ${monthNames[fM]} ${fY}*\nSolo: ${document.getElementById('tblSolo').innerText}\nPartner: ${document.getElementById('tblPartnerMine').innerText}\n*TOTAL: ${document.getElementById('tblGrandTotal').innerText}*`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        function copyToClipboard(id) {
-            const input = $(id); input.select(); document.execCommand('copy'); alert("Copied");
-        }
-
-        window.onload = () => {
-            const now = new Date();
-            $('date').valueAsDate = now;
-            $('filterYear').value = now.getFullYear();
-            $('filterMonth').value = now.getMonth();
-            initAuth();
+        window.onload = async () => { 
+            const now = new Date(); initTheme();
+            document.getElementById('date').valueAsDate = now; 
+            await syncSettings(); 
+            document.getElementById('filterMonth').value = now.getMonth();
+            document.getElementById('filterYear').value = now.getFullYear();
+            applyFilters(); fetchDailyKural();
         };
-
     </script>
 </body>
 </html>
