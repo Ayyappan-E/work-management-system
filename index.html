@@ -56,7 +56,7 @@
         
         .summary-footer { background: var(--footer-bg); border-top: 1px solid var(--glass-border); padding: 15px; border-radius: 20px 20px 0 0; }
 
-        /* PDF View Specific Improvements */
+        /* PDF Modal Styles */
         .pdf-modal-content { width: 100%; max-width: 500px; height: 85vh; display: flex; flex-direction: column; }
         #pdfIframe { flex-grow: 1; width: 100%; border: none; background: white; border-radius: 8px; }
     </style>
@@ -173,7 +173,7 @@
         </div>
     </div>
 
-    <!-- Settings Modal -->
+    <!-- Modals -->
     <div id="settingsModal" class="modal">
         <div class="glass p-5 w-full max-w-sm space-y-4">
              <div class="flex justify-between items-center border-b border-white/10 pb-2">
@@ -189,17 +189,17 @@
         </div>
     </div>
 
-    <!-- PDF Preview Modal (FIX FOR MOBILE) -->
+    <!-- PDF Preview Modal -->
     <div id="pdfModal" class="modal">
         <div class="glass p-4 pdf-modal-content">
             <div class="flex justify-between items-center mb-2">
-                <span id="pdfTitle" class="text-xs font-black text-blue-500 uppercase">Report Preview</span>
-                <button onclick="closePdfModal()" class="text-white bg-red-600 w-6 h-6 rounded-full flex items-center justify-center font-bold">×</button>
+                <span class="text-xs font-black text-blue-500 uppercase">Report Preview</span>
+                <button onclick="closePdfModal()" class="text-white bg-red-600 w-6 h-6 rounded-full flex items-center justify-center">×</button>
             </div>
-            <div id="pdfIframeContainer" class="flex-grow bg-white rounded overflow-hidden shadow-inner">
+            <div class="flex-grow bg-white rounded overflow-hidden">
                 <iframe id="pdfIframe"></iframe>
             </div>
-            <button id="pdfDownloadBtn" class="w-full mt-3 bg-blue-600 text-white py-4 rounded-xl font-black uppercase text-xs shadow-lg">Download File</button>
+            <button id="pdfDownloadBtn" class="w-full mt-3 bg-blue-600 text-white py-3 rounded-xl font-black uppercase text-xs">Download PDF</button>
         </div>
     </div>
 
@@ -393,14 +393,14 @@
             document.getElementById('targetRem').innerText = `₹${Math.max(0, Math.round(target - earned)).toLocaleString()}`;
         }
 
-        // MOBILE-OPTIMIZED PDF LOGIC
-        function showPdfPreview(doc, filename) {
-            const pdfDataUri = doc.output('datauristring');
+        /* NEW PDF PREVIEW LOGIC */
+        function openPdfPreview(doc, filename) {
+            const pdfUri = doc.output('datauristring');
             const modal = document.getElementById('pdfModal');
             const iframe = document.getElementById('pdfIframe');
             const downloadBtn = document.getElementById('pdfDownloadBtn');
             
-            iframe.src = pdfDataUri;
+            iframe.src = pdfUri;
             modal.style.display = 'flex';
             
             downloadBtn.onclick = () => {
@@ -430,7 +430,7 @@
                 }
             });
             doc.autoTable({ startY: 20, head: [['Date', 'Helper', 'Site', 'Sal', 'OT', 'Total']], body: rows });
-            showPdfPreview(doc, `Helpers_${monthNames[fM]}.pdf`);
+            openPdfPreview(doc, `Helpers_${monthNames[fM]}.pdf`);
         }
 
         function exportSoloPDF() {
@@ -446,7 +446,7 @@
                 }
             });
             doc.autoTable({ startY: 20, head: [['Date', 'QN', 'Customer', 'Location', 'Bill', 'Exp', 'Net']], body: rows });
-            showPdfPreview(doc, `Solo_${monthNames[fM]}.pdf`);
+            openPdfPreview(doc, `Solo_${monthNames[fM]}.pdf`);
         }
 
         function exportPartnerPDF() {
@@ -462,7 +462,7 @@
                 }
             });
             doc.autoTable({ startY: 20, head: [['Date', 'QN', 'Customer', 'Location', 'Bill', 'Exp', 'My Share']], body: rows });
-            showPdfPreview(doc, `Partner_${monthNames[fM]}.pdf`);
+            openPdfPreview(doc, `Partner_${monthNames[fM]}.pdf`);
         }
 
         function editDoc(id) {
