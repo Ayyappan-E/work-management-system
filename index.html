@@ -157,7 +157,6 @@
 
         #msgBox { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 200; min-width: 250px; text-align: center; border-radius: 12px; padding: 12px 24px; font-weight: bold; }
         
-        /* New Avatar Styles */
         .kural-avatar {
             width: 50px;
             height: 50px;
@@ -167,6 +166,15 @@
             object-fit: cover;
             flex-shrink: 0;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* PDF Preview Specific */
+        #pdfPreviewFrame {
+            width: 100%;
+            height: 70vh;
+            border: none;
+            background: white;
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -339,6 +347,21 @@
         </div>
     </div>
 
+    <!-- PDF Preview Modal -->
+    <div id="pdfModal" class="modal">
+        <div class="glass p-4 w-full max-w-4xl space-y-4">
+            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                <h2 id="pdfModalTitle" class="text-sm font-black text-blue-400 uppercase tracking-widest">Document Preview</h2>
+                <button onclick="closePdfModal()" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <iframe id="pdfPreviewFrame"></iframe>
+            <div class="flex gap-2">
+                <button id="pdfDownloadBtn" class="flex-1 bg-blue-600 py-3 rounded-xl font-black text-white uppercase text-xs shadow-lg">Download PDF</button>
+                <button onclick="closePdfModal()" class="px-6 bg-slate-700 py-3 rounded-xl font-bold text-white uppercase text-xs">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Settings Modal -->
     <div id="settingsModal" class="modal">
         <div class="glass p-5 w-full max-sm max-h-[95vh] overflow-y-auto space-y-4">
@@ -399,7 +422,7 @@
             try {
                 const section = document.getElementById('kuralSection');
                 section.classList.remove('hidden');
-                section.style.display = 'flex'; // Ensure it's flex for avatar alignment
+                section.style.display = 'flex';
                 const systemPrompt = "Return ONLY a JSON object with: 'number' (num), 'tamil' (2 lines Tamil), 'meaning' (simple Tamil explanation). Randomly pick one from 1330 Thirukkural.";
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -605,6 +628,28 @@
             document.getElementById('targetRem').innerText = `₹${Math.max(0, Math.round(target - earned)).toLocaleString()}`;
         }
 
+        // --- NEW PDF MODAL LOGIC ---
+        function openPdfPreview(pdfDoc, fileName, title) {
+            const pdfBlobUrl = pdfDoc.output('bloburl');
+            document.getElementById('pdfPreviewFrame').src = pdfBlobUrl;
+            document.getElementById('pdfModalTitle').innerText = title;
+            document.getElementById('pdfModal').style.display = 'flex';
+            
+            const downloadBtn = document.getElementById('pdfDownloadBtn');
+            // Clean up previous listeners
+            const newBtn = downloadBtn.cloneNode(true);
+            downloadBtn.parentNode.replaceChild(newBtn, downloadBtn);
+            newBtn.addEventListener('click', () => {
+                pdfDoc.save(fileName);
+                closePdfModal();
+            });
+        }
+
+        function closePdfModal() {
+            document.getElementById('pdfModal').style.display = 'none';
+            document.getElementById('pdfPreviewFrame').src = '';
+        }
+
         function exportHelperPDF() {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
             const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
@@ -621,7 +666,7 @@
                 }
             });
             doc.autoTable({ startY: 25, head: [['Date', 'Helper', 'Location', 'Site', 'Salary', 'OT', 'Total']], body: rows });
-            doc.save(`Helpers_${monthNames[fM]}_${fY}.pdf`);
+            openPdfPreview(doc, `Helpers_${monthNames[fM]}_${fY}.pdf`, `Helper Report: ${monthNames[fM]} ${fY}`);
         }
 
         function exportSoloPDF() {
@@ -632,9 +677,7 @@
             allEntries.forEach(d => {
                 const ed = new Date(d.date);
                 if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday && d.projectType === 'Solo') {
-                    let exp = 0;
-                    let helperNames = [];
-                    let totalOT = 0;
+                    let exp = 0, helperNames = [], totalOT = 0;
                     d.logs?.forEach(l => { 
                         const s = parseFloat(l.sal)||0; 
                         exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
@@ -642,11 +685,11 @@
                         totalOT += parseFloat(l.ot) || 0;
                     });
                     const net = d.total - exp;
-                    rows.push([d.date, d.company || '-', d.customer, helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(net)}`]);
+                    rows.push([d.date, d.qn || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(net)}`]);
                 }
             });
-            doc.autoTable({ startY: 25, head: [['Date', 'Company', 'Customer', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Profit']], body: rows });
-            doc.save(`Solo_Work_${monthNames[fM]}_${fY}.pdf`);
+            doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Profit']], body: rows });
+            openPdfPreview(doc, `Solo_Work_${monthNames[fM]}_${fY}.pdf`, `Solo Work: ${monthNames[fM]} ${fY}`);
         }
 
         function exportPartnerPDF() {
@@ -657,9 +700,7 @@
             allEntries.forEach(d => {
                 const ed = new Date(d.date);
                 if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday && d.projectType === 'Partner') {
-                    let exp = 0;
-                    let helperNames = [];
-                    let totalOT = 0;
+                    let exp = 0, helperNames = [], totalOT = 0;
                     d.logs?.forEach(l => { 
                         const s = parseFloat(l.sal)||0; 
                         exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
@@ -667,11 +708,11 @@
                         totalOT += parseFloat(l.ot) || 0;
                     });
                     const share = (d.total - exp) / 2;
-                    rows.push([d.date, d.company || '-', d.customer, helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(share)}`]);
+                    rows.push([d.date, d.qn || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(share)}`]);
                 }
             });
-            doc.autoTable({ startY: 25, head: [['Date', 'Company', 'Customer', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Share (50%)']], body: rows });
-            doc.save(`Partner_Work_${monthNames[fM]}_${fY}.pdf`);
+            doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Share (50%)']], body: rows });
+            openPdfPreview(doc, `Partner_Work_${monthNames[fM]}_${fY}.pdf`, `Partner Work: ${monthNames[fM]} ${fY}`);
         }
 
         function generateTargetStatusReport() {
@@ -700,7 +741,7 @@
         function editDoc(id) {
             const d = allEntries.find(e => e.id === id);
             document.getElementById('editId').value = id; document.getElementById('date').value = d.date; document.getElementById('customer').value = d.customer; document.getElementById('qn').value = d.qn || "";
-            document.getElementById('location').value = d.location || ""; document.getElementById('windowQty').value = d.windowQty || ""; document.getElementById('totalSqft').value = d.totalSqft || ""; document.getElementById('amtRate').value = d.amtRate || "";
+            document.getElementById('location').value = d.location || ""; document.getElementById('windowQty').value = d.windowQty || ""; document.getElementById('totalSqft').value = d.windowQty || ""; document.getElementById('totalSqft').value = d.totalSqft || ""; document.getElementById('amtRate').value = d.amtRate || "";
             document.getElementById('projectType').value = d.projectType; document.getElementById('isHoliday').checked = d.isHoliday; setPaymentStatus(d.paymentStatus || 'Billed');
             const logs = d.logs || []; document.getElementById('dayLogsContainer').innerHTML = ""; 
             if(logs.length > 0) { document.getElementById('helperSectionToggle').checked = true; toggleHelperVisibility(); logs.forEach(l => addDayRow(l)); }
