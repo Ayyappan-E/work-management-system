@@ -17,372 +17,757 @@
             --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
             --text-main: #f1f5f9;
             --text-dim: #94a3b8;
-            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-bg: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
-            --accent: #3b82f6;
-            --success: #10b981;
-            --danger: #ef4444;
+            --input-bg: rgba(0,0,0,0.4);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --footer-bg: rgba(15, 23, 42, 0.8);
+            --watermark-color: rgba(255, 255, 255, 0.03);
         }
 
-        .theme-light {
+        .light-mode {
             --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            --text-main: #0f172a;
+            --text-main: #1e293b;
             --text-dim: #64748b;
-            --glass-bg: rgba(255, 255, 255, 0.8);
-            --glass-border: rgba(0, 0, 0, 0.05);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --card-bg: rgba(0, 0, 0, 0.02);
+            --footer-bg: rgba(241, 245, 249, 0.9);
+            --watermark-color: rgba(0, 0, 0, 0.02);
         }
 
-        body {
-            background: var(--bg-gradient);
-            color: var(--text-main);
-            min-height: 100vh;
-            font-family: 'Inter', sans-serif;
+        body { 
+            background: var(--bg-gradient); 
+            color: var(--text-main); 
+            min-height: 100vh; 
+            font-family: 'Inter', sans-serif; 
+            transition: background 0.3s ease, color 0.3s ease;
+            position: relative;
+        }
+
+        body::before {
+            content: "AYYAPPAN PRO";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 8vw;
+            font-weight: 900;
+            color: var(--watermark-color);
+            z-index: -1;
+            pointer-events: none;
+            white-space: nowrap;
+            letter-spacing: 0.5rem;
+        }
+
+        .glass { 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid var(--glass-border); 
+            border-radius: 1rem; 
+        }
+
+        .input-box { 
+            background: var(--input-bg); 
+            border: 1px solid #475569; 
+            border-radius: 0.6rem; 
+            padding: 0.7rem; 
+            color: inherit; 
+            width: 100%; 
+            outline: none; 
+            font-size: 14px; 
+        }
+
+        label { font-size: 11px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; display: block; letter-spacing: 0.5px; }
+        
+        .day-entry { 
+            background: var(--card-bg); 
+            border: 1px solid var(--glass-border); 
+            padding: 12px; 
+            border-radius: 12px; 
+            margin-bottom: 10px; 
+            position: relative; 
+        }
+
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+        
+        .summary-section { 
+            margin-top: 2rem;
+            background: var(--footer-bg); 
+            border-top: 3px solid #3b82f6; 
+            padding: 20px 12px; 
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .excel-table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            max-height: 500px;
+            margin-bottom: 1.5rem;
             transition: all 0.3s ease;
         }
 
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        .excel-table-container.collapsed {
+            max-height: 0;
+            margin-bottom: 0;
+            border: 0;
+            opacity: 0;
+            pointer-events: none;
         }
 
-        .input-field {
-            background: rgba(15, 23, 42, 0.05);
-            border: 1px solid var(--glass-border);
-            color: inherit;
-            border-radius: 0.75rem;
-            padding: 0.6rem 0.8rem;
-            font-size: 0.875rem;
+        .excel-table {
             width: 100%;
-            transition: all 0.2s;
+            border-collapse: collapse;
+            font-size: 10.5px;
+            white-space: nowrap;
+        }
+        .excel-table th {
+            position: sticky;
+            top: 0;
+            background: #1e1b4b;
+            padding: 12px 10px;
+            text-align: left;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            border-bottom: 2px solid var(--glass-border);
+            font-weight: 800;
+            z-index: 10;
+        }
+        .light-mode .excel-table th { background: #e2e8f0; }
+        .excel-table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--glass-border);
         }
 
-        .input-field:focus {
-            border-color: var(--accent);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider:before { transform: translateX(14px); }
+
+        .status-badge { padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 900; text-transform: uppercase; }
+        .status-received { background: #059669; color: white; }
+        .status-Billed { background: #dc2626; color: white; }
+        .status-Not Billed { background: #4b5563; color: white; }
+
+        #msgBox { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 200; min-width: 250px; text-align: center; border-radius: 12px; padding: 12px 24px; font-weight: bold; }
+        
+        .kural-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #eab308;
+            background: #000;
+            object-fit: cover;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        /* PDF Preview Modal Styles */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 10px; }
-        .glass-modal { background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1.5rem; }
-        .pdf-modal-container { width: 100%; max-width: 550px; height: 85vh; display: flex; flex-direction: column; }
-        #pdfIframe { flex-grow: 1; width: 100%; border: none; background: white; border-radius: 12px; }
-
-        .stat-card {
-            transition: transform 0.2s;
-            cursor: default;
+        /* PDF Preview Specific */
+        #pdfPreviewFrame {
+            width: 100%;
+            height: 70vh;
+            border: none;
+            background: white;
+            border-radius: 8px;
         }
-        .stat-card:hover { transform: translateY(-5px); }
-
-        .btn-action {
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .btn-action:active { transform: scale(0.95); }
-
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 md:p-6 lg:p-8">
-    <div class="max-w-7xl mx-auto space-y-6">
-        <!-- Top Nav -->
-        <header class="flex flex-col md:flex-row justify-between items-center gap-4 glass-panel p-4 px-6">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-600/20">A</div>
-                <div>
-                    <h1 class="text-xl font-black tracking-tighter italic">AYYAPPAN <span class="text-blue-500">PRO</span></h1>
-                    <p id="kuralText" class="text-[10px] text-slate-500 italic max-w-xs truncate"></p>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-4">
-                <div class="flex bg-black/10 rounded-xl p-1">
-                    <select id="filterMonth" class="bg-transparent text-sm font-bold px-3 py-1.5 focus:outline-none"></select>
-                    <select id="filterYear" class="bg-transparent text-sm font-bold px-3 py-1.5 focus:outline-none"></select>
-                </div>
-                <button onclick="toggleTheme()" class="w-10 h-10 glass-panel flex items-center justify-center rounded-xl hover:bg-white/10">
-                    <i class="fas fa-moon text-xs"></i>
-                </button>
-                <button onclick="document.getElementById('settingsModal').classList.toggle('hidden')" class="w-10 h-10 glass-panel flex items-center justify-center rounded-xl hover:bg-white/10">
-                    <i class="fas fa-cog text-xs"></i>
-                </button>
-            </div>
-        </header>
+<body class="p-4">
 
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="glass-panel p-5 stat-card border-b-4 border-blue-500">
-                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Net Earnings</div>
-                <div id="tblGrandTotal" class="text-2xl font-black">₹0</div>
-            </div>
-            <div class="glass-panel p-5 stat-card border-b-4 border-indigo-500">
-                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Solo Only</div>
-                <div id="tblSolo" class="text-2xl font-black">₹0</div>
-            </div>
-            <div class="glass-panel p-5 stat-card border-b-4 border-purple-500">
-                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Partner Share</div>
-                <div id="tblPartnerMine" class="text-2xl font-black">₹0</div>
-            </div>
-            <div class="glass-panel p-5 stat-card border-b-4 border-rose-500">
-                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Helper Wage</div>
-                <div id="tblTotalExp" class="text-2xl font-black text-rose-500">₹0</div>
+    <div id="msgBox" class="bg-blue-600 text-white shadow-2xl"></div>
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Daily Thirukkural Section -->
+        <div id="kuralSection" class="glass p-4 mb-6 hidden border-l-4 border-yellow-500 flex items-start gap-4 shadow-xl">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6AonqI7C6YpP7t_v-nEw82e-9C08HlD-F_w&s" alt="Thiruvalluvar" class="kural-avatar">
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-yellow-500 text-black text-[9px] font-black px-2 py-0.5 rounded uppercase">Daily Thirukkural</span>
+                    <span id="kuralNumber" class="text-[10px] font-bold opacity-60"></span>
+                </div>
+                <p id="kuralTamil" class="text-sm font-bold mb-2 leading-relaxed text-yellow-500"></p>
+                <p id="kuralMeaning" class="text-xs italic opacity-80 leading-snug"></p>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Left: Form -->
-            <div class="glass-panel p-6 space-y-4">
-                <h2 class="font-black text-sm uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                    <i class="fas fa-plus-circle text-blue-500"></i> New Work Entry
-                </h2>
-                
-                <div class="space-y-3">
-                    <input type="date" id="date" class="input-field font-bold">
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="qnNo" placeholder="QN Number" class="input-field">
-                        <input type="text" id="company" placeholder="Customer Name" class="input-field">
-                    </div>
-                    
-                    <div class="bg-black/5 p-4 rounded-2xl space-y-3 border border-white/5">
-                        <div class="text-[10px] font-bold opacity-50 uppercase">Billing Specs</div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="number" id="sqft" placeholder="Total Sqft" oninput="calculate()" class="input-field">
-                            <input type="number" id="rate" placeholder="Rate / Sqft" oninput="calculate()" class="input-field">
-                        </div>
-                    </div>
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="font-black text-2xl italic uppercase tracking-tighter text-blue-500">Ayyappan Pro <span class="text-white/40 font-normal text-xs not-italic lowercase">manager</span></h1>
+            <div class="flex gap-3">
+                <button id="themeToggle" onclick="toggleTheme()" class="w-10 h-10 glass flex items-center justify-center text-yellow-400"><i class="fas fa-moon"></i></button>
+                <button onclick="toggleSettings()" class="w-10 h-10 glass flex items-center justify-center text-blue-400"><i class="fas fa-cog"></i></button>
+            </div>
+        </div>
 
-                    <div class="bg-red-500/5 p-4 rounded-2xl space-y-3 border border-red-500/10">
-                        <div class="text-[10px] font-bold text-red-400 uppercase">Helper Expenses</div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="number" id="helperWage" placeholder="Base Wage" oninput="calculate()" class="input-field">
-                            <input type="number" id="ot" placeholder="OT Amt" oninput="calculate()" class="input-field">
-                            <input type="number" id="food" placeholder="Food" oninput="calculate()" class="input-field">
-                            <input type="number" id="petrol" placeholder="Petrol" oninput="calculate()" class="input-field">
-                        </div>
-                    </div>
+        <!-- Target UI -->
+        <div class="glass p-4 mb-6 border-l-4 border-yellow-500 shadow-lg max-w-md mx-auto">
+            <div class="flex justify-between items-end mb-2">
+                <label id="targetLabel" class="m-0 text-yellow-500 font-black">Target Progress</label>
+                <span id="targetRem" class="text-xs font-bold">₹0</span>
+            </div>
+            <div class="w-full bg-black/10 h-3 rounded-full mb-2"><div id="targetBar" class="bg-yellow-500 h-full rounded-full transition-all duration-700" style="width:0%"></div></div>
+            <div class="flex justify-between text-[10px] font-bold opacity-70"><span id="targetEarned">Earned: ₹0</span><span id="targetGoal">Target: ₹0</span></div>
+        </div>
 
-                    <label class="flex items-center gap-3 p-3 glass-panel cursor-pointer hover:bg-white/5 transition">
-                        <input type="checkbox" id="isPartner" class="w-5 h-5 accent-blue-600 rounded-lg">
-                        <div class="flex flex-col">
-                            <span class="text-sm font-bold">Partner Work</span>
-                            <span class="text-[10px] opacity-50">Split profit 50/50 with partner</span>
-                        </div>
-                    </label>
-
-                    <button onclick="saveData()" id="saveBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-600/20 uppercase tracking-widest text-xs">
-                        Save Entry Securely
-                    </button>
+        <!-- Entry Form -->
+        <div class="glass p-5 mb-8 space-y-5 border-t-4 border-blue-600 shadow-2xl max-w-md mx-auto">
+            <input type="hidden" id="editId">
+            <div class="grid grid-cols-2 gap-4">
+                <div><label>Work Date</label><input type="date" id="date" class="input-box"></div>
+                <div><label>Quotation No</label><input type="text" id="qn" class="input-box" placeholder="QN-XXXX"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 bg-black/10 p-3 rounded-xl border border-white/10">
+                <div class="flex items-center gap-2"><input type="checkbox" id="isHoliday" onchange="checkHoliday()" class="w-5 h-5 accent-red-500"><label class="m-0 text-red-500">Holiday</label></div>
+                <select id="projectType" class="bg-transparent text-xs font-black text-blue-500 uppercase outline-none"><option value="Solo">Solo Work</option><option value="Partner">Partner Work</option></select>
+            </div>
+            
+            <div id="workFields" class="space-y-5">
+                <div><label>Company</label><select id="company" class="input-box"></select></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label>Customer Name *</label><input type="text" id="customer" class="input-box"></div>
+                    <div><label>Site Location</label><input type="text" id="location" class="input-box"></div>
                 </div>
+
+                <div id="helperGlobalWrapper" class="bg-blue-600/5 p-4 rounded-xl border border-white/10">
+                    <div class="flex justify-between items-center mb-3">
+                        <div class="flex items-center gap-2">
+                            <label class="text-blue-500 m-0">Helper Logs</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="helperSectionToggle" onchange="toggleHelperVisibility()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <button id="addHelperBtn" onclick="addDayRow()" class="hidden text-[10px] bg-blue-600 text-white px-3 py-1 rounded uppercase font-bold">+ Helper</button>
+                    </div>
+                    <div id="dayLogsContainer" class="hidden space-y-3"></div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div><label>Windows Qty</label><input type="number" id="windowQty" class="input-box" placeholder="Qty"></div>
+                    <div><label>Total Sqft</label><input type="number" id="totalSqft" oninput="calculate()" class="input-box" placeholder="Sqft"></div>
+                    <div><label>Rate / Sqft</label><input type="number" id="amtRate" oninput="calculate()" class="input-box" placeholder="Rate"></div>
+                </div>
+
+                <div class="flex justify-between items-center p-4 bg-black/5 rounded-2xl border border-white/10">
+                    <div><label class="m-0 text-green-500">Gross Bill</label><div id="resTotal" class="text-xl font-black text-green-500">₹0</div></div>
+                    <div class="text-right"><label class="m-0 text-red-500">Total Wages</label><div id="resExpDisplay" class="text-lg font-bold text-red-500">₹0</div></div>
+                </div>
+                <div><label>Work Description</label><textarea id="workNotes" class="input-box h-16"></textarea></div>
             </div>
 
-            <!-- Right: Table & Reports -->
-            <div class="lg:col-span-2 glass-panel p-6 flex flex-col">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <h2 class="font-black text-sm uppercase tracking-widest text-slate-500">Monthly Transactions</h2>
-                    <div class="flex gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
-                        <button onclick="exportHelperPDF()" class="text-[9px] font-black uppercase bg-emerald-600/20 text-emerald-400 border border-emerald-500/20 px-3 py-2 rounded-xl whitespace-nowrap">Helper Report</button>
-                        <button onclick="exportSoloPDF()" class="text-[9px] font-black uppercase bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 px-3 py-2 rounded-xl whitespace-nowrap">Solo Report</button>
-                        <button onclick="exportPartnerPDF()" class="text-[9px] font-black uppercase bg-blue-600/20 text-blue-400 border border-blue-500/20 px-3 py-2 rounded-xl whitespace-nowrap">Partner Report</button>
-                        <button onclick="shareWhatsApp()" class="bg-green-600 w-9 h-9 flex items-center justify-center rounded-xl shrink-0"><i class="fab fa-whatsapp"></i></button>
-                    </div>
-                </div>
+            <div id="holidayReasonDiv" class="hidden"><label>Holiday Remark *</label><textarea id="holidayReason" class="input-box h-16"></textarea></div>
 
-                <div class="flex-grow overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead>
-                            <tr class="text-[10px] font-black text-slate-500 uppercase tracking-tighter border-b border-white/5">
-                                <th class="pb-3 pl-2">Date & Site</th>
-                                <th class="pb-3">Billing</th>
-                                <th class="pb-3 text-right pr-2">Net Profit</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dataTable"></tbody>
-                    </table>
+            <div class="p-3 bg-white/5 rounded-xl border border-white/10">
+                <label>Payment Status</label>
+                <div class="flex gap-2">
+                    <button onclick="setPaymentStatus('Received')" id="btnReceived" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase border border-white/10 transition-all opacity-40">Received</button>
+                    <button onclick="setPaymentStatus('Billed')" id="btnBilled" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase border border-white/10 transition-all opacity-40">Billed</button>
+                    <button onclick="setPaymentStatus('Not Billed')" id="btnNot Billed" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase border border-white/10 transition-all opacity-40">Not Billed</button>
+                    <input type="hidden" id="paymentStatus" value="Billed">
                 </div>
+            </div>
+            
+            <div class="grid grid-cols-3 gap-3">
+                <button onclick="saveData()" class="col-span-2 bg-blue-600 text-white py-4 rounded-2xl font-black uppercase shadow-lg active:scale-95 transition-transform">Save Record</button>
+                <button onclick="location.reload()" class="bg-slate-700 py-4 rounded-2xl font-bold text-white text-xs opacity-80">Reset</button>
+            </div>
+        </div>
 
-                <div id="monthlyBreakdownGrid" class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-white/5"></div>
+        <!-- History -->
+        <div class="flex justify-between items-center mb-4 px-1">
+            <h3 id="historyTitle" class="text-sm font-black uppercase text-blue-500 tracking-wide">Site History</h3>
+            <div class="flex items-center gap-3">
+                <span id="recordCount" class="text-[9px] font-bold opacity-40 uppercase"></span>
+                <button onclick="toggleHistory()" class="text-[10px] font-black uppercase text-blue-500 flex items-center gap-2">
+                    <span id="historyToggleText">Minimize</span>
+                    <i id="historyToggleIcon" class="fas fa-chevron-up"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div id="displayArea" class="excel-table-container">
+            <table class="excel-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>QN</th>
+                        <th>Company</th>
+                        <th>Customer</th>
+                        <th>Helpers</th>
+                        <th>Qty</th>
+                        <th>Type</th>
+                        <th>Bill</th>
+                        <th>Status</th>
+                        <th>Net</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="summary-section mt-8 max-w-md mx-auto">
+            <div class="bg-black/20 rounded-2xl border border-white/10 overflow-hidden mb-4">
+                <table class="w-full text-xs">
+                    <tbody>
+                        <tr class="border-b border-white/5"><td class="p-2 px-4 opacity-70">Solo Earnings</td><td id="tblSolo" class="p-2 text-right px-4 text-green-500 font-bold">₹0</td></tr>
+                        <tr class="border-b border-white/5"><td class="p-2 px-4 opacity-70">Partner Earnings</td><td id="tblPartnerMine" class="p-2 text-right px-4 text-blue-500 font-bold">₹0</td></tr>
+                        <tr class="bg-blue-600/10"><td class="p-3 px-4 font-black">TOTAL EARNED</td><td id="tblGrandTotal" class="p-3 text-right px-4 text-yellow-500 text-lg font-black">₹0</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <select id="filterMonth" onchange="applyFilters()" class="input-box py-2 text-[10px] font-bold uppercase"></select>
+                <select id="filterYear" onchange="applyFilters()" class="input-box py-2 text-[10px] font-bold uppercase"></select>
+            </div>
+
+            <div class="grid grid-cols-1 gap-2">
+                <button onclick="shareWhatsApp()" class="w-full bg-[#25D366] py-3 rounded-xl font-black text-white uppercase text-[10px] shadow-lg flex items-center justify-center gap-2">
+                    <i class="fab fa-whatsapp text-lg"></i> Send WhatsApp Report
+                </button>
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="exportHelperPDF()" class="w-full bg-emerald-600 py-3 rounded-xl font-black text-white uppercase text-[8px] shadow-lg flex items-center justify-center flex-col gap-1">
+                        <i class="fas fa-users"></i> Helper
+                    </button>
+                    <button onclick="exportSoloPDF()" class="w-full bg-indigo-600 py-3 rounded-xl font-black text-white uppercase text-[8px] shadow-lg flex items-center justify-center flex-col gap-1">
+                        <i class="fas fa-user"></i> Solo
+                    </button>
+                    <button onclick="exportPartnerPDF()" class="w-full bg-blue-600 py-3 rounded-xl font-black text-white uppercase text-[8px] shadow-lg flex items-center justify-center flex-col gap-1">
+                        <i class="fas fa-handshake"></i> Partner
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- PDF Modal Structure -->
+    <!-- PDF Preview Modal -->
     <div id="pdfModal" class="modal">
-        <div class="glass-modal p-4 pdf-modal-container">
-            <div class="flex justify-between items-center mb-3 px-2">
-                <span class="text-xs font-black text-blue-400 uppercase tracking-widest">Preview Document</span>
-                <button onclick="closePdfModal()" class="text-white bg-red-600/80 w-8 h-8 rounded-full flex items-center justify-center font-bold">×</button>
+        <div class="glass p-4 w-full max-w-4xl space-y-4">
+            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                <h2 id="pdfModalTitle" class="text-sm font-black text-blue-400 uppercase tracking-widest">Document Preview</h2>
+                <button onclick="closePdfModal()" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
             </div>
-            <div class="flex-grow bg-white rounded-xl overflow-hidden">
-                <iframe id="pdfIframe"></iframe>
+            <iframe id="pdfPreviewFrame"></iframe>
+            <div class="flex gap-2">
+                <button id="pdfDownloadBtn" class="flex-1 bg-blue-600 py-3 rounded-xl font-black text-white uppercase text-xs shadow-lg">Download PDF</button>
+                <button onclick="closePdfModal()" class="px-6 bg-slate-700 py-3 rounded-xl font-bold text-white uppercase text-xs">Close</button>
             </div>
-            <button id="pdfDownloadBtn" class="w-full mt-4 bg-blue-600 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-blue-600/20">Download File</button>
         </div>
     </div>
 
     <!-- Settings Modal -->
-    <div id="settingsModal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center p-4">
-        <div class="glass-panel p-8 w-full max-w-md space-y-6">
-            <h2 class="text-2xl font-black">Sync Settings</h2>
-            <div class="space-y-4">
-                <div>
-                    <label class="text-xs font-bold opacity-50 block mb-1 uppercase tracking-widest">Firebase Collection</label>
-                    <input type="text" id="settingCollection" class="input-field" placeholder="works">
+    <div id="settingsModal" class="modal">
+        <div class="glass p-5 w-full max-sm max-h-[95vh] overflow-y-auto space-y-4">
+            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                <h2 class="text-sm font-black text-blue-400 uppercase tracking-widest">Global Settings</h2>
+                <button onclick="toggleSettings()" class="text-gray-500"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="bg-black/20 p-4 rounded-2xl border border-white/10">
+                <div class="flex justify-between items-center mb-4"><label class="m-0 text-yellow-500 font-black">Annual Status</label><select id="reportYearSelect" onchange="generateTargetStatusReport()" class="bg-transparent text-xs font-bold text-blue-400 outline-none border border-white/10 rounded px-2 py-1"></select></div>
+                <div id="annualSummaryCard" class="bg-blue-600/10 rounded-xl p-3 mb-4 flex justify-between items-center border border-blue-500/20">
+                    <div><div class="text-[9px] uppercase opacity-60 font-bold">Annual Profit</div><div id="annualTotalVal" class="text-lg font-black text-blue-400">₹0</div></div>
+                    <div class="text-right"><div class="text-[9px] uppercase opacity-60 font-bold">Success Rate</div><div id="annualSuccessRate" class="text-lg font-black text-green-500">0%</div></div>
                 </div>
-                <div>
-                    <label class="text-xs font-bold opacity-50 block mb-1 uppercase tracking-widest">Admin Name</label>
-                    <input type="text" id="settingAdmin" class="input-field" placeholder="Ayyappan">
+                <div id="annualTargetReportList" class="space-y-4 max-h-64 overflow-y-auto pr-1"></div>
+            </div>
+            <div class="grid grid-cols-1 gap-3">
+                <button onclick="toggleReport()" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 py-3 rounded-xl font-black text-white uppercase text-xs shadow-lg"><i class="fas fa-chart-pie mr-2"></i> View Performance</button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="backupData()" class="bg-slate-700 py-2 rounded-xl font-bold text-white uppercase text-[10px] border border-white/10"><i class="fas fa-download mr-1"></i> Export</button>
+                    <button onclick="document.getElementById('importFile').click()" class="bg-slate-700 py-2 rounded-xl font-bold text-white uppercase text-[10px] border border-white/10"><i class="fas fa-upload mr-1"></i> Import</button>
+                    <input type="file" id="importFile" class="hidden" onchange="restoreData(event)">
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="saveSettings()" class="flex-grow bg-blue-600 py-3 rounded-xl font-black uppercase text-xs">Update</button>
-                    <button onclick="document.getElementById('settingsModal').classList.add('hidden')" class="px-6 py-3 border border-white/10 rounded-xl font-black uppercase text-xs">Close</button>
-                </div>
+            </div>
+            <div class="space-y-3 pt-2 border-t border-white/10">
+                <div><label>Monthly Goal (₹)</label><input type="number" id="setTarget" class="input-box" placeholder="Target per month"></div>
+                <div><label>Registered Companies</label><textarea id="setCompanies" class="input-box h-12 text-xs"></textarea></div>
+                <div><label>Helper Database</label><textarea id="setHelpers" class="input-box h-12 text-xs"></textarea></div>
+            </div>
+            <button id="saveSettingsBtn" onclick="saveSettings()" class="w-full bg-blue-600 py-4 rounded-2xl font-black text-white uppercase shadow-xl">Update & Sync</button>
+        </div>
+    </div>
+
+    <!-- Analytics Modal -->
+    <div id="smartReportModal" class="modal">
+        <div class="glass p-6 w-full max-w-md max-h-[90vh] overflow-y-auto space-y-6 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-white/10 pb-4">
+                <div><h2 class="text-xl font-bold text-blue-400">Monthly Insights</h2><p id="insightSelectedLabel" class="text-[10px] font-bold text-white/50 uppercase tracking-widest mt-1"></p></div>
+                <button onclick="toggleReport()" class="text-gray-500 p-2"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="monthlyBreakdownGrid" class="grid grid-cols-2 gap-3"></div>
+            <div id="monthlyPerformanceDetails" class="space-y-6"></div>
+            <div class="pt-4">
+                <button onclick="toggleReport()" class="w-full bg-slate-800 py-4 rounded-2xl font-black text-white uppercase text-xs tracking-widest border border-white/5">Close Analytics</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Core Configurations
-        const firebaseConfig = { projectId: "ayyappan-manager" };
+        const apiKey = "";
+        const firebaseConfig = { apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58", authDomain: "ayyappan-work-management.firebaseapp.com", projectId: "ayyappan-work-management" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        let allEntries = [];
+        let globalSettings = { target: 50000, companies: "Sharp, Buildcon", helpers: "Ravi, Kumar" };
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        
-        let allRecords = [];
-        let config = { collection: 'works', admin: 'Ayyappan' };
 
-        async function syncSettings() {
-            const saved = localStorage.getItem('app_config');
-            if(saved) config = JSON.parse(saved);
-            document.getElementById('settingCollection').value = config.collection;
-            document.getElementById('settingAdmin').value = config.admin;
+        async function fetchDailyKural() {
+            try {
+                const section = document.getElementById('kuralSection');
+                section.classList.remove('hidden');
+                section.style.display = 'flex';
+                const systemPrompt = "Return ONLY a JSON object with: 'number' (num), 'tamil' (2 lines Tamil), 'meaning' (simple Tamil explanation). Randomly pick one from 1330 Thirukkural.";
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: "Give me a daily Thirukkural." }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json" } })
+                });
+                const result = await response.json();
+                const kural = JSON.parse(result.candidates[0].content.parts[0].text);
+                document.getElementById('kuralNumber').innerText = `Kural ${kural.number}`;
+                document.getElementById('kuralTamil').innerHTML = kural.tamil.replace(/\n/g, '<br>');
+                document.getElementById('kuralMeaning').innerText = kural.meaning;
+            } catch (e) { console.error(e); }
         }
 
-        function saveSettings() {
-            config.collection = document.getElementById('settingCollection').value;
-            config.admin = document.getElementById('settingAdmin').value;
-            localStorage.setItem('app_config', JSON.stringify(config));
-            location.reload();
+        function showMessage(msg) {
+            const box = document.getElementById('msgBox'); box.innerText = msg; box.style.display = 'block';
+            setTimeout(() => { box.style.display = 'none'; }, 3000);
+        }
+
+        function setPaymentStatus(status) {
+            document.getElementById('paymentStatus').value = status;
+            ['Received', 'Billed', 'Not Billed'].forEach(s => {
+                const btn = document.getElementById(`btn${s}`);
+                btn.classList.add('opacity-40'); btn.style.backgroundColor = 'transparent'; btn.style.color = 'inherit';
+                if (s === status) {
+                    btn.classList.remove('opacity-40');
+                    if (s === 'Received') { btn.style.backgroundColor = '#059669'; btn.style.color = 'white'; }
+                    if (s === 'Billed') { btn.style.backgroundColor = '#dc2626'; btn.style.color = 'white'; }
+                    if (s === 'Not Billed') { btn.style.backgroundColor = '#4b5563'; btn.style.color = 'white'; }
+                }
+            });
         }
 
         function toggleTheme() {
-            document.body.classList.toggle('theme-light');
-            localStorage.setItem('theme', document.body.classList.contains('theme-light') ? 'light' : 'dark');
+            const isLight = document.body.classList.toggle('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            document.querySelector('#themeToggle i').className = isLight ? 'fas fa-sun' : 'fas fa-moon';
         }
 
         function initTheme() {
-            if(localStorage.getItem('theme') === 'light') document.body.classList.add('theme-light');
+            if (localStorage.getItem('theme') === 'light') {
+                document.body.classList.add('light-mode');
+                document.querySelector('#themeToggle i').className = 'fas fa-sun';
+            }
+        }
+
+        function toggleHistory() {
+            const area = document.getElementById('displayArea');
+            const isColl = area.classList.toggle('collapsed');
+            document.getElementById('historyToggleText').innerText = isColl ? 'Maximize' : 'Minimize';
+            document.getElementById('historyToggleIcon').className = isColl ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+        }
+
+        function toggleHelperVisibility() {
+            const isChecked = document.getElementById('helperSectionToggle').checked;
+            document.getElementById('dayLogsContainer').classList.toggle('hidden', !isChecked);
+            document.getElementById('addHelperBtn').classList.toggle('hidden', !isChecked);
+            if(isChecked && document.getElementById('dayLogsContainer').children.length === 0) addDayRow();
+        }
+
+        async function syncSettings() {
+            const doc = await db.collection("appSettings").doc("userConfig").get();
+            if(doc.exists) {
+                globalSettings = doc.data();
+                document.getElementById('setTarget').value = globalSettings.target || 50000;
+                document.getElementById('setCompanies').value = globalSettings.companies;
+                document.getElementById('setHelpers').value = globalSettings.helpers;
+            }
+            loadDropdowns();
+            generateTargetStatusReport();
+        }
+
+        async function saveSettings() {
+            globalSettings = { target: parseFloat(document.getElementById('setTarget').value) || 0, companies: document.getElementById('setCompanies').value, helpers: document.getElementById('setHelpers').value };
+            await db.collection("appSettings").doc("userConfig").set(globalSettings);
+            loadDropdowns(); toggleSettings(); applyFilters();
+        }
+
+        function loadDropdowns() {
+            const comps = (globalSettings.companies || "").split(',');
+            document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
+            const currentYear = new Date().getFullYear();
+            ['filterYear', 'reportYearSelect', 'filterMonth'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el && el.options.length === 0) {
+                    if(id.includes('Year')) { for(let y = currentYear; y >= 2024; y--) { el.add(new Option(y, y)); } }
+                    else { monthNames.forEach((m, i) => el.add(new Option(m, i))); }
+                }
+            });
+        }
+
+        function addDayRow(data = null) {
+            const container = document.getElementById('dayLogsContainer');
+            const dayDiv = document.createElement('div'); dayDiv.className = "day-entry border-l-4 border-blue-500";
+            dayDiv.innerHTML = `
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                    <input type="date" class="input-box h-8 py-0 d-hdate" value="${data?.hDate || document.getElementById('date').value}">
+                    <select class="input-box h-8 py-0 d-helper"></select>
+                </div>
+                <div class="grid grid-cols-4 gap-1">
+                    <input type="number" class="input-box h-8 d-sal px-1 text-center" oninput="calculate()" placeholder="Sal" value="${data?.sal || ''}">
+                    <input type="number" step="0.5" class="input-box h-8 d-ot px-1 text-center" oninput="calculate()" placeholder="OT" value="${data?.ot || ''}">
+                    <input type="number" class="input-box h-8 d-pet px-1 text-center" oninput="calculate()" placeholder="Pet" value="${data?.pet || ''}">
+                    <input type="number" class="input-box h-8 d-food px-1 text-center" oninput="calculate()" placeholder="Food" value="${data?.food || ''}">
+                </div>
+                <button onclick="this.parentElement.remove(); calculate()" class="absolute -top-2 -right-2 bg-red-600 text-white w-5 h-5 rounded-full text-xs">×</button>`;
+            container.appendChild(dayDiv);
+            const helps = (globalSettings.helpers || "").split(',');
+            const sel = dayDiv.querySelector('.d-helper');
+            sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
+            if(data) sel.value = data.helper;
+            calculate();
         }
 
         function calculate() {
-            const sqft = parseFloat(document.getElementById('sqft').value) || 0;
-            const rate = parseFloat(document.getElementById('rate').value) || 0;
-            const wage = parseFloat(document.getElementById('helperWage').value) || 0;
-            const ot = parseFloat(document.getElementById('ot').value) || 0;
-            const food = parseFloat(document.getElementById('food').value) || 0;
-            const petrol = parseFloat(document.getElementById('petrol').value) || 0;
-            return { gross: sqft * rate, exp: wage + ot + food + petrol };
+            const val = (parseFloat(document.getElementById('totalSqft').value) || 0) * (parseFloat(document.getElementById('amtRate').value) || 0);
+            let totalWages = 0; 
+            document.querySelectorAll('.day-entry').forEach(row => { 
+                const s = parseFloat(row.querySelector('.d-sal').value) || 0;
+                totalWages += s + (s/2 * (parseFloat(row.querySelector('.d-ot').value) || 0)) + (parseFloat(row.querySelector('.d-pet').value) || 0) + (parseFloat(row.querySelector('.d-food').value) || 0);
+            });
+            document.getElementById('resTotal').innerText = "₹" + Math.round(val).toLocaleString();
+            document.getElementById('resExpDisplay').innerText = "₹" + Math.round(totalWages).toLocaleString();
+            return { val, totalWages };
         }
 
         async function saveData() {
-            const btn = document.getElementById('saveBtn');
-            btn.innerText = "Processing..."; btn.disabled = true;
-            
-            const { gross, exp } = calculate();
-            const data = {
-                date: document.getElementById('date').value,
-                qnNo: document.getElementById('qnNo').value,
-                company: document.getElementById('company').value,
-                sqft: parseFloat(document.getElementById('sqft').value) || 0,
-                rate: parseFloat(document.getElementById('rate').value) || 0,
-                grossBill: gross,
-                helperWage: parseFloat(document.getElementById('helperWage').value) || 0,
-                ot: parseFloat(document.getElementById('ot').value) || 0,
-                food: parseFloat(document.getElementById('food').value) || 0,
-                petrol: parseFloat(document.getElementById('petrol').value) || 0,
-                helperTotal: exp,
-                isPartner: document.getElementById('isPartner').checked,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            const isH = document.getElementById('isHoliday').checked;
+            const cust = document.getElementById('customer').value.trim();
+            if (!isH && !cust) { showMessage("CUSTOMER REQUIRED"); return; }
+            const cal = calculate(), logs = [];
+            if (!isH && document.getElementById('helperSectionToggle').checked) {
+                document.querySelectorAll('.day-entry').forEach(row => { 
+                    logs.push({ hDate: row.querySelector('.d-hdate').value, helper: row.querySelector('.d-helper').value, sal: row.querySelector('.d-sal').value, ot: row.querySelector('.d-ot').value, pet: row.querySelector('.d-pet').value, food: row.querySelector('.d-food').value }); 
+                });
+            }
+            const data = { 
+                date: document.getElementById('date').value, qn: document.getElementById('qn').value, customer: cust, location: document.getElementById('location').value, projectType: document.getElementById('projectType').value, company: document.getElementById('company').value, windowQty: document.getElementById('windowQty').value, totalSqft: document.getElementById('totalSqft').value, amtRate: document.getElementById('amtRate').value, total: cal.val, logs, isHoliday: isH, comment: isH ? document.getElementById('holidayReason').value : document.getElementById('workNotes').value, paymentStatus: document.getElementById('paymentStatus').value
             };
-
-            await db.collection(config.collection).add(data);
+            const id = document.getElementById('editId').value;
+            if(id) await db.collection("workLogs").doc(id).update(data); else await db.collection("workLogs").add(data);
             location.reload();
         }
 
-        async function loadData() {
-            const m = document.getElementById('filterMonth').value, y = document.getElementById('filterYear').value;
-            const snapshot = await db.collection(config.collection).orderBy('date', 'desc').get();
-            allRecords = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-            
-            const filtered = allRecords.filter(r => {
-                const d = new Date(r.date);
-                return d.getMonth() == m && d.getFullYear() == y;
+        async function deleteDoc(id) { if(confirm("Delete record?")) { await db.collection("workLogs").doc(id).delete(); showMessage("Deleted"); } }
+
+        db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => { 
+            allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+            applyFilters();
+            generateTargetStatusReport();
+        });
+
+        function applyFilters() {
+            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+            let currentEarned = 0, soloEarn = 0, partnerEarn = 0, count = 0;
+            const tbody = document.getElementById('historyTableBody'); tbody.innerHTML = "";
+            allEntries.forEach(d => {
+                const eD = new Date(d.date);
+                if((eD.getMonth() == fM) && (eD.getFullYear() == fY)) {
+                    count++;
+                    let siteExp = 0, helpers = [];
+                    d.logs?.forEach(l => { 
+                        const sVal = parseFloat(l.sal) || 0;
+                        siteExp += sVal + (sVal/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+                        if(!helpers.includes(l.helper)) helpers.push(l.helper); 
+                    });
+                    const net = (parseFloat(d.total)||0) - siteExp;
+                    const share = d.projectType === 'Partner' ? (net/2) : net;
+                    if(!d.isHoliday) { currentEarned += share; if(d.projectType === 'Partner') partnerEarn += share; else soloEarn += share; }
+                    const pStatus = d.paymentStatus || 'Billed';
+                    const statClass = pStatus === 'Received' ? 'status-received' : pStatus === 'Billed' ? 'status-Billed' : 'status-Not Billed';
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${d.date.split('-').slice(1).join('/')}</td>
+                        <td class="opacity-60">${d.qn || '-'}</td>
+                        <td class="font-bold opacity-80">${d.company || '-'}</td>
+                        <td class="font-bold">${d.isHoliday ? 'HOL' : d.customer}</td>
+                        <td class="italic">${helpers.join(', ') || '-'}</td>
+                        <td>${d.windowQty || '-'}</td>
+                        <td class="text-[8px] font-black">${d.projectType[0]}</td>
+                        <td>₹${Math.round(d.total || 0).toLocaleString()}</td>
+                        <td><span class="status-badge ${statClass}">${pStatus}</span></td>
+                        <td class="font-bold">₹${Math.round(share).toLocaleString()}</td>
+                        <td class="space-x-2">
+                            <button onclick="editDoc('${d.id}')" class="text-blue-500"><i class="fas fa-edit"></i></button>
+                            <button onclick="deleteDoc('${d.id}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button>
+                        </td>`;
+                    tbody.appendChild(row);
+                }
             });
-
-            const tbody = document.getElementById('dataTable');
-            let grandTotal = 0, soloTotal = 0, partnerMine = 0, totalExp = 0, totalSqft = 0;
-            
-            tbody.innerHTML = filtered.map(r => {
-                const profit = r.grossBill - r.helperTotal;
-                grandTotal += profit;
-                totalExp += r.helperTotal;
-                totalSqft += r.sqft;
-                if(r.isPartner) partnerMine += (profit / 2); else soloTotal += profit;
-
-                return `
-                <tr class="group border-b border-white/5 hover:bg-white/5 transition">
-                    <td class="py-4 pl-2">
-                        <div class="text-[10px] font-bold text-slate-500">${r.date}</div>
-                        <div class="font-black text-xs uppercase tracking-tight truncate max-w-[120px]">${r.company}</div>
-                    </td>
-                    <td class="py-4 text-xs font-bold opacity-70">
-                        <div>₹${Math.round(r.grossBill).toLocaleString()}</div>
-                        <div class="text-[9px] opacity-50">${r.sqft} sqft</div>
-                    </td>
-                    <td class="py-4 text-right pr-2">
-                        <div class="font-black ${r.isPartner ? 'text-indigo-400' : 'text-blue-500'}">₹${Math.round(profit).toLocaleString()}</div>
-                        <button onclick="deleteDoc('${r.id}')" class="text-[9px] text-red-500 opacity-0 group-hover:opacity-100 uppercase font-bold">Delete</button>
-                    </td>
-                </tr>`;
-            }).join('');
-
-            document.getElementById('tblGrandTotal').innerText = `₹${Math.round(grandTotal).toLocaleString()}`;
-            document.getElementById('tblSolo').innerText = `₹${Math.round(soloTotal).toLocaleString()}`;
-            document.getElementById('tblPartnerMine').innerText = `₹${Math.round(partnerMine).toLocaleString()}`;
-            document.getElementById('tblTotalExp').innerText = `₹${Math.round(totalExp).toLocaleString()}`;
-            
-            renderAnalytics(grandTotal, totalSqft);
+            document.getElementById('recordCount').innerText = `${count} records`;
+            document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
+            document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
+            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(soloEarn + partnerEarn).toLocaleString();
+            updateTargetUI(currentEarned);
         }
 
-        function renderAnalytics(profit, sqft) {
+        function updateTargetUI(earned) {
+            let target = parseFloat(globalSettings.target) || 50000;
+            const percent = Math.min((earned / target) * 100, 100);
+            document.getElementById('targetBar').style.width = percent + "%";
+            document.getElementById('targetEarned').innerText = `Earned: ₹${Math.round(earned).toLocaleString()}`;
+            document.getElementById('targetGoal').innerText = `Target: ₹${target.toLocaleString()}`;
+            document.getElementById('targetRem').innerText = `₹${Math.max(0, Math.round(target - earned)).toLocaleString()}`;
+        }
+
+        // --- NEW PDF MODAL LOGIC ---
+        function openPdfPreview(pdfDoc, fileName, title) {
+            const pdfBlobUrl = pdfDoc.output('bloburl');
+            document.getElementById('pdfPreviewFrame').src = pdfBlobUrl;
+            document.getElementById('pdfModalTitle').innerText = title;
+            document.getElementById('pdfModal').style.display = 'flex';
+            
+            const downloadBtn = document.getElementById('pdfDownloadBtn');
+            // Clean up previous listeners
+            const newBtn = downloadBtn.cloneNode(true);
+            downloadBtn.parentNode.replaceChild(newBtn, downloadBtn);
+            newBtn.addEventListener('click', () => {
+                pdfDoc.save(fileName);
+                closePdfModal();
+            });
+        }
+
+        function closePdfModal() {
+            document.getElementById('pdfModal').style.display = 'none';
+            document.getElementById('pdfPreviewFrame').src = '';
+        }
+
+        function exportHelperPDF() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
+            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+            doc.text(`Helper Report: ${monthNames[fM]} ${fY}`, 14, 15);
+            const rows = [];
+            allEntries.forEach(entry => {
+                const ed = new Date(entry.date);
+                if(ed.getMonth() == fM && ed.getFullYear() == fY && entry.logs?.length > 0) {
+                    entry.logs.forEach(log => {
+                        const s = parseFloat(log.sal) || 0;
+                        const tot = s + (s/2 * (parseFloat(log.ot)||0)) + (parseFloat(log.pet)||0) + (parseFloat(log.food)||0);
+                        rows.push([log.hDate || entry.date, log.helper, entry.location || '-', entry.customer || 'Site', `Rs. ${s}`, log.ot || 0, `Rs. ${Math.round(tot)}`]);
+                    });
+                }
+            });
+            doc.autoTable({ startY: 25, head: [['Date', 'Helper', 'Location', 'Site', 'Salary', 'OT', 'Total']], body: rows });
+            openPdfPreview(doc, `Helpers_${monthNames[fM]}_${fY}.pdf`, `Helper Report: ${monthNames[fM]} ${fY}`);
+        }
+
+        function exportSoloPDF() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
+            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+            doc.text(`Solo Work Report: ${monthNames[fM]} ${fY}`, 14, 15);
+            const rows = [];
+            allEntries.forEach(d => {
+                const ed = new Date(d.date);
+                if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday && d.projectType === 'Solo') {
+                    let exp = 0, helperNames = [], totalOT = 0;
+                    d.logs?.forEach(l => { 
+                        const s = parseFloat(l.sal)||0; 
+                        exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
+                        if(!helperNames.includes(l.helper)) helperNames.push(l.helper);
+                        totalOT += parseFloat(l.ot) || 0;
+                    });
+                    const net = d.total - exp;
+                    rows.push([d.date, d.qn || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(net)}`]);
+                }
+            });
+            doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Profit']], body: rows });
+            openPdfPreview(doc, `Solo_Work_${monthNames[fM]}_${fY}.pdf`, `Solo Work: ${monthNames[fM]} ${fY}`);
+        }
+
+        function exportPartnerPDF() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
+            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+            doc.text(`Partner Work Report: ${monthNames[fM]} ${fY}`, 14, 15);
+            const rows = [];
+            allEntries.forEach(d => {
+                const ed = new Date(d.date);
+                if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday && d.projectType === 'Partner') {
+                    let exp = 0, helperNames = [], totalOT = 0;
+                    d.logs?.forEach(l => { 
+                        const s = parseFloat(l.sal)||0; 
+                        exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
+                        if(!helperNames.includes(l.helper)) helperNames.push(l.helper);
+                        totalOT += parseFloat(l.ot) || 0;
+                    });
+                    const share = (d.total - exp) / 2;
+                    rows.push([d.date, d.qn || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(share)}`]);
+                }
+            });
+            doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Share (50%)']], body: rows });
+            openPdfPreview(doc, `Partner_Work_${monthNames[fM]}_${fY}.pdf`, `Partner Work: ${monthNames[fM]} ${fY}`);
+        }
+
+        function generateTargetStatusReport() {
+            const container = document.getElementById('annualTargetReportList');
+            const year = document.getElementById('reportYearSelect').value;
+            const target = parseFloat(globalSettings.target) || 50000;
+            container.innerHTML = "";
+            let annual = 0, met = 0, tracked = 0;
+            monthNames.forEach((name, idx) => {
+                let monthlyProfit = 0, hasData = false;
+                allEntries.forEach(d => {
+                    const dD = new Date(d.date);
+                    if(dD.getFullYear() == year && dD.getMonth() == idx && !d.isHoliday) {
+                        hasData = true;
+                        let exp = 0; d.logs?.forEach(l => { const s = parseFloat(l.sal)||0; exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); });
+                        const net = (parseFloat(d.total)||0) - exp;
+                        monthlyProfit += (d.projectType === 'Partner' ? net/2 : net);
+                    }
+                });
+                if(hasData) { tracked++; if(monthlyProfit >= target) met++; annual += monthlyProfit; container.innerHTML += `<div class="bg-white/5 p-3 rounded-xl border border-white/5 flex justify-between"><span>${name}</span><span>₹${Math.round(monthlyProfit).toLocaleString()}</span></div>`; }
+            });
+            document.getElementById('annualTotalVal').innerText = `₹${Math.round(annual).toLocaleString()}`;
+            document.getElementById('annualSuccessRate').innerText = `${tracked > 0 ? Math.round((met/tracked)*100) : 0}%`;
+        }
+
+        function editDoc(id) {
+            const d = allEntries.find(e => e.id === id);
+            document.getElementById('editId').value = id; document.getElementById('date').value = d.date; document.getElementById('customer').value = d.customer; document.getElementById('qn').value = d.qn || "";
+            document.getElementById('location').value = d.location || ""; document.getElementById('windowQty').value = d.windowQty || ""; document.getElementById('totalSqft').value = d.windowQty || ""; document.getElementById('totalSqft').value = d.totalSqft || ""; document.getElementById('amtRate').value = d.amtRate || "";
+            document.getElementById('projectType').value = d.projectType; document.getElementById('isHoliday').checked = d.isHoliday; setPaymentStatus(d.paymentStatus || 'Billed');
+            const logs = d.logs || []; document.getElementById('dayLogsContainer').innerHTML = ""; 
+            if(logs.length > 0) { document.getElementById('helperSectionToggle').checked = true; toggleHelperVisibility(); logs.forEach(l => addDayRow(l)); }
+            else { document.getElementById('helperSectionToggle').checked = false; toggleHelperVisibility(); }
+            checkHoliday(); calculate(); window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function toggleSettings() { const m = document.getElementById('settingsModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
+        function toggleReport() { const m = document.getElementById('smartReportModal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; if(m.style.display === 'flex') generatePerformanceInsights(); }
+        function checkHoliday() { const isH = document.getElementById('isHoliday').checked; document.getElementById('workFields').style.display = isH ? 'none' : 'block'; document.getElementById('holidayReasonDiv').classList.toggle('hidden', !isH); document.getElementById('helperGlobalWrapper').style.display = isH ? 'none' : 'block'; }
+        function backupData() { const blob = new Blob([JSON.stringify(allEntries)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `Backup.json`; a.click(); }
+        function restoreData(event) { const file = event.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = async (e) => { const data = JSON.parse(e.target.result); if(confirm(`Import ${data.length} records?`)) { for(const item of data) { delete item.id; await db.collection("workLogs").add(item); } location.reload(); } }; reader.readAsText(file); }
+
+        function generatePerformanceInsights() {
+            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+            let profit = 0, sqft = 0, bill = 0, sites = 0;
+            allEntries.forEach(d => {
+                const ed = new Date(d.date);
+                if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday) {
+                    sites++; let exp = 0; d.logs?.forEach(l => { const s = parseFloat(l.sal)||0; exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); });
+                    const net = d.total - exp; profit += (d.projectType === 'Partner' ? net/2 : net); sqft += (parseFloat(d.totalSqft)||0); bill += (parseFloat(d.total)||0);
+                }
+            });
             document.getElementById('monthlyBreakdownGrid').innerHTML = `
-                <div class="bg-blue-600/10 p-4 rounded-xl border border-blue-500/20">
-                    <div class="text-[9px] opacity-50 uppercase font-black tracking-widest">Monthly Yield</div>
-                    <div class="text-xl font-black text-blue-500">₹${Math.round(profit).toLocaleString()}</div>
-                </div>
-                <div class="bg-emerald-600/10 p-4 rounded-xl border border-emerald-500/20">
-                    <div class="text-[9px] opacity-50 uppercase font-black tracking-widest">Total Sqft</div>
-                    <div class="text-xl font-black text-emerald-500">${sqft}</div>
-                </div>`;
-        }
-
-        async function deleteDoc(id) {
-            if(confirm('Permanent delete?')) { await db.collection(config.collection).doc(id).delete(); loadData(); }
-        }
-
-        async function fetchKural() {
-            try {
-                const id = Math.floor(Math.random() * 1330) + 1;
-                const res = await fetch(`https://api-thirukkural.vercel.app/api?num=${id}`);
-                const data = await res.json();
-                document.getElementById('kuralText').innerText = `${data.line1} ${data.line2}`;
-            } catch (e) {}
+                <div class="bg-blue-600/10 p-3 rounded-xl border border-blue-500/20"><div class="text-[9px] opacity-50 uppercase">Profit</div><div class="text-xl font-black text-blue-500">₹${Math.round(profit).toLocaleString()}</div></div>
+                <div class="bg-green-600/10 p-3 rounded-xl border border-green-500/20"><div class="text-[9px] opacity-50 uppercase">Sqft</div><div class="text-xl font-black text-green-500">${sqft}</div></div>`;
         }
 
         function shareWhatsApp() {
@@ -391,66 +776,13 @@
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
         }
 
-        /* --- PDF MODULE START --- */
-        function openPdfPreview(doc, filename) {
-            const pdfDataUri = doc.output('datauristring');
-            const modal = document.getElementById('pdfModal');
-            const iframe = document.getElementById('pdfIframe');
-            const downloadBtn = document.getElementById('pdfDownloadBtn');
-            iframe.src = pdfDataUri;
-            modal.style.display = 'flex';
-            downloadBtn.onclick = () => { doc.save(filename); closePdfModal(); };
-        }
-
-        function closePdfModal() {
-            document.getElementById('pdfModal').style.display = 'none';
-            document.getElementById('pdfIframe').src = '';
-        }
-
-        function exportHelperPDF() {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('p');
-            const m = monthNames[document.getElementById('filterMonth').value];
-            doc.setFontSize(16).text(`Helper Wage Report - ${m}`, 14, 15);
-            const data = allRecords.filter(r => r.helperTotal > 0 && new Date(r.date).getMonth() == document.getElementById('filterMonth').value)
-                .map(r => [r.date, r.company, `Rs. ${r.helperWage}`, `Rs. ${r.ot}`, `Rs. ${r.food + r.petrol}`, `Rs. ${Math.round(r.helperTotal)}`]);
-            doc.autoTable({ startY: 25, head: [['Date', 'Site', 'Salary', 'OT', 'Others', 'Total']], body: data, theme: 'grid', headStyles: { fillColor: [5, 150, 105] } });
-            openPdfPreview(doc, `Helper_Wages_${m}.pdf`);
-        }
-
-        function exportSoloPDF() {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('l');
-            const m = monthNames[document.getElementById('filterMonth').value];
-            doc.setFontSize(16).text(`Solo Work Statement - ${m}`, 14, 15);
-            const data = allRecords.filter(d => !d.isPartner && new Date(d.date).getMonth() == document.getElementById('filterMonth').value)
-                .map(d => [d.date, d.qnNo || '-', d.company, `Rs. ${Math.round(d.grossBill)}`, `Rs. ${Math.round(d.helperTotal)}`, `Rs. ${Math.round(d.grossBill - d.helperTotal)}`]);
-            doc.autoTable({ startY: 20, head: [['Date', 'QN', 'Customer', 'Gross Bill', 'Exp', 'Net Profit']], body: data, headStyles: { fillColor: [79, 70, 229] } });
-            openPdfPreview(doc, `Solo_Report_${m}.pdf`);
-        }
-
-        function exportPartnerPDF() {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('l');
-            const m = monthNames[document.getElementById('filterMonth').value];
-            doc.setFontSize(16).text(`Partner Split Statement - ${m}`, 14, 15);
-            const data = allRecords.filter(d => d.isPartner && new Date(d.date).getMonth() == document.getElementById('filterMonth').value)
-                .map(d => {
-                    const net = d.grossBill - d.helperTotal;
-                    return [d.date, d.company, `Rs. ${Math.round(d.grossBill)}`, `Rs. ${Math.round(d.helperTotal)}`, `Rs. ${Math.round(net)}`, `Rs. ${Math.round(net/2)}`];
-                });
-            doc.autoTable({ startY: 20, head: [['Date', 'Customer', 'Bill', 'Exp', 'Total Profit', 'My 50% Share']], body: data, headStyles: { fillColor: [37, 99, 235] } });
-            openPdfPreview(doc, `Partner_Report_${m}.pdf`);
-        }
-
         window.onload = async () => { 
             const now = new Date(); initTheme();
             document.getElementById('date').valueAsDate = now; 
             await syncSettings(); 
-            
-            const fM = document.getElementById('filterMonth'), fY = document.getElementById('filterYear');
-            monthNames.forEach((m, i) => fM.innerHTML += `<option value="${i}" ${i === now.getMonth() ? 'selected' : ''}>${m}</option>`);
-            for(let y = 2024; y <= 2027; y++) fY.innerHTML += `<option value="${y}" ${y === now.getFullYear() ? 'selected' : ''}>${y}</option>`;
-            
-            fM.onchange = loadData; fY.onchange = loadData;
-            fetchKural(); loadData();
+            document.getElementById('filterMonth').value = now.getMonth();
+            document.getElementById('filterYear').value = now.getFullYear();
+            applyFilters(); fetchDailyKural();
         };
     </script>
 </body>
