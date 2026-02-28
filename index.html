@@ -506,11 +506,11 @@
                     const net = (parseFloat(d.total)||0) - exp; 
                     grandNet += net;
                     grandWages += exp;
-                    rows.push([d.date, d.qn || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(net)}`]);
+                    rows.push([d.date, d.qn || '-', d.company || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, d.paymentStatus || 'Billed', `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(net)}`]);
                 }
             });
-            rows.push(['', '', '', '', '', '', '', `Wages: Rs. ${Math.round(grandWages).toLocaleString()}`, `Net: Rs. ${Math.round(grandNet).toLocaleString()}`]);
-            doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Profit']], body: rows });
+            rows.push(['', '', '', '', '', '', '', '', '', `Wages: Rs. ${Math.round(grandWages).toLocaleString()}`, `Net: Rs. ${Math.round(grandNet).toLocaleString()}`]);
+            doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Company', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Status', 'Wages', 'Net Profit']], body: rows });
             openPdfPreview(doc, `Solo_Work_${monthNames[fM]}_${fY}.pdf`, `Solo Work: ${monthNames[fM]} ${fY}`);
         }
 
@@ -531,11 +531,11 @@
                     const share = ((parseFloat(d.total)||0) - exp) / 2; 
                     grandShare += share;
                     grandWages += exp;
-                    rows.push([d.date, d.qn || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(share)}`]);
+                    rows.push([d.date, d.qn || '-', d.company || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, d.paymentStatus || 'Billed', `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(share)}`]);
                 }
             });
-            rows.push(['', '', '', '', '', '', '', `Wages: Rs. ${Math.round(grandWages).toLocaleString()}`, `Net Share: Rs. ${Math.round(grandShare).toLocaleString()}`]);
-            doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Wages', 'Net Share (50%)']], body: rows });
+            rows.push(['', '', '', '', '', '', '', '', '', `Wages: Rs. ${Math.round(grandWages).toLocaleString()}`, `Net Share: Rs. ${Math.round(grandShare).toLocaleString()}`]);
+            doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Company', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Status', 'Wages', 'Net Share (50%)']], body: rows });
             openPdfPreview(doc, `Partner_Work_${monthNames[fM]}_${fY}.pdf`, `Partner Work: ${monthNames[fM]} ${fY}`);
         }
 
