@@ -576,11 +576,11 @@
         function checkHoliday() { const isH = document.getElementById('isHoliday').checked; document.getElementById('workFields').style.display = isH ? 'none' : 'block'; document.getElementById('holidayReasonDiv').classList.toggle('hidden', !isH); document.getElementById('helperGlobalWrapper').style.display = isH ? 'none' : 'block'; }
         function backupData() { const blob = new Blob([JSON.stringify(allEntries)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `Backup.json`; a.click(); }
         async function restoreData(event) { const file = event.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = async (e) => { const data = JSON.parse(e.target.result); if(confirm(`Import ${data.length} records?`)) { for(const item of data) { delete item.id; await db.collection("workLogs").add(item); } location.reload(); } }; reader.readAsText(file); }
-        function shareWhatsApp() {
-            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
-            let msg = `*📊 Work Report: ${monthNames[fM]} ${fY}*\nSolo: ${document.getElementById('tblSolo').innerText}\nPartner: ${document.getElementById('tblPartnerMine').innerText}\n*TOTAL: ${document.getElementById('tblGrandTotal').innerText}*`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-        }
+        // function shareWhatsApp() {
+        //     const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+        //     let msg = `*📊 Work Report: ${monthNames[fM]} ${fY}*\nSolo: ${document.getElementById('tblSolo').innerText}\nPartner: ${document.getElementById('tblPartnerMine').innerText}\n*TOTAL: ${document.getElementById('tblGrandTotal').innerText}*`;
+        //     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        // }
 
         window.onload = async () => { 
             const now = new Date(); document.getElementById('date').valueAsDate = now; await syncSettings(); 
