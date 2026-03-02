@@ -527,6 +527,34 @@
             openPdfPreview(doc, `Solo_Work_${monthNames[fM]}_${fY}.pdf`, `Solo Work: ${monthNames[fM]} ${fY}`);
         }
 
+                async function savePayment() {
+            const payData = {
+                date: document.getElementById('payDate').value,
+                company: document.getElementById('payCompany').value,
+                amount: parseFloat(document.getElementById('payAmount').value) || 0,
+                comment: document.getElementById('payComment').value,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+        
+            if (!payData.date || !payData.company || !payData.amount) {
+                showMessage("Please fill Date, Company, and Amount");
+                return;
+            }
+        
+            try {
+                await db.collection("paymentHistory").add(payData);
+                showMessage("Payment Saved!");
+                // Clear inputs after save
+                document.getElementById('payDate').value = "";
+                document.getElementById('payCompany').value = "";
+                document.getElementById('payAmount').value = "";
+                document.getElementById('payComment').value = "";
+            } catch (e) {
+                console.error("Error saving payment: ", e);
+                showMessage("Error saving record");
+            }
+        }
+
         function exportPartnerPDF() {
             const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
             const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
