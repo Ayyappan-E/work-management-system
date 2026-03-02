@@ -43,6 +43,13 @@
 
     <div id="paymentHistoryList" class="space-y-2"></div>
 
+    <div id="summaryBox" class="glass p-4 rounded-2xl mt-6 border border-blue-500/30 bg-blue-900/10">
+        <div class="flex justify-between items-center">
+            <span class="text-xs font-bold opacity-70 uppercase tracking-widest">Total Received</span>
+            <span id="monthlyTotalDisplay" class="text-2xl font-black text-green-500">₹0</span>
+        </div>
+    </div>
+
     <script>
         const firebaseConfig = { apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58", authDomain: "ayyappan-work-management.firebaseapp.com", projectId: "ayyappan-work-management" };
         firebase.initializeApp(firebaseConfig);
@@ -57,6 +64,7 @@
             const curY = new Date().getFullYear();
             for(let yr = curY; yr >= 2024; yr--) y.add(new Option(yr, yr));
             m.value = new Date().getMonth();
+            y.value = curY;
             loadPaymentHistory();
         };
 
@@ -78,19 +86,31 @@
                 await db.collection("paymentHistory").add(data);
             }
             loadPaymentHistory();
+            // Clear inputs
+            document.getElementById('payDate').value = "";
+            document.getElementById('payCompany').value = "";
+            document.getElementById('payAmount').value = "";
+            document.getElementById('payComment').value = "";
         }
 
         async function loadPaymentHistory() {
             const container = document.getElementById('paymentHistoryList');
+            const totalDisplay = document.getElementById('monthlyTotalDisplay');
             const m = parseInt(document.getElementById('payFilterMonth').value);
             const y = parseInt(document.getElementById('payFilterYear').value);
             
+            let monthTotal = 0;
+
             const snap = await db.collection("paymentHistory").orderBy("date", "desc").get();
             container.innerHTML = "";
+            
             snap.forEach(doc => {
                 const d = doc.data();
                 const dt = new Date(d.date);
+                
                 if(dt.getMonth() === m && dt.getFullYear() === y) {
+                    monthTotal += parseFloat(d.amount) || 0;
+                    
                     container.innerHTML += `
                         <div class="glass p-3 rounded-lg flex justify-between items-center text-xs">
                             <div><div class="font-bold">${d.company}</div><div class="opacity-60">${d.date}</div></div>
@@ -103,6 +123,8 @@
                     `;
                 }
             });
+
+            totalDisplay.innerText = `₹${monthTotal.toLocaleString()}`;
         }
 
         function editPayment(id, company, date, amount, comment) {
@@ -111,6 +133,7 @@
             document.getElementById('payCompany').value = company;
             document.getElementById('payAmount').value = amount;
             document.getElementById('payComment').value = comment;
+            window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
         async function deletePayment(id) {
@@ -124,7 +147,6 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             doc.text("Payment History Report", 14, 15);
-            // ... (Add your existing PDF logic here)
             alert("PDF Generated (Functionality kept for brevity)");
         }
     </script>
