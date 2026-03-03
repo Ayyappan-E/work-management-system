@@ -436,34 +436,78 @@
             applyFilters();
         });
 
+        // function applyFilters() {
+        //     const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+        //     let soloEarn = 0, partnerEarn = 0, count = 0;
+        //     const tbody = document.getElementById('historyTableBody'); tbody.innerHTML = "";
+        //     allEntries.forEach(d => {
+        //         const eD = new Date(d.date);
+        //         if((eD.getMonth() == fM) && (eD.getFullYear() == fY)) {
+        //             count++;
+        //             let siteExp = 0, helpers = [];
+        //             d.logs?.forEach(l => { 
+        //                 const sVal = parseFloat(l.sal) || 0;
+        //                 siteExp += sVal + (sVal/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+        //                 if(!helpers.includes(l.helper)) helpers.push(l.helper); 
+        //             });
+        //             const net = (parseFloat(d.total)||0) - siteExp;
+        //             const share = d.projectType === 'Partner' ? (net/2) : net;
+        //             if(!d.isHoliday) { if(d.projectType === 'Partner') partnerEarn += share; else soloEarn += share; }
+        //             const statClass = d.paymentStatus === 'Received' ? 'status-received' : d.paymentStatus === 'Billed' ? 'status-Billed' : 'status-Not Billed';
+        //             const row = document.createElement('tr');
+        //             row.innerHTML = `<td>${d.date.split('-').slice(1).join('/')}</td><td class="opacity-60">${d.qn || '-'}</td><td class="font-bold opacity-80">${d.company || '-'}</td><td class="font-bold">${d.isHoliday ? 'HOL' : d.customer}</td><td class="italic">${helpers.join(', ') || '-'}</td><td>${d.windowQty || '-'}</td><td class="text-[8px] font-black">${d.projectType[0]}</td><td>₹${Math.round(d.total || 0).toLocaleString()}</td><td><span class="status-badge ${statClass}">${d.paymentStatus || 'Billed'}</span></td><td class="font-bold">₹${Math.round(share).toLocaleString()}</td><td><button onclick="editDoc('${d.id}')" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button><button onclick="deleteDoc('${d.id}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></td>`;
+        //             tbody.appendChild(row);
+        //         }
+        //     });
+        //     document.getElementById('recordCount').innerText = `${count} records`;
+        //     document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
+        //     document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
+        //     document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(soloEarn + partnerEarn).toLocaleString();
+        // }
+
         function applyFilters() {
-            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
-            let soloEarn = 0, partnerEarn = 0, count = 0;
-            const tbody = document.getElementById('historyTableBody'); tbody.innerHTML = "";
-            allEntries.forEach(d => {
-                const eD = new Date(d.date);
-                if((eD.getMonth() == fM) && (eD.getFullYear() == fY)) {
-                    count++;
-                    let siteExp = 0, helpers = [];
-                    d.logs?.forEach(l => { 
-                        const sVal = parseFloat(l.sal) || 0;
-                        siteExp += sVal + (sVal/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
-                        if(!helpers.includes(l.helper)) helpers.push(l.helper); 
-                    });
-                    const net = (parseFloat(d.total)||0) - siteExp;
-                    const share = d.projectType === 'Partner' ? (net/2) : net;
-                    if(!d.isHoliday) { if(d.projectType === 'Partner') partnerEarn += share; else soloEarn += share; }
-                    const statClass = d.paymentStatus === 'Received' ? 'status-received' : d.paymentStatus === 'Billed' ? 'status-Billed' : 'status-Not Billed';
-                    const row = document.createElement('tr');
-                    row.innerHTML = `<td>${d.date.split('-').slice(1).join('/')}</td><td class="opacity-60">${d.qn || '-'}</td><td class="font-bold opacity-80">${d.company || '-'}</td><td class="font-bold">${d.isHoliday ? 'HOL' : d.customer}</td><td class="italic">${helpers.join(', ') || '-'}</td><td>${d.windowQty || '-'}</td><td class="text-[8px] font-black">${d.projectType[0]}</td><td>₹${Math.round(d.total || 0).toLocaleString()}</td><td><span class="status-badge ${statClass}">${d.paymentStatus || 'Billed'}</span></td><td class="font-bold">₹${Math.round(share).toLocaleString()}</td><td><button onclick="editDoc('${d.id}')" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button><button onclick="deleteDoc('${d.id}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></td>`;
-                    tbody.appendChild(row);
-                }
+    const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
+    let soloEarn = 0, partnerEarn = 0, count = 0;
+    const tbody = document.getElementById('historyTableBody'); tbody.innerHTML = "";
+    
+    // ... (Your existing loop logic remains the same)
+    allEntries.forEach(d => {
+        const eD = new Date(d.date);
+        if((eD.getMonth() == fM) && (eD.getFullYear() == fY)) {
+            count++;
+            let siteExp = 0, helpers = [];
+            d.logs?.forEach(l => { 
+                const s = parseFloat(l.sal) || 0;
+                siteExp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0);
+                if(!helpers.includes(l.helper)) helpers.push(l.helper); 
             });
-            document.getElementById('recordCount').innerText = `${count} records`;
-            document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
-            document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
-            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(soloEarn + partnerEarn).toLocaleString();
+            const net = (parseFloat(d.total)||0) - siteExp;
+            const share = d.projectType === 'Partner' ? (net/2) : net;
+            if(!d.isHoliday) { if(d.projectType === 'Partner') partnerEarn += share; else soloEarn += share; }
+            const statClass = d.paymentStatus === 'Received' ? 'status-received' : d.paymentStatus === 'Billed' ? 'status-Billed' : 'status-Not Billed';
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${d.date.split('-').slice(1).join('/')}</td><td class="opacity-60">${d.qn || '-'}</td><td class="font-bold opacity-80">${d.company || '-'}</td><td class="font-bold">${d.isHoliday ? 'HOL' : d.customer}</td><td class="italic">${helpers.join(', ') || '-'}</td><td>${d.windowQty || '-'}</td><td class="text-[8px] font-black">${d.projectType[0]}</td><td>₹${Math.round(d.total || 0).toLocaleString()}</td><td><span class="status-badge ${statClass}">${d.paymentStatus || 'Billed'}</span></td><td class="font-bold">₹${Math.round(share).toLocaleString()}</td><td><button onclick="editDoc('${d.id}')" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button><button onclick="deleteDoc('${d.id}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></td>`;
+            tbody.appendChild(row);
         }
+    });
+
+    // --- ADD THIS BLOCK TO UPDATE TARGET PROGRESS ---
+    const totalEarned = soloEarn + partnerEarn;
+    const target = parseFloat(globalSettings.target) || 50000;
+    const progress = Math.min((totalEarned / target) * 100, 100);
+    const remaining = Math.max(target - totalEarned, 0);
+
+    document.getElementById('targetEarned').innerText = `Earned: ₹${Math.round(totalEarned).toLocaleString()}`;
+    document.getElementById('targetGoal').innerText = `Target: ₹${Math.round(target).toLocaleString()}`;
+    document.getElementById('targetRem').innerText = `₹${Math.round(remaining).toLocaleString()} Remaining`;
+    document.getElementById('targetBar').style.width = `${progress}%`;
+    // --------------------------------------------------
+
+    document.getElementById('recordCount').innerText = `${count} records`;
+    document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
+    document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
+    document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(soloEarn + partnerEarn).toLocaleString();
+}
 
         // --- PDF LOGIC ---
         function openPdfPreview(pdfDoc, fileName, title) {
