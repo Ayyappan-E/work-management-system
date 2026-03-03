@@ -191,9 +191,21 @@
         
         <div id="displayArea" class="excel-table-container">
             <table class="excel-table">
-                <thead>
-                    <tr><th>Date</th><th>QN</th><th>Company</th><th>Customer</th><th>Helpers</th><th>Qty</th><th>Type</th><th>Bill</th><th>Payment-Status</th><th>Net</th><th>Action</th></tr>
-                </thead>
+               <thead>
+        <tr>
+            <th>Date</th>
+            <th>QN</th>
+            <th>Company</th>
+            <th>Customer</th>
+            <th>Location</th> <th>Helpers</th>
+            <th>Qty</th>
+            <th>Type</th>
+            <th>Bill</th>
+            <th>Payment-Status</th>
+            <th>Net</th>
+            <th>Action</th>
+        </tr>
+    </thead>
                 <tbody id="historyTableBody"></tbody>
             </table>
         </div>
@@ -459,12 +471,11 @@
         });
 
 
-        function applyFilters() {
+      function applyFilters() {
     const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
     let soloEarn = 0, partnerEarn = 0, count = 0;
     const tbody = document.getElementById('historyTableBody'); tbody.innerHTML = "";
     
-    // ... (Your existing loop logic remains the same)
     allEntries.forEach(d => {
         const eD = new Date(d.date);
         if((eD.getMonth() == fM) && (eD.getFullYear() == fY)) {
@@ -479,13 +490,26 @@
             const share = d.projectType === 'Partner' ? (net/2) : net;
             if(!d.isHoliday) { if(d.projectType === 'Partner') partnerEarn += share; else soloEarn += share; }
             const statClass = d.paymentStatus === 'Received' ? 'status-received' : d.paymentStatus === 'Billed' ? 'status-Billed' : 'status-Not Billed';
+            
             const row = document.createElement('tr');
-            row.innerHTML = `<td>${d.date.split('-').slice(1).join('/')}</td><td class="opacity-60">${d.qn || '-'}</td><td class="font-bold opacity-80">${d.company || '-'}</td><td class="font-bold">${d.isHoliday ? 'HOL' : d.customer}</td><td class="italic">${helpers.join(', ') || '-'}</td><td>${d.windowQty || '-'}</td><td class="text-[8px] font-black">${d.projectType[0]}</td><td>₹${Math.round(d.total || 0).toLocaleString()}</td><td><span class="status-badge ${statClass}">${d.paymentStatus || 'Billed'}</span></td><td class="font-bold">₹${Math.round(share).toLocaleString()}</td><td><button onclick="editDoc('${d.id}')" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button><button onclick="deleteDoc('${d.id}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></td>`;
+            // Added location cell below:
+            row.innerHTML = `<td>${d.date.split('-').slice(1).join('/')}</td>
+                             <td class="opacity-60">${d.qn || '-'}</td>
+                             <td class="font-bold opacity-80">${d.company || '-'}</td>
+                             <td class="font-bold">${d.isHoliday ? 'HOL' : d.customer}</td>
+                             <td class="italic">${d.location || '-'}</td>
+                             <td class="italic">${helpers.join(', ') || '-'}</td>
+                             <td>${d.windowQty || '-'}</td>
+                             <td class="text-[8px] font-black">${d.projectType[0]}</td>
+                             <td>₹${Math.round(d.total || 0).toLocaleString()}</td>
+                             <td><span class="status-badge ${statClass}">${d.paymentStatus || 'Billed'}</span></td>
+                             <td class="font-bold">₹${Math.round(share).toLocaleString()}</td>
+                             <td><button onclick="editDoc('${d.id}')" class="text-blue-500 mr-2"><i class="fas fa-edit"></i></button><button onclick="deleteDoc('${d.id}')" class="text-red-500"><i class="fas fa-trash-alt"></i></button></td>`;
             tbody.appendChild(row);
         }
     });
 
-    // --- ADD THIS BLOCK TO UPDATE TARGET PROGRESS ---
+    // Update Target Progress
     const totalEarned = soloEarn + partnerEarn;
     const target = parseFloat(globalSettings.target) || 50000;
     const progress = Math.min((totalEarned / target) * 100, 100);
@@ -495,14 +519,12 @@
     document.getElementById('targetGoal').innerText = `Target: ₹${Math.round(target).toLocaleString()}`;
     document.getElementById('targetRem').innerText = `₹${Math.round(remaining).toLocaleString()} Remaining`;
     document.getElementById('targetBar').style.width = `${progress}%`;
-    // --------------------------------------------------
 
     document.getElementById('recordCount').innerText = `${count} records`;
     document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
     document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
     document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(soloEarn + partnerEarn).toLocaleString();
 }
-
         // --- PDF LOGIC ---
         function openPdfPreview(pdfDoc, fileName, title) {
             document.getElementById('pdfPreviewFrame').src = pdfDoc.output('bloburl');
