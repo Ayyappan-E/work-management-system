@@ -297,22 +297,37 @@
         let globalSettings = { target: 50000, companies: "Sharp, Buildcon", helpers: "Ravi, Kumar" };
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
+
         async function fetchDailyKural() {
-            try {
-                const section = document.getElementById('kuralSection');
-                section.classList.remove('hidden');
-                section.style.display = 'flex';
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: "Give me a daily Thirukkural in JSON format {number, tamil, meaning}." }] }], generationConfig: { responseMimeType: "application/json" } })
-                });
-                const result = await response.json();
-                const kural = JSON.parse(result.candidates[0].content.parts[0].text);
-                document.getElementById('kuralNumber').innerText = `Kural ${kural.number}`;
-                document.getElementById('kuralTamil').innerHTML = kural.tamil.replace(/\n/g, '<br>');
-                document.getElementById('kuralMeaning').innerText = kural.meaning;
-            } catch (e) { console.error(e); }
-        }
+    try {
+        const section = document.getElementById('kuralSection');
+        section.classList.remove('hidden');
+        section.style.display = 'flex';
+        
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: "Give me a daily Thirukkural in JSON format {number, tamil, meaning}." }] }], generationConfig: { responseMimeType: "application/json" } })
+        });
+
+        if (!response.ok) throw new Error("API Failed");
+
+        const result = await response.json();
+        const kural = JSON.parse(result.candidates[0].content.parts[0].text);
+        
+        document.getElementById('kuralNumber').innerText = `Kural ${kural.number}`;
+        document.getElementById('kuralTamil').innerHTML = kural.tamil.replace(/\n/g, '<br>');
+        document.getElementById('kuralMeaning').innerText = kural.meaning;
+
+    } catch (e) {
+        console.error("Kural Fetch Error:", e);
+        // --- FALLBACK UI (This ensures it works even if API fails) ---
+        document.getElementById('kuralSection').classList.remove('hidden');
+        document.getElementById('kuralSection').style.display = 'flex';
+        document.getElementById('kuralNumber').innerText = "Kural 1";
+        document.getElementById('kuralTamil').innerHTML = "அகர முதல எழுத்தெல்லாம் ஆதி<br>பகவன் முதற்றே உலகு.";
+        document.getElementById('kuralMeaning').innerText = "As 'A' is the first of all letters, so is the eternal God the first of the universe.";
+    }
+}
 
         function showMessage(msg) {
             const box = document.getElementById('msgBox'); box.innerText = msg; box.style.display = 'block';
