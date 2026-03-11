@@ -163,6 +163,35 @@
             </div>
         </div>
 
+        <div class="glass p-5 mb-8 border-t-4 border-emerald-500 shadow-2xl max-w-md mx-auto">
+            <h3 class="text-sm font-black uppercase text-emerald-500 mb-4">
+                <i class="fas fa-search-dollar mr-1"></i> Payment Query Tool
+            </h3>
+            <div class="space-y-4">
+                <div>
+                    <label>Company</label>
+                    <select id="queryCompany" class="input-box"></select>
+                </div>
+                <div>
+                    <label>Status</label>
+                    <select id="queryStatus" class="input-box">
+                        <option value="ALL">All Statuses</option>
+                        <option value="Received">Received</option>
+                        <option value="Billed">Billed</option>
+                        <option value="Not Billed">Not Billed</option>
+                    </select>
+                </div>
+                <button onclick="runPaymentQuery()" class="w-full bg-emerald-600 py-3 rounded-xl font-black text-white uppercase text-xs shadow-lg active:scale-95 transition-transform">Run Search</button>
+                <div id="queryResult" class="hidden mt-4 p-4 bg-black/20 rounded-xl border border-white/10">
+                    <div class="flex justify-between items-center">
+                        <span id="queryLabel" class="text-[10px] font-bold opacity-60 uppercase tracking-tighter">Total Gross Bill:</span>
+                        <span id="queryTotalAmt" class="text-xl font-black text-emerald-400">₹0</span>
+                    </div>
+                    <div id="queryCount" class="text-[9px] opacity-50 text-right mt-1 italic font-bold">0 records found</div>
+                </div>
+            </div>
+        </div>
+
         <div class="flex justify-between items-center mb-4 px-1">
             <h3 class="text-sm font-black uppercase text-blue-500 tracking-wide">Site History</h3>
             <span id="recordCount" class="text-[9px] font-bold opacity-40 uppercase"></span>
@@ -274,7 +303,45 @@
         // --- Data Logic ---
         async function syncSettings() { const doc = await db.collection("appSettings").doc("userConfig").get(); if(doc.exists) { globalSettings = doc.data(); document.getElementById('setTarget').value = globalSettings.target; document.getElementById('setCompanies').value = globalSettings.companies; document.getElementById('setHelpers').value = globalSettings.helpers; } loadDropdowns(); generateTargetStatusReport(); }
         async function saveSettings() { globalSettings = { target: parseFloat(document.getElementById('setTarget').value) || 0, companies: document.getElementById('setCompanies').value, helpers: document.getElementById('setHelpers').value }; await db.collection("appSettings").doc("userConfig").set(globalSettings); showMessage("Settings Saved"); loadDropdowns(); toggleSettings(); applyFilters(); }
-        function loadDropdowns() { const comps = (globalSettings.companies || "").split(','); document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join(''); const cY = new Date().getFullYear(); ['filterYear', 'reportYearSelect', 'filterMonth'].forEach(id => { const el = document.getElementById(id); if(el && el.options.length === 0) { if(id.includes('Year')) { for(let y = cY; y >= 2024; y--) el.add(new Option(y, y)); } else { monthNames.forEach((m, i) => el.add(new Option(m, i))); } } }); }
+        
+        // UPDATED: Sync both company dropdowns
+        function loadDropdowns() { 
+            const comps = (globalSettings.companies || "").split(','); 
+            const options = comps.map(c => `<option>${c.trim()}</option>`).join('');
+            document.getElementById('company').innerHTML = options;
+            document.getElementById('queryCompany').innerHTML = options; 
+
+            const cY = new Date().getFullYear(); 
+            ['filterYear', 'reportYearSelect', 'filterMonth'].forEach(id => { 
+                const el = document.getElementById(id); 
+                if(el && el.options.length === 0) { 
+                    if(id.includes('Year')) { for(let y = cY; y >= 2024; y--) el.add(new Option(y, y)); } 
+                    else { monthNames.forEach((m, i) => el.add(new Option(m, i))); } 
+                } 
+            }); 
+        }
+
+        // NEW: Payment Query Implementation
+        function runPaymentQuery() {
+            const company = document.getElementById('queryCompany').value;
+            const status = document.getElementById('queryStatus').value;
+            let sum = 0, count = 0;
+            
+            allEntries.forEach(d => {
+                if(!d.isHoliday && d.company === company) {
+                    if(status === "ALL" || d.paymentStatus === status) {
+                        sum += (parseFloat(d.total) || 0);
+                        count++;
+                    }
+                }
+            });
+            const res = document.getElementById('queryResult');
+            res.classList.remove('hidden');
+            document.getElementById('queryTotalAmt').innerText = "₹" + Math.round(sum).toLocaleString();
+            document.getElementById('queryCount').innerText = `${count} records for ${company}`;
+            document.getElementById('queryLabel').innerText = (status === "ALL") ? "Total Gross Bill:" : `Total ${status}:`;
+        }
+
         function addDayRow(data = null) { const c = document.getElementById('dayLogsContainer'); const d = document.createElement('div'); d.className = "day-entry border-l-4 border-blue-500"; d.innerHTML = `<div class="grid grid-cols-2 gap-2 mb-2"><input type="date" class="input-box h-8 py-0 d-hdate" value="${data?.hDate || document.getElementById('date').value}"><select class="input-box h-8 py-0 d-helper"></select></div><div class="grid grid-cols-4 gap-1"><input type="number" class="input-box h-8 d-sal px-1 text-center" oninput="calculate()" placeholder="Sal" value="${data?.sal || ''}"><input type="number" step="0.5" class="input-box h-8 d-ot px-1 text-center" oninput="calculate()" placeholder="OT" value="${data?.ot || ''}"><input type="number" class="input-box h-8 d-pet px-1 text-center" oninput="calculate()" placeholder="Pet" value="${data?.pet || ''}"><input type="number" class="input-box h-8 d-food px-1 text-center" oninput="calculate()" placeholder="Food" value="${data?.food || ''}"></div><button onclick="this.parentElement.remove(); calculate()" class="absolute -top-2 -right-2 bg-red-600 text-white w-5 h-5 rounded-full text-xs">×</button>`; c.appendChild(d); const h = (globalSettings.helpers || "").split(','); const s = d.querySelector('.d-helper'); s.innerHTML = h.map(x => `<option>${x.trim()}</option>`).join(''); if(data) s.value = data.helper; }
         function calculate() { const v = (parseFloat(document.getElementById('totalSqft').value) || 0) * (parseFloat(document.getElementById('amtRate').value) || 0); let w = 0; document.querySelectorAll('.day-entry').forEach(r => { const s = parseFloat(r.querySelector('.d-sal').value) || 0; w += s + (s/2 * (parseFloat(r.querySelector('.d-ot').value) || 0)) + (parseFloat(r.querySelector('.d-pet').value) || 0) + (parseFloat(r.querySelector('.d-food').value) || 0); }); document.getElementById('resTotal').innerText = "₹" + Math.round(v).toLocaleString(); document.getElementById('resExpDisplay').innerText = "₹" + Math.round(w).toLocaleString(); return { v, w }; }
         async function saveData() { const isH = document.getElementById('isHoliday').checked; const cust = document.getElementById('customer').value.trim(); if (!isH && !cust) { showMessage("Customer required"); return; } const cal = calculate(), logs = []; if (!isH && document.getElementById('helperSectionToggle').checked) { document.querySelectorAll('.day-entry').forEach(r => { logs.push({ hDate: r.querySelector('.d-hdate').value, helper: r.querySelector('.d-helper').value, sal: r.querySelector('.d-sal').value, ot: r.querySelector('.d-ot').value, pet: r.querySelector('.d-pet').value, food: r.querySelector('.d-food').value }); }); } const data = { date: document.getElementById('date').value, qn: document.getElementById('qn').value, customer: cust, location: document.getElementById('location').value, projectType: document.getElementById('projectType').value, company: document.getElementById('company').value, windowQty: document.getElementById('windowQty').value, totalSqft: document.getElementById('totalSqft').value, amtRate: document.getElementById('amtRate').value, total: cal.v, logs, isHoliday: isH, comment: isH ? document.getElementById('holidayReason').value : "", paymentStatus: document.getElementById('paymentStatus').value }; const id = document.getElementById('editId').value; if(id) await db.collection("workLogs").doc(id).update(data); else await db.collection("workLogs").add(data); location.reload(); }
