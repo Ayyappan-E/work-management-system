@@ -58,19 +58,19 @@
         .light-mode .excel-table th { background: #e2e8f0; }
         .excel-table td { padding: 10px; border-bottom: 1px solid var(--glass-border); }
 
-        .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #3b82f6; }
-        input:checked + .slider:before { transform: translateX(14px); }
-
         .status-badge { padding: 2px 6px; border-radius: 4px; font-size: 8px; font-weight: 900; text-transform: uppercase; }
         .status-received { background: #059669; color: white; }
         .status-Billed { background: #dc2626; color: white; }
         .status-NotBilled { background: #4b5563; color: white; }
         #msgBox { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 200; min-width: 250px; text-align: center; border-radius: 12px; padding: 12px 24px; font-weight: bold; }
         #pdfPreviewFrame { width: 100%; height: 70vh; border: none; background: white; border-radius: 8px; }
+
+        .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider:before { transform: translateX(14px); }
     </style>
 </head>
 <body class="p-4">
@@ -143,7 +143,6 @@
                     <div><label class="m-0 text-green-500">Gross Bill</label><div id="resTotal" class="text-xl font-black text-green-500">₹0</div></div>
                     <div class="text-right"><label class="m-0 text-red-500">Total Wages</label><div id="resExpDisplay" class="text-lg font-bold text-red-500">₹0</div></div>
                 </div>
-                <div><label>Work Description</label><textarea id="workNotes" class="input-box h-16"></textarea></div>
             </div>
 
             <div id="holidayReasonDiv" class="hidden"><label>Holiday Remark *</label><textarea id="holidayReason" class="input-box h-16"></textarea></div>
@@ -165,17 +164,13 @@
         </div>
 
         <div class="flex justify-between items-center mb-4 px-1">
-            <h3 id="historyTitle" class="text-sm font-black uppercase text-blue-500 tracking-wide">Site History</h3>
+            <h3 class="text-sm font-black uppercase text-blue-500 tracking-wide">Site History</h3>
             <span id="recordCount" class="text-[9px] font-bold opacity-40 uppercase"></span>
         </div>
-        
         <div id="displayArea" class="excel-table-container">
             <table class="excel-table">
                <thead>
-                    <tr>
-                        <th>Date</th><th>QN</th><th>Company</th><th>Customer</th><th>Location</th><th>Helpers</th>
-                        <th>Qty</th><th>Type</th><th>Bill</th><th>Payment-Status</th><th>Net</th><th>Action</th>
-                    </tr>
+                    <tr><th>Date</th><th>QN</th><th>Company</th><th>Customer</th><th>Location</th><th>Helpers</th><th>Qty</th><th>Type</th><th>Bill</th><th>Status</th><th>Net</th><th>Action</th></tr>
                 </thead>
                 <tbody id="historyTableBody"></tbody>
             </table>
@@ -198,40 +193,82 @@
             </div>
 
             <div class="grid grid-cols-3 gap-2">
-                <button onclick="exportHelperPDF()" class="w-full bg-emerald-600 py-3 rounded-xl font-black text-white uppercase text-[8px] shadow-lg flex items-center justify-center flex-col gap-1"><i class="fas fa-users"></i> Helper</button>
-                <button onclick="exportSoloPDF()" class="w-full bg-indigo-600 py-3 rounded-xl font-black text-white uppercase text-[8px] shadow-lg flex items-center justify-center flex-col gap-1"><i class="fas fa-user"></i> Solo</button>
-                <button onclick="exportPartnerPDF()" class="w-full bg-blue-600 py-3 rounded-xl font-black text-white uppercase text-[8px] shadow-lg flex items-center justify-center flex-col gap-1"><i class="fas fa-handshake"></i> Partner</button>
+                <button onclick="exportHelperPDF()" class="w-full bg-emerald-600 py-3 rounded-xl font-black text-white text-[8px] uppercase shadow-lg"><i class="fas fa-users mr-1"></i> Helper</button>
+                <button onclick="exportSoloPDF()" class="w-full bg-indigo-600 py-3 rounded-xl font-black text-white text-[8px] uppercase shadow-lg"><i class="fas fa-user mr-1"></i> Solo</button>
+                <button onclick="exportPartnerPDF()" class="w-full bg-blue-600 py-3 rounded-xl font-black text-white text-[8px] uppercase shadow-lg"><i class="fas fa-handshake mr-1"></i> Partner</button>
             </div>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="glass p-5 w-full max-w-md max-h-[95vh] overflow-y-auto space-y-4">
+            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                <h2 class="text-sm font-black text-blue-400 uppercase tracking-widest">Global Settings</h2>
+                <button onclick="toggleSettings()" class="text-gray-500"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="bg-black/20 p-4 rounded-2xl border border-white/10">
+                <div class="flex justify-between items-center mb-4">
+                    <label class="m-0 text-yellow-500 font-black">Annual Status</label>
+                    <select id="reportYearSelect" onchange="generateTargetStatusReport()" class="bg-transparent text-xs font-bold text-blue-400 outline-none border border-white/10 rounded px-2 py-1"></select>
+                </div>
+                <div class="bg-blue-600/10 rounded-xl p-3 mb-4 flex justify-between items-center border border-blue-500/20">
+                    <div><div class="text-[9px] uppercase opacity-60 font-bold">Annual Profit</div><div id="annualTotalVal" class="text-lg font-black text-blue-400">₹0</div></div>
+                    <div class="text-right"><div class="text-[9px] uppercase opacity-60 font-bold">Success Rate</div><div id="annualSuccessRate" class="text-lg font-black text-green-500">0%</div></div>
+                </div>
+                <div id="annualTargetReportList" class="space-y-3 max-h-48 overflow-y-auto pr-1"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="backupData()" class="bg-slate-700 py-2 rounded-xl font-bold text-white uppercase text-[10px] border border-white/10">Export Data</button>
+                <button onclick="document.getElementById('importFile').click()" class="bg-slate-700 py-2 rounded-xl font-bold text-white uppercase text-[10px] border border-white/10">Import Data</button>
+                <input type="file" id="importFile" class="hidden" onchange="restoreData(event)">
+            </div>
+
+            <div class="space-y-3 pt-2 border-t border-white/10">
+                <div><label>Monthly Goal (₹)</label><input type="number" id="setTarget" class="input-box"></div>
+                <div><label>Registered Companies</label><textarea id="setCompanies" class="input-box h-12 text-xs"></textarea></div>
+                <div><label>Helper Database</label><textarea id="setHelpers" class="input-box h-12 text-xs"></textarea></div>
+            </div>
+
+            <div class="pt-2">
+                <a href="payments.html" class="block w-full bg-blue-600/20 border border-blue-500/50 py-3 rounded-xl text-center font-black text-blue-400 uppercase text-[10px]">
+                    <i class="fas fa-wallet mr-2"></i> Payment History
+                </a>
+            </div>
+
+            <button onclick="saveSettings()" class="w-full bg-blue-600 py-4 rounded-2xl font-black text-white uppercase shadow-xl">Update & Sync</button>
         </div>
     </div>
 
     <div id="pdfModal" class="modal">
         <div class="glass p-4 w-full max-w-4xl space-y-4">
             <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                <h2 id="pdfModalTitle" class="text-sm font-black text-blue-400 uppercase tracking-widest">Document Preview</h2>
-                <button onclick="closePdfModal()" class="text-gray-500"><i class="fas fa-times text-xl"></i></button>
+                <h2 id="pdfModalTitle" class="text-sm font-black text-blue-400 uppercase tracking-widest">Preview</h2>
+                <button onclick="closePdfModal()" class="text-gray-500"><i class="fas fa-times"></i></button>
             </div>
             <iframe id="pdfPreviewFrame"></iframe>
             <div class="flex gap-2">
-                <button id="pdfDownloadBtn" class="flex-1 bg-blue-600 py-3 rounded-xl font-black text-white uppercase text-xs shadow-lg">Download PDF</button>
+                <button id="pdfDownloadBtn" class="flex-1 bg-blue-600 py-3 rounded-xl font-black text-white uppercase text-xs">Download</button>
                 <button onclick="closePdfModal()" class="px-6 bg-slate-700 py-3 rounded-xl font-bold text-white uppercase text-xs">Close</button>
             </div>
         </div>
     </div>
 
-    <script src="settings-module.js"></script>
-
     <script>
-        // FIREBASE CONFIG
         const firebaseConfig = { apiKey: "AIzaSyCcdPfK_Y4sUb2O0jqT2-6O3iN1R2_jG58", authDomain: "ayyappan-work-management.firebaseapp.com", projectId: "ayyappan-work-management" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        
         let allEntries = [];
         let globalSettings = { target: 50000, companies: "Sharp, Buildcon", helpers: "Ravi, Kumar" };
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-        // UI HELPERS
+        // --- Core UI Functions ---
+        function toggleSettings() { 
+            const m = document.getElementById('settingsModal'); 
+            m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; 
+        }
+        
         function showMessage(msg) {
             const box = document.getElementById('msgBox'); box.innerText = msg; box.style.display = 'block';
             setTimeout(() => { box.style.display = 'none'; }, 3000);
@@ -252,7 +289,8 @@
         function setPaymentStatus(status) {
             document.getElementById('paymentStatus').value = status;
             ['Received', 'Billed', 'Not Billed'].forEach(s => {
-                const btn = document.getElementById(`btn${s}`);
+                const btn = document.getElementById(`btn${s.replace(' ', '')}`);
+                if (!btn) return;
                 btn.classList.add('opacity-40'); btn.style.backgroundColor = 'transparent'; btn.style.color = 'inherit';
                 if (s === status) {
                     btn.classList.remove('opacity-40');
@@ -263,14 +301,24 @@
             });
         }
 
-        function checkHoliday() { 
-            const isH = document.getElementById('isHoliday').checked; 
-            document.getElementById('workFields').style.display = isH ? 'none' : 'block'; 
-            document.getElementById('holidayReasonDiv').classList.toggle('hidden', !isH); 
-            document.getElementById('helperGlobalWrapper').style.display = isH ? 'none' : 'block'; 
+        // --- Data Logic ---
+        async function syncSettings() {
+            const doc = await db.collection("appSettings").doc("userConfig").get();
+            if(doc.exists) {
+                globalSettings = doc.data();
+                document.getElementById('setTarget').value = globalSettings.target || 50000;
+                document.getElementById('setCompanies').value = globalSettings.companies;
+                document.getElementById('setHelpers').value = globalSettings.helpers;
+            }
+            loadDropdowns(); generateTargetStatusReport();
         }
 
-        // DATA LOGIC
+        async function saveSettings() {
+            globalSettings = { target: parseFloat(document.getElementById('setTarget').value) || 0, companies: document.getElementById('setCompanies').value, helpers: document.getElementById('setHelpers').value };
+            await db.collection("appSettings").doc("userConfig").set(globalSettings);
+            showMessage("Settings Saved"); loadDropdowns(); toggleSettings(); applyFilters();
+        }
+
         function loadDropdowns() {
             const comps = (globalSettings.companies || "").split(',');
             document.getElementById('company').innerHTML = comps.map(c => `<option>${c.trim()}</option>`).join('');
@@ -321,20 +369,20 @@
         async function saveData() {
             const isH = document.getElementById('isHoliday').checked;
             const cust = document.getElementById('customer').value.trim();
-            if (!isH && !cust) { showMessage("CUSTOMER REQUIRED"); return; }
+            if (!isH && !cust) { showMessage("Customer required"); return; }
             const cal = calculate(), logs = [];
             if (!isH && document.getElementById('helperSectionToggle').checked) {
                 document.querySelectorAll('.day-entry').forEach(row => { 
                     logs.push({ hDate: row.querySelector('.d-hdate').value, helper: row.querySelector('.d-helper').value, sal: row.querySelector('.d-sal').value, ot: row.querySelector('.d-ot').value, pet: row.querySelector('.d-pet').value, food: row.querySelector('.d-food').value }); 
                 });
             }
-            const data = { 
-                date: document.getElementById('date').value, qn: document.getElementById('qn').value, customer: cust, location: document.getElementById('location').value, projectType: document.getElementById('projectType').value, company: document.getElementById('company').value, windowQty: document.getElementById('windowQty').value, totalSqft: document.getElementById('totalSqft').value, amtRate: document.getElementById('amtRate').value, total: cal.val, logs, isHoliday: isH, comment: isH ? document.getElementById('holidayReason').value : document.getElementById('workNotes').value, paymentStatus: document.getElementById('paymentStatus').value
-            };
+            const data = { date: document.getElementById('date').value, qn: document.getElementById('qn').value, customer: cust, location: document.getElementById('location').value, projectType: document.getElementById('projectType').value, company: document.getElementById('company').value, windowQty: document.getElementById('windowQty').value, totalSqft: document.getElementById('totalSqft').value, amtRate: document.getElementById('amtRate').value, total: cal.val, logs, isHoliday: isH, comment: isH ? document.getElementById('holidayReason').value : "", paymentStatus: document.getElementById('paymentStatus').value };
             const id = document.getElementById('editId').value;
             if(id) await db.collection("workLogs").doc(id).update(data); else await db.collection("workLogs").add(data);
             location.reload();
         }
+
+        async function deleteDoc(id) { if(confirm("Delete record?")) { await db.collection("workLogs").doc(id).delete(); showMessage("Deleted"); } }
 
         function applyFilters() {
             const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
@@ -373,144 +421,63 @@
                 }
             });
 
-            // Update Target Progress
             const totalEarned = soloEarn + partnerEarn;
             const target = parseFloat(globalSettings.target) || 50000;
-            const progress = Math.min((totalEarned / target) * 100, 100);
-            const remaining = Math.max(target - totalEarned, 0);
-
             document.getElementById('targetEarned').innerText = `Earned: ₹${Math.round(totalEarned).toLocaleString()}`;
             document.getElementById('targetGoal').innerText = `Target: ₹${Math.round(target).toLocaleString()}`;
-            document.getElementById('targetRem').innerText = `₹${Math.round(remaining).toLocaleString()} Remaining`;
-            document.getElementById('targetBar').style.width = `${progress}%`;
+            document.getElementById('targetRem').innerText = `₹${Math.round(Math.max(target-totalEarned, 0)).toLocaleString()} Rem`;
+            document.getElementById('targetBar').style.width = `${Math.min((totalEarned/target)*100, 100)}%`;
             document.getElementById('recordCount').innerText = `${count} records`;
             document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
             document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
-            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(soloEarn + partnerEarn).toLocaleString();
+            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(totalEarned).toLocaleString();
         }
 
-        // PDF EXPORTS
-        function openPdfPreview(pdfDoc, fileName, title) {
-            document.getElementById('pdfPreviewFrame').src = pdfDoc.output('bloburl');
-            document.getElementById('pdfModalTitle').innerText = title;
-            document.getElementById('pdfModal').style.display = 'flex';
-            const btn = document.getElementById('pdfDownloadBtn');
-            btn.onclick = () => { pdfDoc.save(fileName); closePdfModal(); };
-        }
-
-        function closePdfModal() { document.getElementById('pdfModal').style.display = 'none'; }
-
-        function exportHelperPDF() {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
-            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
-            doc.text(`Helper Report: ${monthNames[fM]} ${fY}`, 14, 15);
-            const rows = []; let grandTotal = 0;
-            allEntries.forEach(entry => {
-                const ed = new Date(entry.date);
-                if(ed.getMonth() == fM && ed.getFullYear() == fY && entry.logs?.length > 0) {
-                    entry.logs.forEach(log => {
-                        const s = parseFloat(log.sal) || 0;
-                        const tot = s + (s/2 * (parseFloat(log.ot)||0)) + (parseFloat(log.pet)||0) + (parseFloat(log.food)||0);
-                        grandTotal += tot;
-                        rows.push([log.hDate || entry.date, log.helper, entry.projectType || 'Solo', entry.location || '-', entry.customer || 'Site', `Rs. ${s}`, log.ot || 0, `Rs. ${Math.round(tot)}`]);
-                    });
-                }
+        // --- Helper Logic ---
+        function generateTargetStatusReport() {
+            const container = document.getElementById('annualTargetReportList');
+            const year = document.getElementById('reportYearSelect').value;
+            const target = parseFloat(globalSettings.target) || 50000;
+            container.innerHTML = ""; let annual = 0, met = 0, tracked = 0;
+            monthNames.forEach((name, idx) => {
+                let monthlyProfit = 0, hasData = false;
+                allEntries.forEach(d => {
+                    const dD = new Date(d.date);
+                    if(dD.getFullYear() == year && dD.getMonth() == idx && !d.isHoliday) {
+                        hasData = true;
+                        let exp = 0; d.logs?.forEach(l => { const s = parseFloat(l.sal)||0; exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); });
+                        const net = (parseFloat(d.total)||0) - exp;
+                        monthlyProfit += (d.projectType === 'Partner' ? net/2 : net);
+                    }
+                });
+                if(hasData) { tracked++; if(monthlyProfit >= target) met++; annual += monthlyProfit; container.innerHTML += `<div class="bg-white/5 p-3 rounded-xl border border-white/5 flex justify-between"><span class="text-xs font-bold">${name}</span><span class="${monthlyProfit >= target ? 'text-green-500' : 'text-red-400'} font-black">₹${Math.round(monthlyProfit).toLocaleString()}</span></div>`; }
             });
-            rows.push(['', '', '', '', '', '', 'Grand Total', `Rs. ${Math.round(grandTotal).toLocaleString()}`]);
-            doc.autoTable({ startY: 25, head: [['Date', 'Helper', 'Type', 'Location', 'Site', 'Salary', 'OT', 'Total']], body: rows });
-            openPdfPreview(doc, `Helpers_${monthNames[fM]}_${fY}.pdf`, `Helper Report: ${monthNames[fM]} ${fY}`);
+            document.getElementById('annualTotalVal').innerText = `₹${Math.round(annual).toLocaleString()}`;
+            document.getElementById('annualSuccessRate').innerText = `${tracked > 0 ? Math.round((met/tracked)*100) : 0}%`;
         }
 
-        function exportSoloPDF() {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
-            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
-            doc.text(`Solo Work Report: ${monthNames[fM]} ${fY}`, 14, 15);
-            const rows = []; let grandNet = 0; let grandWages = 0;
-            allEntries.forEach(d => {
-                const ed = new Date(d.date);
-                if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday && d.projectType === 'Solo') {
-                    let exp = 0, helperNames = [], totalOT = 0;
-                    d.logs?.forEach(l => { 
-                        const s = parseFloat(l.sal)||0; exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
-                        if(!helperNames.includes(l.helper)) helperNames.push(l.helper);
-                        totalOT += parseFloat(l.ot) || 0;
-                    });
-                    const net = (parseFloat(d.total)||0) - exp; 
-                    grandNet += net; grandWages += exp;
-                    rows.push([d.date, d.qn || '-', d.company || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, d.paymentStatus || 'Billed', `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(net)}`]);
-                }
-            });
-            rows.push(['', '', '', '', '', '', '', '', '', `Wages: Rs. ${Math.round(grandWages).toLocaleString()}`, `Net: Rs. ${Math.round(grandNet).toLocaleString()}`]);
-            doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Company', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Status', 'Wages', 'Net Profit']], body: rows });
-            openPdfPreview(doc, `Solo_Work_${monthNames[fM]}_${fY}.pdf`, `Solo Work: ${monthNames[fM]} ${fY}`);
-        }
-
-        function exportPartnerPDF() {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); 
-            const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value;
-            doc.text(`Partner Work Report: ${monthNames[fM]} ${fY}`, 14, 15);
-            const rows = []; let grandShare = 0; let grandWages = 0;
-            allEntries.forEach(d => {
-                const ed = new Date(d.date);
-                if(ed.getMonth() == fM && ed.getFullYear() == fY && !d.isHoliday && d.projectType === 'Partner') {
-                    let exp = 0, helperNames = [], totalOT = 0;
-                    d.logs?.forEach(l => { 
-                        const s = parseFloat(l.sal)||0; exp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
-                        if(!helperNames.includes(l.helper)) helperNames.push(l.helper);
-                        totalOT += parseFloat(l.ot) || 0;
-                    });
-                    const share = ((parseFloat(d.total)||0) - exp) / 2; 
-                    grandShare += share; grandWages += exp;
-                    rows.push([d.date, d.qn || '-', d.company || '-', d.customer, d.location || '-', helperNames.join(', '), totalOT, `Rs. ${Math.round(d.total)}`, d.paymentStatus || 'Billed', `Rs. ${Math.round(exp)}`, `Rs. ${Math.round(share)}`]);
-                }
-            });
-            rows.push(['', '', '', '', '', '', '', '', '', `Wages: Rs. ${Math.round(grandWages).toLocaleString()}`, `Net Share: Rs. ${Math.round(grandShare).toLocaleString()}`]);
-            doc.autoTable({ startY: 25, head: [['Date', 'QN', 'Company', 'Customer', 'Location', 'Helpers', 'OT', 'Bill', 'Status', 'Wages', 'Share (50%)']], body: rows });
-            openPdfPreview(doc, `Partner_Work_${monthNames[fM]}_${fY}.pdf`, `Partner Work: ${monthNames[fM]} ${fY}`);
-        }
-
-        // KURAL API
-        function fetchDailyKural() {
-            const kuralList = [
-                { number: "611", tamil: "அருமை உடைத்தென்று அசாவாமை வேண்டும்<br>பெருமை முயற்சி தரும்.", meaningTamil: "விடாமுயற்சியே ஒருவருக்குப் பெருமையைத் தரும்." },
-                { number: "616", tamil: "வெள்ளத் தனைய மலர்நீட்டம் மாந்தர்தம்<br>உள்ளத் தனையது உயர்வு.", meaningTamil: "மனிதனின் ஊக்கத்திற்கு ஏற்ப அவனது உயர்வு இருக்கும்." },
-                { number: "531", tamil: "எண்ணித் துணிக கருமம் துணிந்தபின்<br>எண்ணுவம் என்பது இழுக்கு.", meaningTamil: "ஒரு செயலைத் தொடங்கும் முன் ஆராய வேண்டும், தொடங்கிய பின் தயங்குவது தவறு." },
-                { number: "612", tamil: "தாளாண்மை என்னும் தகைமைக்கண் தங்கிற்றே<br>வேளாண்மை என்னும் செருக்கு.", meaningTamil: "முயற்சியுடன் உழைப்பதே பிறர்க்கு உதவும் பெருமை தரும்." },
-                { number: "594", tamil: "உள்ளுவ தெல்லாம் உயர்வுள்ளல் மற்றது<br>தள்ளினும் தள்ளாமை நீர்த்து.", meaningTamil: "எப்போதும் உயர்ந்த குறிக்கோளையே நினைக்க வேண்டும்." }
-            ];
-            const kural = kuralList[new Date().getDate() % kuralList.length];
-            document.getElementById('kuralNumber').innerText = `குறள் ${kural.number}`;
-            document.getElementById('kuralTamil').innerHTML = kural.tamil;
-            document.getElementById('kuralMeaning').innerText = kural.meaningTamil;
-        }
-
-        // EDIT / DELETE
         function editDoc(id) {
             const d = allEntries.find(e => e.id === id);
-            document.getElementById('editId').value = id; document.getElementById('date').value = d.date; document.getElementById('customer').value = d.customer; document.getElementById('qn').value = d.qn || "";
+            document.getElementById('editId').value = id; document.getElementById('date').value = d.date; document.getElementById('customer').value = d.customer;
             document.getElementById('location').value = d.location || ""; document.getElementById('totalSqft').value = d.totalSqft || ""; document.getElementById('amtRate').value = d.amtRate || "";
             document.getElementById('projectType').value = d.projectType; document.getElementById('isHoliday').checked = d.isHoliday; setPaymentStatus(d.paymentStatus || 'Billed');
             const logs = d.logs || []; document.getElementById('dayLogsContainer').innerHTML = ""; 
             if(logs.length > 0) { document.getElementById('helperSectionToggle').checked = true; toggleHelperVisibility(); logs.forEach(l => addDayRow(l)); }
-            else { document.getElementById('helperSectionToggle').checked = false; toggleHelperVisibility(); }
             checkHoliday(); calculate(); window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
-        async function deleteDoc(id) { if(confirm("Delete record?")) { await db.collection("workLogs").doc(id).delete(); showMessage("Deleted"); } }
+        function checkHoliday() { const isH = document.getElementById('isHoliday').checked; document.getElementById('workFields').style.display = isH ? 'none' : 'block'; document.getElementById('holidayReasonDiv').classList.toggle('hidden', !isH); document.getElementById('helperGlobalWrapper').style.display = isH ? 'none' : 'block'; }
+        function backupData() { const blob = new Blob([JSON.stringify(allEntries)], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `Backup.json`; a.click(); }
+        async function restoreData(event) { const file = event.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = async (e) => { const data = JSON.parse(e.target.result); if(confirm(`Import ${data.length} records?`)) { for(const item of data) { delete item.id; await db.collection("workLogs").add(item); } location.reload(); } }; reader.readAsText(file); }
 
-        // INITIAL LOAD
-        db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => { 
-            allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
-            applyFilters();
-        });
+        // PDF Functions
+        function openPdfPreview(pdfDoc, fileName, title) { document.getElementById('pdfPreviewFrame').src = pdfDoc.output('bloburl'); document.getElementById('pdfModalTitle').innerText = title; document.getElementById('pdfModal').style.display = 'flex'; document.getElementById('pdfDownloadBtn').onclick = () => { pdfDoc.save(fileName); closePdfModal(); }; }
+        function closePdfModal() { document.getElementById('pdfModal').style.display = 'none'; }
+        function exportHelperPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l'); const fM = document.getElementById('filterMonth').value, fY = document.getElementById('filterYear').value; doc.text(`Helper Report: ${monthNames[fM]} ${fY}`, 14, 15); const rows = []; allEntries.forEach(e => { const ed = new Date(e.date); if(ed.getMonth() == fM && ed.getFullYear() == fY && e.logs?.length > 0) e.logs.forEach(l => { const s = parseFloat(l.sal)||0; const tot = s + (s/2*(parseFloat(l.ot)||0))+(parseFloat(l.pet)||0)+(parseFloat(l.food)||0); rows.push([l.hDate||e.date, l.helper, e.customer, `Rs. ${Math.round(tot)}`]); }); }); doc.autoTable({ startY: 25, head: [['Date', 'Helper', 'Site', 'Total']], body: rows }); openPdfPreview(doc, `Helpers_${monthNames[fM]}.pdf`, "Helper Report"); }
 
-        window.onload = async () => { 
-            const now = new Date(); document.getElementById('date').valueAsDate = now; 
-            if(window.syncSettings) await window.syncSettings(); // Calling from module
-            document.getElementById('filterMonth').value = now.getMonth(); 
-            document.getElementById('filterYear').value = now.getFullYear();
-            applyFilters(); fetchDailyKural();
-        };
+        // Init
+        db.collection("workLogs").orderBy("date", "desc").onSnapshot(snap => { allEntries = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })); applyFilters(); });
+        window.onload = async () => { const now = new Date(); document.getElementById('date').valueAsDate = now; await syncSettings(); document.getElementById('filterMonth').value = now.getMonth(); document.getElementById('filterYear').value = now.getFullYear(); applyFilters(); };
     </script>
 </body>
 </html>
