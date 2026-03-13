@@ -406,13 +406,14 @@
         // Multi-Day Logic
         function syncWorkDates() {
             const container = document.getElementById('workDatesContainer');
+            const mainDate = document.getElementById('date').value;
             if (container.children.length === 0) {
-                addWorkDateRow(document.getElementById('date').value);
+                addWorkDateRow(mainDate);
             } else {
-                // Update the first date to match main date
                 const firstInput = container.querySelector('input[type="date"]');
-                if (firstInput) firstInput.value = document.getElementById('date').value;
+                if (firstInput) firstInput.value = mainDate;
             }
+            updateHelperDateOptions();
         }
 
         function addWorkDateRow(val = '') {
@@ -637,7 +638,10 @@
                 const userName = globalSettings.userName || "Ayyappan";
 
                 doc.setFontSize(18);
-                doc.setTextColor(workType === 'Solo' ? [5, 150, 105] : [107, 33, 168]);
+                // Fix: Passing individual RGB values instead of array to avoid f3 error in some jsPDF versions
+                if (workType === 'Solo') doc.setTextColor(5, 150, 105);
+                else doc.setTextColor(107, 33, 168);
+
                 doc.text(`${workType} Site Logs - ${monthLabel} ${fY}`, 14, 15);
                 
                 let tableData = [];
@@ -660,10 +664,9 @@
                         const net = (parseFloat(d.total) || 0) - siteExp;
                         totalNet += net;
                         
-                        // Format multi-dates for PDF
                         const datesStr = d.workDates ? d.workDates.join(', ') : d.date;
-                        
                         const rowData = [datesStr, hNames.join(', ') || '-', d.customer || '-', d.location || '-'];
+                        
                         if (workType === 'Partner') {
                             const biller = d.billerPartner || userName;
                             rowData.push(biller);
@@ -828,13 +831,11 @@
             `;
             container.appendChild(dayDiv);
             
-            // Populate Helper names
             const helps = (globalSettings.helpers || "").split(',');
             const sel = dayDiv.querySelector('.d-helper');
             sel.innerHTML = helps.map(h => `<option>${h.trim()}</option>`).join('');
             if(data) sel.value = data.helper;
 
-            // Populate available work dates
             const dateSel = dayDiv.querySelector('.d-hdate');
             const dates = Array.from(document.querySelectorAll('.work-date-input')).map(i => i.value).filter(v => v);
             dateSel.innerHTML = dates.map(d => `<option value="${d}">${d}</option>`).join('');
@@ -869,7 +870,6 @@
             setPaymentStatus(d.paymentStatus || 'Billed'); 
             toggleBillerField();
             
-            // Reset and build work dates
             document.getElementById('workDatesContainer').innerHTML = "";
             if (d.workDates && d.workDates.length > 0) {
                 d.workDates.forEach(wd => addWorkDateRow(wd));
@@ -895,7 +895,6 @@
             document.getElementById('date').valueAsDate = now;
             await syncSettings(); 
             
-            // Start with one day row automatically
             syncWorkDates();
 
             document.getElementById('filterMonth').value = now.getMonth(); 
