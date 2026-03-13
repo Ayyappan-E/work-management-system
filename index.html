@@ -60,7 +60,7 @@
         .input-box:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
         label { font-size: 11px; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; display: block; letter-spacing: 0.5px; }
         .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 10px; backdrop-filter: blur(8px); }
-        .excel-table-container { overflow-x: auto; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--glass-bg); max-height: calc(100vh - 400px); margin-bottom: 1rem; }
+        .excel-table-container { overflow-x: auto; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--glass-bg); max-height: calc(100vh - 450px); margin-bottom: 1rem; }
         .excel-table { width: 100%; border-collapse: collapse; font-size: 10.5px; white-space: nowrap; }
         .excel-table th { position: sticky; top: 0; background: #1e1b4b; padding: 12px 10px; text-align: left; text-transform: uppercase; color: var(--text-dim); border-bottom: 2px solid var(--glass-border); font-weight: 800; z-index: 10; }
         .light-mode .excel-table th { background: #e2e8f0; }
@@ -317,14 +317,28 @@
             </div>
 
             <div class="space-y-3">
-                <div class="bg-black/20 p-4 border border-white/10 rounded-xl">
-                    <div class="grid grid-cols-4 gap-2 text-center">
-                        <div><div class="text-[9px] uppercase font-bold text-gray-400">Solo Profit</div><div id="tblSolo" class="text-xs font-black text-green-500">₹0</div></div>
-                        <div><div class="text-[9px] uppercase font-bold text-gray-400">Partner Profit</div><div id="tblPartnerMine" class="text-xs font-black text-blue-500">₹0</div></div>
-                        <div><div class="text-[9px] uppercase font-bold text-gray-400">Total Profit</div><div id="tblGrandTotalModal" class="text-sm font-black text-yellow-500">₹0</div></div>
-                        <div><div class="text-[9px] uppercase font-bold text-red-400">Received Pay</div><div id="tblReceivedModal" class="text-sm font-black text-green-500">₹0</div></div>
+                <!-- Status & Profit Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Billing Breakdown -->
+                    <div class="bg-white/5 p-4 border border-white/10 rounded-xl">
+                         <div class="text-[10px] uppercase font-black text-blue-400 mb-3 tracking-widest border-b border-white/5 pb-1">Billing Status Sum</div>
+                         <div class="grid grid-cols-3 gap-2 text-center">
+                            <div><div class="text-[8px] uppercase font-bold text-green-500">Received</div><div id="sumReceived" class="text-xs font-black text-white">₹0</div></div>
+                            <div><div class="text-[8px] uppercase font-bold text-red-500">Billed</div><div id="sumBilled" class="text-xs font-black text-white">₹0</div></div>
+                            <div><div class="text-[8px] uppercase font-bold text-gray-400">Not Billed</div><div id="sumNotBilled" class="text-xs font-black text-white">₹0</div></div>
+                         </div>
+                    </div>
+                    <!-- Profit Calculation -->
+                    <div class="bg-black/20 p-4 border border-white/10 rounded-xl">
+                        <div class="text-[10px] uppercase font-black text-yellow-500 mb-3 tracking-widest border-b border-white/5 pb-1">Profit Summary</div>
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div><div class="text-[8px] uppercase font-bold text-gray-400">Solo</div><div id="tblSolo" class="text-xs font-black text-green-500">₹0</div></div>
+                            <div><div class="text-[8px] uppercase font-bold text-gray-400">Partner</div><div id="tblPartnerMine" class="text-xs font-black text-blue-500">₹0</div></div>
+                            <div><div class="text-[8px] uppercase font-bold text-yellow-500">Total</div><div id="tblGrandTotalModal" class="text-sm font-black text-yellow-500">₹0</div></div>
+                        </div>
                     </div>
                 </div>
+
                 <div class="grid grid-cols-2 gap-2">
                     <button onclick="executeHelperPdf('Solo')" class="bg-green-600/20 text-green-500 border border-green-600/30 py-2 rounded text-[10px] font-black uppercase hover:bg-green-600 hover:text-white transition-all">
                         <i class="fas fa-user mr-1"></i> Solo PDF
@@ -563,15 +577,9 @@
             const fY = document.getElementById('filterYear').value;
             const fC = document.getElementById('filterCompany').value;
             
-            let payTotal = 0;
-            allPayments.forEach(p => {
-                const pD = new Date(p.date);
-                if(pD.getMonth() == fM && pD.getFullYear() == fY && (fC === 'ALL' || p.company === fC)) {
-                    payTotal += parseFloat(p.amount || 0);
-                }
-            });
-
             let soloEarn = 0, partnerEarn = 0, count = 0;
+            let sumRec = 0, sumBilled = 0, sumNotBilled = 0;
+
             const tbody = document.getElementById('historyTableBody'); tbody.innerHTML = "";
             
             allEntries.forEach(d => {
@@ -583,11 +591,20 @@
                         siteExp += s + (s/2 * (parseFloat(l.ot)||0)) + (parseFloat(l.pet)||0) + (parseFloat(l.food)||0); 
                         if(!hNames.includes(l.helper)) hNames.push(l.helper); 
                     });
-                    const net = (parseFloat(d.total)||0) - siteExp;
+                    
+                    const gross = parseFloat(d.total||0);
+                    const net = gross - siteExp;
+                    
+                    // Sum by Payment Status
+                    if (d.paymentStatus === 'Received') sumRec += gross;
+                    else if (d.paymentStatus === 'Billed') sumBilled += gross;
+                    else sumNotBilled += gross;
+
                     if(!d.isHoliday) { 
                         if(d.projectType === 'Partner') partnerEarn += net/2; 
                         else soloEarn += net; 
                     }
+
                     const statClass = d.paymentStatus === 'Received' ? 'status-received' : d.paymentStatus === 'Billed' ? 'status-billed' : 'status-not-billed';
                     const row = document.createElement('tr');
                     const daysCount = d.workDates?.length || 1;
@@ -600,7 +617,7 @@
                         <td class="text-blue-500 font-bold">${d.billerPartner||'-'}</td>
                         <td class="max-w-[100px] truncate">${hNames.join(', ')}</td>
                         <td>${d.projectType}</td>
-                        <td>₹${Math.round(d.total||0)}</td>
+                        <td>₹${Math.round(gross)}</td>
                         <td>₹${Math.round(net)}</td>
                         <td>₹${Math.round(net/2)}</td>
                         <td><span class="status-badge ${statClass}">${d.paymentStatus}</span></td>
@@ -614,16 +631,22 @@
             });
             const grandTotal = soloEarn + partnerEarn;
             const target = parseFloat(globalSettings.target) || 50000;
+
+            // Main UI updates
             document.getElementById('targetEarned').innerText = `Earned: ₹${Math.round(grandTotal).toLocaleString()}`;
             document.getElementById('targetBar').style.width = `${Math.min((grandTotal/target)*100,100)}%`;
             document.getElementById('recordCount').innerText = `${count} records`;
+            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(grandTotal).toLocaleString();
+            document.getElementById('targetRem').innerText = `₹${Math.round(Math.max(target-grandTotal,0)).toLocaleString()} Rem.`;
+
+            // Modal Summary updates
             document.getElementById('tblSolo').innerText = "₹" + Math.round(soloEarn).toLocaleString();
             document.getElementById('tblPartnerMine').innerText = "₹" + Math.round(partnerEarn).toLocaleString();
-            document.getElementById('tblGrandTotal').innerText = "₹" + Math.round(grandTotal).toLocaleString();
             document.getElementById('tblGrandTotalModal').innerText = "₹" + Math.round(grandTotal).toLocaleString();
-            document.getElementById('tblReceivedModal').innerText = "₹" + Math.round(payTotal).toLocaleString();
-            document.getElementById('targetRem').innerText = `₹${Math.round(Math.max(target-grandTotal,0)).toLocaleString()} Rem.`;
-            document.getElementById('sideTotalPayments').innerText = "₹" + Math.round(payTotal).toLocaleString();
+            
+            document.getElementById('sumReceived').innerText = "₹" + Math.round(sumRec).toLocaleString();
+            document.getElementById('sumBilled').innerText = "₹" + Math.round(sumBilled).toLocaleString();
+            document.getElementById('sumNotBilled').innerText = "₹" + Math.round(sumNotBilled).toLocaleString();
         }
 
         // PDF Generation
@@ -638,7 +661,6 @@
                 const userName = globalSettings.userName || "Ayyappan";
 
                 doc.setFontSize(18);
-                // Fix: Passing individual RGB values instead of array to avoid f3 error in some jsPDF versions
                 if (workType === 'Solo') doc.setTextColor(5, 150, 105);
                 else doc.setTextColor(107, 33, 168);
 
@@ -791,6 +813,7 @@
             document.getElementById('paymentStatus').value = status;
             ['Received', 'Billed', 'Not Billed'].forEach(s => {
                 const btn = document.getElementById(`btn${s}`);
+                if (!btn) return;
                 btn.style.opacity = s === status ? '1' : '0.4';
                 btn.style.background = s === status ? (s === 'Received' ? '#059669' : s === 'Billed' ? '#dc2626' : '#4b5563') : 'transparent';
             });
